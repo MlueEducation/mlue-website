@@ -1,3 +1,6 @@
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --brand-purple: #7c3aed;
   --brand-purple-hover: #8b5cf6;
