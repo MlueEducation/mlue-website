@@ -14,5 +14,10 @@
     "react-dom": "latest",
     "@supabase/supabase-js": "latest",
     "@vercel/analytics": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "latest",
+    "postcss": "latest",
+    "autoprefixer": "latest"
   }
 }
