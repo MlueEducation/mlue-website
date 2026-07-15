@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mlue — Yeni Nəsil Rəqəmsal Təhsil və Karyera Platforması</title>
+<meta name="description" content="Mlue — Azərbaycan gəncləri üçün Azərbaycan, Türk və Rus dillərində video dərslər, mentor dəstəyi, süni intellekt əsaslı fərdiləşdirmə və karyera hazırlığı bir arada.">
+<meta property="og:title" content="Mlue — Yeni Nəsil Rəqəmsal Təhsil və Karyera Platforması">
+<meta property="og:description" content="Öyrən, praktika et, sertifikat al, işə hazırlaş — hamısı bir platformada.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --brand-purple:#7c3aed;
+    --brand-purple-hover:#8b5cf6;
+    --brand-purple-glow:rgba(124,58,237,.35);
+    --brand-yellow:#fbbf24;
+    --brand-yellow-soft:rgba(251,191,36,.1);
+
+    --bg-page:#090a0f;
+    --bg-surface:#131520;
+    --bg-surface-secondary:#1a1d2c;
+    --border-dark:#1f2235;
+    --border-glow:rgba(124,58,237,.2);
+
+    --text-bright:#ffffff;
+    --text-muted:#94a3b8;
+    --text-darker:#64748b;
+
+    --success:#10b981;
+    --danger:#f43f5e;
+
+    --radius-sm:6px;
+    --radius-md:12px;
+    --radius-lg:20px;
+    --radius-full:9999px;
+
+    --glow-light:0 0 20px rgba(124,58,237,.15);
+    --glow-strong:0 0 35px rgba(124,58,237,.3);
+
+    --container:1120px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg-page);
+    color:var(--text-bright);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  img,svg{display:block;}
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;}
+  .container{max-width:var(--container);margin:0 auto;padding:0 24px;}
+  section{position:relative;padding:96px 0;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:600;color:var(--brand-purple-hover);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;
+  }
+  h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.02em;margin-bottom:14px;}
+  .section-sub{color:var(--text-muted);font-size:16px;max-width:620px;line-height:1.6;margin-bottom:48px;}
+  .center{text-align:center;margin-left:auto;margin-right:auto;}
+
+  /* ---------- reveal animation ---------- */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none;}
+    html{scroll-behavior:auto;}
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    background:rgba(9,10,15,.72);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border-dark);
+  }
+  nav{
+    max-width:var(--container);margin:0 auto;padding:16px 24px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;}
+  .brand-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-purple),#ec4899);flex-shrink:0;}
+  .brand-word{background:linear-gradient(90deg,#fff,#e7d9ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .nav-links{display:flex;gap:32px;font-size:14.5px;color:var(--text-muted);}
+  .nav-links a:hover{color:var(--text-bright);}
+  .nav-cta{
+    background:var(--brand-purple);color:#fff;font-weight:700;font-size:14px;
+    padding:10px 20px;border-radius:var(--radius-sm);box-shadow:var(--glow-light);
+    transition:background .2s,box-shadow .2s;white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--brand-purple-hover);box-shadow:var(--glow-strong);}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+  .burger span{width:22px;height:2px;background:#fff;border-radius:2px;}
+  .mobile-menu{display:none;flex-direction:column;gap:18px;padding:20px 24px 28px;border-top:1px solid var(--border-dark);}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{color:var(--text-muted);font-size:15px;}
+
+  /* ---------- hero ---------- */
+  .hero{padding:180px 0 100px;position:relative;text-align:center;}
+  .orb{
+    position:absolute;top:-120px;left:50%;transform:translateX(-50%);
+    width:560px;height:560px;background:var(--brand-purple-glow);
+    filter:blur(130px);pointer-events:none;z-index:0;
+    animation:pulse 8s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.65;}50%{opacity:1;}}
+  @media (prefers-reduced-motion:reduce){.orb{animation:none;}}
+  .hero-inner{position:relative;z-index:1;max-width:760px;margin:0 auto;}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--brand-purple-glow);border:1px solid var(--border-glow);
+    color:#d8c8ff;font-size:12.5px;font-weight:600;
+    padding:8px 16px;border-radius:var(--radius-full);margin-bottom:28px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--brand-purple-hover);}
+  h1{font-size:clamp(34px,6vw,58px);font-weight:800;line-height:1.12;letter-spacing:-.02em;margin-bottom:22px;}
+  h1 .accent{background:linear-gradient(90deg,var(--brand-purple),#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p{color:var(--text-muted);font-size:17px;line-height:1.65;margin-bottom:36px;}
+  .cta-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:64px;}
+  .btn-primary{
+    background:var(--brand-purple);color:#fff;font-weight:700;font-size:15px;
+    padding:15px 28px;border-radius:var(--radius-sm);box-shadow:var(--glow-light);
+    transition:background .25s,box-shadow .25s,transform .2s;border:none;cursor:pointer;
+  }
+  .btn-primary:hover{background:var(--brand-purple-hover);box-shadow:var(--glow-strong);transform:translateY(-1px);}
+  .btn-secondary{
+    background:transparent;border:1px solid var(--border-dark);color:var(--text-bright);
+    font-weight:600;font-size:15px;padding:15px 28px;border-radius:var(--radius-sm);
+    transition:background .2s,border-color .2s;
+  }
+  .btn-secondary:hover{background:var(--bg-surface-secondary);border-color:var(--border-glow);}
+  .stats{display:flex;justify-content:center;gap:56px;flex-wrap:wrap;border-top:1px solid var(--border-dark);padding-top:40px;}
+  .stat b{display:block;font-size:clamp(24px,3vw,32px);font-weight:800;color:var(--brand-yellow);margin-bottom:4px;}
+  .stat span{font-size:12.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+
+  /* ---------- problem / solution ---------- */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .compare-col{background:var(--bg-surface);border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:32px;}
+  .compare-col h3{font-size:15px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:22px;color:var(--text-muted);}
+  .compare-col.bad h3{color:#fca5a5;}
+  .compare-col.good{border-color:var(--border-glow);box-shadow:var(--glow-light);}
+  .compare-col.good h3{color:var(--brand-yellow);}
+  .compare-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border-dark);font-size:14.5px;line-height:1.5;}
+  .compare-item:last-child{border-bottom:none;}
+  .compare-item .mark{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:1px;}
+  .bad .mark{background:rgba(244,63,94,.12);color:var(--danger);}
+  .good .mark{background:rgba(16,185,129,.12);color:var(--success);}
+
+  /* ---------- features ---------- */
+  .feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+  .feat-card{
+    background:var(--bg-surface);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
+    padding:28px 24px;transition:border-color .25s,transform .25s;
+  }
+  .feat-card:hover{border-color:var(--border-glow);transform:translateY(-4px);}
+  .feat-icon{
+    width:44px;height:44px;border-radius:var(--radius-md);background:var(--brand-yellow-soft);
+    display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--brand-yellow);
+  }
+  .feat-card h3{font-size:16.5px;font-weight:700;margin-bottom:8px;}
+  .feat-card p{font-size:13.5px;color:var(--text-muted);line-height:1.55;}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;counter-reset:step;}
+  .step{position:relative;padding:32px 24px 24px;background:var(--bg-surface);border:1px solid var(--border-dark);border-radius:var(--radius-lg);}
+  .step-num{
+    width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand-purple),#ec4899);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;margin-bottom:18px;
+  }
+  .step h3{font-size:15.5px;font-weight:700;margin-bottom:8px;}
+  .step p{font-size:13.5px;color:var(--text-muted);line-height:1.5;}
+
+  /* ---------- pricing ---------- */
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:820px;margin:0 auto;}
+  .price-card{background:var(--bg-surface);border:1px solid var(--border-dark);border-radius:var(--radius-lg);padding:36px 32px;}
+  .price-card.highlight{border:2px solid var(--brand-purple);box-shadow:var(--glow-light);position:relative;}
+  .price-tag{
+    position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+    background:var(--brand-yellow);color:#1a1200;font-size:11.5px;font-weight:800;
+    padding:6px 16px;border-radius:var(--radius-full);text-transform:uppercase;letter-spacing:.05em;
+  }
+  .price-card .plan{color:var(--text-muted);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;}
+  .price-amount{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
+  .price-amount b{font-size:40px;font-weight:800;}
+  .price-amount span{color:var(--text-muted);font-size:14px;}
+  .price-note{font-size:12.5px;color:var(--text-darker);margin-bottom:24px;}
+  .price-card ul{margin-bottom:28px;}
+  .price-card li{display:flex;gap:10px;font-size:13.5px;color:var(--text-muted);padding:8px 0;}
+  .price-card li:before{content:"✓";color:var(--brand-yellow);font-weight:800;flex-shrink:0;}
+  .price-card .btn-primary,.price-card .btn-secondary{display:block;text-align:center;width:100%;}
+
+  /* ---------- vision ---------- */
+  .vision{
+    background:var(--bg-surface);border:1px solid var(--border-dark);border-radius:var(--radius-lg);
+    padding:48px;display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;
+  }
+  .vision p{color:var(--text-muted);font-size:15px;line-height:1.7;margin-bottom:16px;}
+  .vision-list li{display:flex;gap:10px;font-size:14px;color:var(--text-bright);padding:8px 0;border-bottom:1px solid var(--border-dark);}
+  .vision-list li:last-child{border-bottom:none;}
+  .vision-list li:before{content:"→";color:var(--brand-purple-hover);font-weight:800;}
+
+  /* ---------- partners ---------- */
+  .partners-note{font-size:13px;color:var(--text-darker);margin-top:20px;max-width:640px;}
+  .chip-group{margin-bottom:28px;}
+  .chip-group h4{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:14px;}
+  .chips{display:flex;flex-wrap:wrap;gap:12px;}
+  .chip{
+    background:var(--bg-surface);border:1px solid var(--border-dark);padding:10px 18px;
+    border-radius:var(--radius-full);font-size:13.5px;font-weight:600;color:var(--text-bright);
+  }
+
+  /* ---------- waitlist ---------- */
+  .waitlist{
+    background:linear-gradient(145deg,var(--bg-surface),var(--bg-surface-secondary));
+    border:1px solid var(--border-glow);border-radius:var(--radius-lg);
+    padding:56px;text-align:center;position:relative;overflow:hidden;
+  }
+  .waitlist .orb{width:400px;height:400px;top:-160px;opacity:.5;}
+  .waitlist-inner{position:relative;z-index:1;max-width:520px;margin:0 auto;}
+  .form-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:28px;}
+  .form-row input{
+    flex:1;min-width:220px;background:var(--bg-page);border:1px solid var(--border-dark);
+    color:var(--text-bright);padding:14px 18px;border-radius:var(--radius-sm);font-size:14.5px;
+  }
+  .form-row input:focus{outline:none;border-color:var(--brand-purple-hover);}
+  .form-msg{margin-top:16px;font-size:13.5px;color:var(--success);display:none;}
+  .form-msg.show{display:block;}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--border-dark);padding:48px 0 32px;}
+  .footer-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:32px;margin-bottom:32px;}
+  .footer-links{display:flex;gap:28px;flex-wrap:wrap;font-size:13.5px;color:var(--text-muted);}
+  .footer-links a:hover{color:var(--text-bright);}
+  .footer-tagline{color:var(--text-darker);font-size:13px;max-width:340px;margin-top:8px;}
+  .footer-bottom{color:var(--text-darker);font-size:12.5px;border-top:1px solid var(--border-dark);padding-top:24px;}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .nav-links{display:none;}
+    .burger{display:flex;}
+    .compare{grid-template-columns:1fr;}
+    .feat-grid{grid-template-columns:repeat(2,1fr);}
+    .steps{grid-template-columns:repeat(2,1fr);}
+    .price-grid{grid-template-columns:1fr;}
+    .vision{grid-template-columns:1fr;padding:32px;}
+    .stats{gap:32px;}
+  }
+  @media (max-width:520px){
+    .feat-grid{grid-template-columns:1fr;}
+    .steps{grid-template-columns:1fr;}
+    .waitlist{padding:36px 24px;}
+    section{padding:72px 0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="brand"><div class="brand-mark"></div><span class="brand-word">Mlue</span></div>
+    <div class="nav-links">
+      <a href="#haqqimizda">Haqqımızda</a>
+      <a href="#xususiyyetler">Xüsusiyyətlər</a>
+      <a href="#neceisleyir">Necə işləyir</a>
+      <a href="#qiymet">Qiymət</a>
+      <a href="#emekdasliq">Tərəfdaşlıq</a>
+    </div>
+    <a href="#erken-qeydiyyat" class="nav-cta">Erkən Qeydiyyat</a>
+    <button class="burger" id="burgerBtn" aria-label="Menyu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#haqqimizda">Haqqımızda</a>
+    <a href="#xususiyyetler">Xüsusiyyətlər</a>
+    <a href="#neceisleyir">Necə işləyir</a>
+    <a href="#qiymet">Qiymət</a>
+    <a href="#emekdasliq">Tərəfdaşlıq</a>
+    <a href="#erken-qeydiyyat" class="nav-cta" style="display:inline-block;text-align:center;">Erkən Qeydiyyat</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="orb"></div>
+  <div class="hero-inner">
+    <div class="badge"><span class="dot"></span>Tezliklə açılır — Azərbaycan üçün yeni nəsil təhsil</div>
+    <h1>Bacarığını qur,<br><span class="accent">karyeranı</span> Mlue ilə inşa et</h1>
+    <p>Video dərslər, praktiki tapşırıqlar, mentor dəstəyi və süni intellekt əsaslı fərdiləşdirmə — hamısı Azərbaycan, Türk və Rus dillərində, bir platformada. Öyrən, sınaqdan keç, sertifikat al və işə qəbula hazır ol.</p>
+    <div class="cta-row">
+      <a href="#erken-qeydiyyat" class="btn-primary">Erkən Qeydiyyatdan Keç →</a>
+      <a href="#haqqimizda" class="btn-secondary">Missiyamızı oxu</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>3 dil</b><span>AZ · TR · RU</span></div>
+      <div class="stat"><b>9.99 ₼-dən</b><span>kurs başına qiymət</span></div>
+      <div class="stat"><b>1.8M+</b><span>hədəf gənc auditoriya</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="haqqimizda">
+  <div class="container">
+    <div class="eyebrow reveal">Niyə Mlue</div>
+    <h2 class="reveal">Bazarda çatışmayanı tapdıq, ekosistem qurduq</h2>
+    <p class="section-sub reveal">40-dan çox mövcud yerli platforma araşdırıldı: qeyri-sabit məzmun keyfiyyəti, zəif mentor və karyera dəstəyi, yüksək qiymətlər və tək sahəyə fokuslanma ən çox rastlanan boşluqlar oldu. Mlue bunların hamısını tək ekosistemdə həll edir.</p>
+    <div class="compare">
+      <div class="compare-col bad reveal">
+        <h3>Bazarda nə çatışmır</h3>
+        <div class="compare-item"><span class="mark">✕</span>Qeyri-sabit, aşağı keyfiyyətli məzmun</div>
+        <div class="compare-item"><span class="mark">✕</span>Zəif mentor və karyera dəstəyi</div>
+        <div class="compare-item"><span class="mark">✕</span>Yüksək qiymət, aşağı əlçatanlıq</div>
+        <div class="compare-item"><span class="mark">✕</span>Yalnız bir sahəyə fokuslanma</div>
+      </div>
+      <div class="compare-col good reveal">
+        <h3>Mlue-də var</h3>
+        <div class="compare-item"><span class="mark">✓</span>Studio keyfiyyətində, standartlaşdırılmış dərslər</div>
+        <div class="compare-item"><span class="mark">✓</span>Canlı mentorluq + karyera marşrutu + CV generator</div>
+        <div class="compare-item"><span class="mark">✓</span>9.99 ₼-dən başlayan sərfəli qiymət modeli</div>
+        <div class="compare-item"><span class="mark">✓</span>Universitet–şirkət–tələbə tam ekosistemi</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="xususiyyetler">
+  <div class="container">
+    <div class="eyebrow reveal">Platforma</div>
+    <h2 class="reveal">Platformada səni nə gözləyir</h2>
+    <p class="section-sub reveal">Öyrənmədən işə qəbula qədər bütün mərhələləri bir yerdə topladıq.</p>
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8.5 16 12 10 15.5Z" fill="currentColor" stroke="none"/></svg></div>
+        <h3>Studio keyfiyyətində dərslər</h3>
+        <p>Peşəkar çəkiliş və dublyaj ilə hazırlanmış video kurslar.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg></div>
+        <h3>AI əsaslı fərdiləşdirmə</h3>
+        <p>Süni intellekt sənin sürətinə və səviyyənə uyğun tədris yolu qurur.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-5 4Z"/></svg></div>
+        <h3>Canlı mentor dəstəyi</h3>
+        <p>Sahə mütəxəssislərindən birbaşa geri bildirim və istiqamətləndirmə.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></div>
+        <h3>Praktiki tapşırıqlar</h3>
+        <p>Real ssenarilər üzərində iş üçün lazım olan bacarıqları məşq et.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="5"/><path d="M8.5 13.5 7 21l5-2.5L17 21l-1.5-7.5"/></svg></div>
+        <h3>Tanınan sertifikatlar</h3>
+        <p>Tərəfdaş şirkətlərlə tanınma məqsədilə hazırlanmış sertifikat proqramı.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></div>
+        <h3>Karyera marşrutu + CV generator</h3>
+        <p>Addım-addım karyera planı və avtomatik CV hazırlama aləti.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M9 22h6"/></svg></div>
+        <h3>Müsahibəyə hazırlıq</h3>
+        <p>Simulyasiya edilmiş müsahibələrlə özünə inam qazan.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div>
+        <h3>3 dildə məzmun</h3>
+        <p>Azərbaycan, Türk və Rus dillərində tam lokallaşdırılmış kurslar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="neceisleyir">
+  <div class="container">
+    <div class="eyebrow reveal">Proses</div>
+    <h2 class="reveal">Necə işləyir</h2>
+    <p class="section-sub reveal">Qeydiyyatdan işə qəbula qədər dörd sadə addım.</p>
+    <div class="steps">
+      <div class="step reveal"><div class="step-num">1</div><h3>Qeydiyyat və pulsuz sınaq</h3><p>7 günlük risk-free giriş ilə platformanı sınaqdan keçir.</p></div>
+      <div class="step reveal"><div class="step-num">2</div><h3>Sahəni seç</h3><p>Proqramlaşdırma, dizayn, sahibkarlıq və digər istiqamətlərdən birini seç.</p></div>
+      <div class="step reveal"><div class="step-num">3</div><h3>Öyrən və praktika et</h3><p>Video dərs, tapşırıq və mentor dəstəyi ilə bacarığını inkişaf etdir.</p></div>
+      <div class="step reveal"><div class="step-num">4</div><h3>Sertifikat və işə qəbul</h3><p>Sertifikatını al, CV-ni hazırla, işə qəbul dəstəyindən yararlan.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="qiymet">
+  <div class="container">
+    <div class="eyebrow reveal center">Qiymət</div>
+    <h2 class="reveal center">Sadə və əlçatan qiymətləndirmə</h2>
+    <p class="section-sub reveal center">Abunə deyil, kurs əsaslı model — yalnız öyrəndiyin üçün ödə.</p>
+    <div class="price-grid">
+      <div class="price-card reveal">
+        <div class="plan">Pulsuz Sınaq</div>
+        <div class="price-amount"><b>0 ₼</b><span>/ 7 gün</span></div>
+        <div class="price-note">Kart məlumatı tələb olunmur</div>
+        <ul>
+          <li>Seçilmiş dərslərə giriş</li>
+          <li>Platformanı sınamaq imkanı</li>
+          <li>İstənilən vaxt ləğv et</li>
+        </ul>
+        <a href="#erken-qeydiyyat" class="btn-secondary">Pulsuz Başla</a>
+      </div>
+      <div class="price-card highlight reveal">
+        <div class="price-tag">Ən çox seçilən</div>
+        <div class="plan">Standart Kurs</div>
+        <div class="price-amount"><b>9.99 ₼</b><span>-dən / kurs</span></div>
+        <div class="price-note">Qiymət kursdan kursa dəyişə bilər</div>
+        <ul>
+          <li>Kursa tam giriş</li>
+          <li>Praktiki tapşırıqlar</li>
+          <li>Sertifikat daxildir</li>
+          <li>Mentor dəstəyi seçimi</li>
+        </ul>
+        <a href="#erken-qeydiyyat" class="btn-primary">Erkən Qeydiyyat</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="vizyon">
+  <div class="container">
+    <div class="vision reveal">
+      <div>
+        <div class="eyebrow">Regional baxış</div>
+        <h2 style="font-size:28px;">İdxalı əvəz edən, ixrac potensialı olan platforma</h2>
+        <p>Tam lokallaşdırılmış məzmun sayəsində xarici platformalardan asılılığı azaldırıq. Növbəti mərhələdə regional bazarlara çıxış planlaşdırılır.</p>
+      </div>
+      <ul class="vision-list">
+        <li>Türk və Orta Asiya bazarlarına ekspansiya</li>
+        <li>Məzmunun Türkiyə türkcəsinə uyğunlaşdırılması</li>
+        <li>Region ölkələri üçün AI dəstəkli lokallaşdırma</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="emekdasliq">
+  <div class="container">
+    <div class="eyebrow reveal">Tərəfdaşlıq planı</div>
+    <h2 class="reveal">Hədəflədiyimiz əməkdaşlıqlar</h2>
+    <p class="section-sub reveal">Marketinq planımızın bir hissəsi olaraq aşağıdakı universitet və şirkətlərlə əməkdaşlıq qurmağı hədəfləyirik. Bunlar hazırda danışıq/hədəf mərhələsindədir, təsdiqlənmiş tərəfdaşlıq deyil.</p>
+    <div class="reveal">
+      <div class="chip-group">
+        <h4>Hədəf universitetlər</h4>
+        <div class="chips">
+          <span class="chip">UNEC</span>
+          <span class="chip">ADA University</span>
+          <span class="chip">Xəzər Universiteti</span>
+          <span class="chip">Bakı Dövlət Universiteti</span>
+        </div>
+      </div>
+      <div class="chip-group">
+        <h4>Hədəf şirkət tərəfdaşları</h4>
+        <div class="chips">
+          <span class="chip">PASHA Bank</span>
+          <span class="chip">Kapital Bank</span>
+          <span class="chip">Azercell</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="erken-qeydiyyat">
+  <div class="container">
+    <div class="waitlist reveal">
+      <div class="orb"></div>
+      <div class="waitlist-inner">
+        <h2>Erkən çıxışa qoşul</h2>
+        <p style="color:var(--text-muted);font-size:15px;">Platforma açılanda ilk bilənlərdən ol və erkən qeydiyyat endirimindən yararlan.</p>
+        <form class="form-row" id="waitlistForm">
+          <input type="email" id="waitlistEmail" placeholder="Email ünvanın" required>
+          <button type="submit" class="btn-primary">Qeydiyyatdan keç</button>
+        </form>
+        <div class="form-msg" id="formMsg">Təşəkkürlər! Sənə erkən çıxış barədə xəbər verəcəyik.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-top">
+      <div>
+        <div class="brand"><div class="brand-mark"></div><span class="brand-word">Mlue</span></div>
+        <p class="footer-tagline">Azərbaycan gəncləri üçün yeni nəsil rəqəmsal təhsil və karyera platforması.</p>
+      </div>
+      <div class="footer-links">
+        <a href="#haqqimizda">Haqqımızda</a>
+        <a href="#xususiyyetler">Xüsusiyyətlər</a>
+        <a href="#qiymet">Qiymət</a>
+        <a href="#emekdasliq">Tərəfdaşlıq</a>
+        <a href="#erken-qeydiyyat">Qeydiyyat</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Mlue. Bütün hüquqlar qorunur.</div>
+  </div>
+</footer>
+
+<script>
+  // mobile menu
+  const burgerBtn = document.getElementById('burgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  burgerBtn.addEventListener('click', () => mobileMenu.classList.toggle('open'));
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileMenu.classList.remove('open')));
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+
+  // waitlist form (front-end only placeholder — see README for backend hookup)
+  const form = document.getElementById('waitlistForm');
+  const msg = document.getElementById('formMsg');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    msg.classList.add('show');
+    form.reset();
+  });
+</script>
+</body>
+</html>
