@@ -634,6 +634,13 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6aWpzeGx2bm9zcXZvdXhwdnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMzQ2MzksImV4cCI6MjA5OTcxMDYzOX0.-SLGYmINEAXjnxE6ihdr72IHzhtvpBMqYZTkMZc7-UU'
   );
 
+  // Supabase puts the session token in the URL right after an email-confirm
+  // redirect. Strip it immediately so a copied/shared link never carries
+  // someone else's login with it.
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+
   const authOverlay = document.getElementById('authOverlay');
   const authMsg = document.getElementById('authMsg');
   const profileOverlay = document.getElementById('profileOverlay');
