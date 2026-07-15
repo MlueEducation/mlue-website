@@ -475,7 +475,7 @@
         <h2>Erkən çıxışa qoşul</h2>
         <p style="color:var(--text-muted);font-size:15px;">Platforma açılanda ilk bilənlərdən ol və erkən qeydiyyat endirimindən yararlan.</p>
         <form class="form-row" id="waitlistForm">
-          <input type="email" id="waitlistEmail" placeholder="Email ünvanın" required>
+          <input type="email" id="waitlistEmail" name="email" placeholder="Email ünvanın" required>
           <button type="submit" class="btn-primary">Qeydiyyatdan keç</button>
         </form>
         <div class="form-msg" id="formMsg">Təşəkkürlər! Sənə erkən çıxış barədə xəbər verəcəyik.</div>
@@ -518,13 +518,31 @@
   revealEls.forEach(el => io.observe(el));
 
   // waitlist form (front-end only placeholder — see README for backend hookup)
-  const form = document.getElementById('waitlistForm');
-  const msg = document.getElementById('formMsg');
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    msg.classList.add('show');
-    form.reset();
-  });
+ const form = document.getElementById('waitlistForm');
+   const msg = document.getElementById('formMsg');
+   form.addEventListener('submit', async function(e){
+     e.preventDefault();
+     const data = new FormData(form);
+     try {
+       const res = await fetch('https://formspree.io/f/xnjejjyp', {
+         method: 'POST',
+         body: data,
+         headers: { 'Accept': 'application/json' }
+       });
+       if (res.ok) {
+         msg.textContent = 'Təşəkkürlər! Sənə erkən çıxış barədə xəbər verəcəyik.';
+         msg.style.color = 'var(--success)';
+       } else {
+         msg.textContent = 'Xəta baş verdi, zəhmət olmasa yenidən cəhd et.';
+         msg.style.color = 'var(--danger)';
+       }
+     } catch (err) {
+       msg.textContent = 'Xəta baş verdi, internet bağlantını yoxla.';
+       msg.style.color = 'var(--danger)';
+     }
+     msg.classList.add('show');
+     form.reset();
+   });
 </script>
 </body>
 </html>
