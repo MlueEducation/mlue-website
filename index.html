@@ -81,9 +81,9 @@
     max-width:var(--container);margin:0 auto;padding:16px 24px;
     display:flex;align-items:center;justify-content:space-between;
   }
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;}
-  .brand-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--brand-purple),#ec4899);flex-shrink:0;}
-  .brand-word{background:linear-gradient(90deg,#fff,#e7d9ff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brand{display:flex;align-items:center;font-weight:800;font-size:21px;letter-spacing:-.01em;cursor:pointer;}
+  .brand-m{color:#2f8ff0;}
+  .brand-rest{color:var(--text-bright);}
   .nav-links{display:flex;gap:32px;font-size:14.5px;color:var(--text-muted);}
   .nav-links a:hover{color:var(--text-bright);}
   .nav-cta{
@@ -257,10 +257,10 @@
 </style>
 </head>
 <body>
-
+<div id="top"></div>
 <header>
   <nav>
-    <div class="brand"><div class="brand-mark"></div><span class="brand-word">Mlue</span></div>
+    <a href="#top" class="brand"><span class="brand-m">M</span><span class="brand-rest">LUE</span></a>
     <div class="nav-links">
       <a href="#haqqimizda">Haqqımızda</a>
       <a href="#xususiyyetler">Xüsusiyyətlər</a>
@@ -488,7 +488,7 @@
   <div class="container">
     <div class="footer-top">
       <div>
-        <div class="brand"><div class="brand-mark"></div><span class="brand-word">Mlue</span></div>
+        <a href="#top" class="brand"><span class="brand-m">M</span><span class="brand-rest">LUE</span></a>
         <p class="footer-tagline">Azərbaycan gəncləri üçün yeni nəsil rəqəmsal təhsil və karyera platforması.</p>
       </div>
       <div class="footer-links">
@@ -517,33 +517,33 @@
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
 
-  // waitlist form (front-end only placeholder — see README for backend hookup)
- const form = document.getElementById('waitlistForm');
-   const msg = document.getElementById('formMsg');
-   form.addEventListener('submit', async function(e){
-     e.preventDefault();
-     const data = new FormData(form);
-     try {
-       const res = await fetch('https://formspree.io/f/xnjejjyp', {
-         method: 'POST',
-         body: data,
-         headers: { 'Accept': 'application/json' }
-       });
-       if (res.ok) {
-         msg.textContent = 'Təşəkkürlər! Sənə erkən çıxış barədə xəbər verəcəyik.';
-         msg.style.color = 'var(--success)';
-       } else {
-         msg.textContent = 'Xəta baş verdi, zəhmət olmasa yenidən cəhd et.';
-         msg.style.color = 'var(--danger)';
-       }
-     } catch (err) {
-       msg.textContent = 'Xəta baş verdi, internet bağlantını yoxla.';
-       msg.style.color = 'var(--danger)';
-     }
-     msg.classList.add('show');
-     form.reset();
-   });
+  // waitlist form — sends to Formspree
+  const form = document.getElementById('waitlistForm');
+  const msg = document.getElementById('formMsg');
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    const data = new FormData(form);
+    try {
+      const res = await fetch('https://formspree.io/f/xnjejjyp', {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        msg.textContent = 'Təşəkkürlər! Sənə erkən çıxış barədə xəbər verəcəyik.';
+        msg.style.color = 'var(--success)';
+      } else {
+        msg.textContent = 'Xəta baş verdi, zəhmət olmasa yenidən cəhd et.';
+        msg.style.color = 'var(--danger)';
+      }
+    } catch (err) {
+      msg.textContent = 'Xəta baş verdi, internet bağlantını yoxla.';
+      msg.style.color = 'var(--danger)';
+    }
+    msg.classList.add('show');
+    form.reset();
+  });
 </script>
-  <script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
