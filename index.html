@@ -105,6 +105,17 @@
   .auth-chip b{color:var(--text-bright);font-weight:600;}
   .auth-chip button{background:none;border:1px solid var(--border-dark);color:var(--text-muted);font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;transition:border-color .2s,color .2s;}
   .auth-chip button:hover{border-color:var(--border-glow);color:var(--text-bright);}
+  .profile-pill{display:flex;align-items:center;gap:8px;background:var(--bg-surface-secondary);border:1px solid var(--border-dark);padding:6px 16px 6px 6px;border-radius:var(--radius-full);cursor:pointer;color:var(--text-bright);font-size:13.5px;font-weight:600;transition:border-color .2s;font-family:inherit;}
+  .profile-pill:hover{border-color:var(--border-glow);}
+  .profile-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--brand-purple),#ec4899);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;}
+  .profile-email{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mobile-menu .profile-pill{width:100%;justify-content:center;}
+  .mobile-menu .profile-email{max-width:220px;}
+  .profile-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+  .profile-avatar-lg{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--brand-purple),#ec4899);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0;}
+  .profile-name{font-weight:700;font-size:14.5px;word-break:break-all;}
+  .profile-joined{font-size:12.5px;color:var(--text-muted);margin-top:3px;}
+  .profile-placeholder{background:var(--bg-page);border:1px solid var(--border-dark);border-radius:var(--radius-md);padding:22px;margin-bottom:24px;font-size:13.5px;color:var(--text-muted);line-height:1.6;text-align:center;}
   .modal-overlay{
     display:none;position:fixed;inset:0;z-index:200;
     background:rgba(5,5,9,.72);backdrop-filter:blur(6px);
@@ -335,6 +346,21 @@
       <button type="submit" class="btn-primary">Daxil ol</button>
     </form>
     <div class="modal-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="profileOverlay">
+  <div class="modal-box">
+    <button class="modal-close js-close-profile" aria-label="Bağla">✕</button>
+    <div class="profile-header">
+      <div class="profile-avatar-lg" id="profileAvatarLg"></div>
+      <div>
+        <div class="profile-name" id="profileEmail"></div>
+        <div class="profile-joined" id="profileJoined"></div>
+      </div>
+    </div>
+    <div class="profile-placeholder">🎓 Kurslarım, tərəqqim və sertifikatlarım tezliklə burada görünəcək.</div>
+    <button class="btn-secondary js-logout" style="width:100%;">Çıxış</button>
   </div>
 </div>
 
@@ -610,6 +636,8 @@
 
   const authOverlay = document.getElementById('authOverlay');
   const authMsg = document.getElementById('authMsg');
+  const profileOverlay = document.getElementById('profileOverlay');
+  let currentUser = null;
 
   function openAuthModal(){ authOverlay.classList.add('open'); }
   function closeAuthModal(){
@@ -623,8 +651,20 @@
     authMsg.className = 'modal-msg show ' + type;
   }
 
+  function openProfileModal(user){
+    const initial = user.email.charAt(0).toUpperCase();
+    document.getElementById('profileAvatarLg').textContent = initial;
+    document.getElementById('profileEmail').textContent = user.email;
+    const joined = new Date(user.created_at);
+    document.getElementById('profileJoined').textContent =
+      'Qeydiyyat tarixi: ' + joined.toLocaleDateString('az-AZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    profileOverlay.classList.add('open');
+  }
+  function closeProfileModal(){ profileOverlay.classList.remove('open'); }
+
   document.getElementById('authClose').addEventListener('click', closeAuthModal);
   authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
+  profileOverlay.addEventListener('click', (e) => { if (e.target === profileOverlay) closeProfileModal(); });
 
   document.querySelectorAll('.modal-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -636,10 +676,12 @@
     });
   });
 
-  // open modal from any current or future "Qeydiyyat / Giriş" button
+  // open modal from any current or future "Qeydiyyat / Giriş" button, profile pill, or logout button
   document.addEventListener('click', (e) => {
     if (e.target.closest('.js-open-auth')) openAuthModal();
-    if (e.target.closest('.js-logout')) supabaseClient.auth.signOut();
+    if (e.target.closest('.js-open-profile') && currentUser) openProfileModal(currentUser);
+    if (e.target.closest('.js-close-profile')) closeProfileModal();
+    if (e.target.closest('.js-logout')) { supabaseClient.auth.signOut(); closeProfileModal(); }
   });
 
   document.getElementById('signupForm').addEventListener('submit', async (e) => {
@@ -665,9 +707,14 @@
   });
 
   function renderAuthNav(user){
-    const html = user
-      ? `<div class="auth-chip"><b>${user.email}</b><button class="js-logout">Çıxış</button></div>`
-      : `<button class="nav-cta js-open-auth">Qeydiyyat / Giriş</button>`;
+    currentUser = user;
+    let html;
+    if (user) {
+      const initial = user.email.charAt(0).toUpperCase();
+      html = `<button class="profile-pill js-open-profile"><span class="profile-avatar">${initial}</span><span class="profile-email">${user.email}</span></button>`;
+    } else {
+      html = `<button class="nav-cta js-open-auth">Qeydiyyat / Giriş</button>`;
+    }
     document.getElementById('navAuthDesktop').innerHTML = html;
     document.getElementById('navAuthMobile').innerHTML = html;
   }
