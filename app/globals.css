@@ -1,5 +1,4 @@
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --brand-purple: #7c3aed;
