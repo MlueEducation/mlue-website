@@ -1,14 +1,21 @@
+'use client';
+
 import Link from 'next/link';
+import { useTheme } from './ThemeProvider';
 
 export default function Footer() {
+  const { theme } = useTheme();
+  const icon = theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png';
+  const word = theme === 'light' ? '/mlue-wordmark-light.png' : '/mlue-wordmark.png';
+
   return (
     <footer>
       <div className="container">
         <div className="footer-top">
           <div>
             <Link href="/" className="brand">
-              <img src="/mlue-icon.png" alt="" className="brand-icon" />
-              <img src="/mlue-wordmark.png" alt="Mlue" className="brand-word-img" />
+              <img src={icon} alt="" className="brand-icon" />
+              <img src={word} alt="Mlue" className="brand-word-img" />
             </Link>
             <p className="footer-tagline">Azərbaycan gəncləri üçün yeni nəsil rəqəmsal təhsil və karyera platforması.</p>
           </div>
