@@ -39,7 +39,8 @@ export default function Header() {
     <header>
       <nav>
         <Link href="/" className="brand">
-          <span className="brand-m">M</span><span className="brand-rest">LUE</span>
+          <img src="/mlue-icon.png" alt="" className="brand-icon" />
+          <img src="/mlue-wordmark.png" alt="Mlue" className="brand-word-img" />
         </Link>
         <div className="nav-links">
           {NAV_LINKS.map((l) => (
