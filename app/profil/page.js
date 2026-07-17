@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from '@/components/ThemeProvider';
 import { supabase } from '@/lib/supabaseClient';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
@@ -447,6 +448,7 @@ function SettingsPanel({ user }) {
 /* ---------------- Main dashboard ---------------- */
 export default function ProfilPage() {
   const { user, loading } = useAuth();
+  const { theme } = useTheme();
   const [active, setActive] = useState('identity');
 
   if (loading) {
@@ -486,8 +488,8 @@ export default function ProfilPage() {
       <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-dark)] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
         <div className="px-5 py-5 border-b border-[var(--border-dark)] hidden md:block">
           <div className="flex items-center gap-2">
-            <img src="/mlue-icon.png" alt="" className="h-7 w-auto" />
-            <img src="/mlue-wordmark.png" alt="Mlue" className="h-3 w-auto" />
+           <img src={theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png'} alt="" className="h-7 w-auto" />
+            <img src={theme === 'light' ? '/mlue-wordmark-light.png' : '/mlue-wordmark.png'} alt="Mlue" className="h-3 w-auto" />
             <span className="text-[var(--text-muted)] font-medium text-xs ml-1">Panel</span>
           </div>
         </div>
