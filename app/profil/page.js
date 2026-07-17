@@ -102,7 +102,10 @@ const MOCK = {
 /* ---------------- Small UI helpers ---------------- */
 function Card({ children, className = '' }) {
   return (
-    <div className={`bg-[var(--bg-surface)] border border-[var(--border-dark)] rounded-2xl p-7 ${className}`}>
+    <div
+      className={`bg-[var(--bg-surface)] border border-[var(--border-dark)] rounded-2xl p-7 ${className}`}
+      style={{ boxShadow: 'var(--card-shadow)' }}
+    >
       {children}
     </div>
   );
