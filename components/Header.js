@@ -30,6 +30,18 @@ function MoonIcon() {
   );
 }
 
+function BrandLogo() {
+  const { theme } = useTheme();
+  const icon = theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png';
+  const word = theme === 'light' ? '/mlue-wordmark-light.png' : '/mlue-wordmark.png';
+  return (
+    <>
+      <img src={icon} alt="" className="brand-icon" />
+      <img src={word} alt="Mlue" className="brand-word-img" />
+    </>
+  );
+}
+
 function ThemeToggle({ className = '' }) {
   const { theme, toggleTheme } = useTheme();
   return (
@@ -70,8 +82,7 @@ export default function Header() {
     <header>
       <nav>
         <Link href="/" className="brand">
-          <img src="/mlue-icon.png" alt="" className="brand-icon" />
-          <img src="/mlue-wordmark.png" alt="Mlue" className="brand-word-img" />
+          <BrandLogo />
         </Link>
         <div className="nav-links">
           {NAV_LINKS.map((l) => (
