@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
+import { useTheme } from '@/components/ThemeProvider';
 import { supabase } from '@/lib/supabaseClient';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
@@ -17,8 +18,6 @@ const Icon = {
 };
 
 /* ---------------- Sidebar order: bottom-to-top per spec ---------------- */
-/* Array is written 1→7 as specified; flex-col-reverse flips it visually
-   so item 7 (Kimlik) lands at the top and item 1 (Tənzimləmələr) at the bottom. */
 const NAV_ITEMS = [
   { id: 'settings', label: 'Tənzimləmələr və Təhlükəsizlik', icon: Icon.settings },
   { id: 'game', label: 'Oyunlaşdırma və İcma', icon: Icon.game },
@@ -103,7 +102,7 @@ const MOCK = {
 /* ---------------- Small UI helpers ---------------- */
 function Card({ children, className = '' }) {
   return (
-    <div className={`bg-[#131520] border border-[#1f2235] rounded-2xl p-6 ${className}`}>
+    <div className={`bg-[var(--bg-surface)] border border-[var(--border-dark)] rounded-2xl p-6 ${className}`}>
       {children}
     </div>
   );
@@ -111,14 +110,14 @@ function Card({ children, className = '' }) {
 function StatCard({ label, value }) {
   return (
     <Card className="text-center">
-      <div className="text-2xl font-extrabold text-[#fbbf24]">{value}</div>
-      <div className="text-xs text-[#94a3b8] mt-1 uppercase tracking-wide">{label}</div>
+      <div className="text-2xl font-extrabold text-[var(--brand-yellow)]">{value}</div>
+      <div className="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-wide">{label}</div>
     </Card>
   );
 }
-function ProgressBar({ value, colorClass = 'bg-[#7c3aed]' }) {
+function ProgressBar({ value, colorClass = 'bg-[var(--brand-purple)]' }) {
   return (
-    <div className="w-full h-2 rounded-full bg-[#1f2235] overflow-hidden">
+    <div className="w-full h-2 rounded-full bg-[var(--border-dark)] overflow-hidden">
       <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${value}%` }} />
     </div>
   );
@@ -126,8 +125,8 @@ function ProgressBar({ value, colorClass = 'bg-[#7c3aed]' }) {
 function SectionTitle({ children, sub }) {
   return (
     <div className="mb-6">
-      <h1 className="text-2xl font-extrabold text-white">{children}</h1>
-      {sub && <p className="text-[#94a3b8] text-sm mt-1">{sub}</p>}
+      <h1 className="text-2xl font-extrabold text-[var(--text-bright)]">{children}</h1>
+      {sub && <p className="text-[var(--text-muted)] text-sm mt-1">{sub}</p>}
     </div>
   );
 }
@@ -140,15 +139,15 @@ function IdentityPanel({ user }) {
     <div>
       <SectionTitle sub="Hesabına ümumi baxış">Xoş gəldin, {MOCK.name.split(' ')[0]}</SectionTitle>
       <Card className="flex items-center gap-5 mb-6">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7c3aed] to-[#ec4899] flex items-center justify-center text-2xl font-extrabold text-white flex-shrink-0">
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--brand-purple)] to-[#ec4899] flex items-center justify-center text-2xl font-extrabold text-[var(--text-bright)] flex-shrink-0">
           {initial}
         </div>
         <div className="min-w-0">
-          <div className="text-lg font-bold text-white truncate">{MOCK.name}</div>
-          <div className="text-sm text-[#94a3b8] truncate">{email}</div>
+          <div className="text-lg font-bold text-[var(--text-bright)] truncate">{MOCK.name}</div>
+          <div className="text-sm text-[var(--text-muted)] truncate">{email}</div>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-[11px] font-bold uppercase tracking-wide bg-[#fbbf24] text-black px-2.5 py-1 rounded-full">{MOCK.plan}</span>
-            <span className="text-xs text-[#64748b]">Üzv: {MOCK.memberSince}</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide bg-[var(--brand-yellow)] text-black px-2.5 py-1 rounded-full">{MOCK.plan}</span>
+            <span className="text-xs text-[var(--text-darker)]">Üzv: {MOCK.memberSince}</span>
           </div>
         </div>
       </Card>
@@ -156,11 +155,11 @@ function IdentityPanel({ user }) {
         {MOCK.stats.map((s) => <StatCard key={s.label} {...s} />)}
       </div>
       <Card>
-        <div className="text-sm font-bold text-white mb-4">Son fəaliyyət</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Son fəaliyyət</div>
         <ul className="space-y-3">
           {MOCK.activity.map((a, i) => (
-            <li key={i} className="flex gap-3 text-sm text-[#94a3b8]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#7c3aed] mt-1.5 flex-shrink-0" />
+            <li key={i} className="flex gap-3 text-sm text-[var(--text-muted)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-purple)] mt-1.5 flex-shrink-0" />
               {a}
             </li>
           ))}
@@ -175,27 +174,27 @@ function BioPanel() {
     <div>
       <SectionTitle sub="Digər istifadəçilərin gördüyü açıq profilin">Açıq Profil və Bio</SectionTitle>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-2">Haqqımda</div>
-        <p className="text-sm text-[#94a3b8] leading-relaxed">{MOCK.bio}</p>
-        <div className="text-xs text-[#64748b] mt-4">📍 {MOCK.location}</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-2">Haqqımda</div>
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed">{MOCK.bio}</p>
+        <div className="text-xs text-[var(--text-darker)] mt-4">📍 {MOCK.location}</div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-3">Bacarıqlar</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-3">Bacarıqlar</div>
         <div className="flex flex-wrap gap-2">
           {MOCK.skills.map((s) => (
-            <span key={s} className="text-xs font-semibold bg-[#1a1d2c] border border-[#1f2235] text-white px-3 py-1.5 rounded-full">{s}</span>
+            <span key={s} className="text-xs font-semibold bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] text-[var(--text-bright)] px-3 py-1.5 rounded-full">{s}</span>
           ))}
         </div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-3">Bağlantılar</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-3">Bağlantılar</div>
         <div className="flex flex-wrap gap-3">
           {MOCK.links.map((l) => (
-            <a key={l.label} href={l.href} className="text-xs font-semibold text-[#8b5cf6] hover:text-[#a78bfa] border border-[#1f2235] px-3 py-1.5 rounded-full">{l.label} ↗</a>
+            <a key={l.label} href={l.href} className="text-xs font-semibold text-[var(--brand-purple-hover)] hover:text-[#a78bfa] border border-[var(--border-dark)] px-3 py-1.5 rounded-full">{l.label} ↗</a>
           ))}
         </div>
       </Card>
-      <button className="bg-[#7c3aed] hover:bg-[#8b5cf6] text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors">Profili Düzəlt</button>
+      <button className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-3 rounded-lg transition-colors">Profili Düzəlt</button>
     </div>
   );
 }
@@ -210,26 +209,26 @@ function AcademicPanel() {
         <StatCard label="Sertifikat" value={MOCK.certificates.length} />
       </div>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Kurslar</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Kurslar</div>
         <div className="space-y-5">
           {MOCK.courses.map((c) => (
             <div key={c.title}>
               <div className="flex justify-between text-sm mb-1.5">
-                <span className="text-white font-medium">{c.title}</span>
-                <span className={c.done ? 'text-[#10b981]' : 'text-[#94a3b8]'}>{c.progress}%</span>
+                <span className="text-[var(--text-bright)] font-medium">{c.title}</span>
+                <span className={c.done ? 'text-[var(--success)]' : 'text-[var(--text-muted)]'}>{c.progress}%</span>
               </div>
-              <ProgressBar value={c.progress} colorClass={c.done ? 'bg-[#10b981]' : 'bg-[#7c3aed]'} />
+              <ProgressBar value={c.progress} colorClass={c.done ? 'bg-[var(--success)]' : 'bg-[var(--brand-purple)]'} />
             </div>
           ))}
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-white mb-4">Sertifikatlar</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Sertifikatlar</div>
         <div className="grid sm:grid-cols-2 gap-3">
           {MOCK.certificates.map((c) => (
-            <div key={c} className="flex items-center gap-3 bg-[#1a1d2c] border border-[#1f2235] rounded-xl p-4">
+            <div key={c} className="flex items-center gap-3 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
               <span className="text-xl">🎓</span>
-              <span className="text-sm text-white font-medium">{c}</span>
+              <span className="text-sm text-[var(--text-bright)] font-medium">{c}</span>
             </div>
           ))}
         </div>
@@ -244,43 +243,43 @@ function CareerPanel() {
       <SectionTitle sub="CV, portfolio və iş imkanları">Karyera Mərkəzi və Portfel</SectionTitle>
       <Card className="mb-6">
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-white font-medium">CV tamamlanma dərəcəsi</span>
-          <span className="text-[#fbbf24] font-bold">{MOCK.cvCompletion}%</span>
+          <span className="text-[var(--text-bright)] font-medium">CV tamamlanma dərəcəsi</span>
+          <span className="text-[var(--brand-yellow)] font-bold">{MOCK.cvCompletion}%</span>
         </div>
-        <ProgressBar value={MOCK.cvCompletion} colorClass="bg-[#fbbf24]" />
-        <button className="mt-4 text-sm font-bold text-[#8b5cf6] hover:text-[#a78bfa]">CV-ni redaktə et →</button>
+        <ProgressBar value={MOCK.cvCompletion} colorClass="bg-[var(--brand-yellow)]" />
+        <button className="mt-4 text-sm font-bold text-[var(--brand-purple-hover)] hover:text-[#a78bfa]">CV-ni redaktə et →</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Portfolio Layihələri</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Portfolio Layihələri</div>
         <div className="grid sm:grid-cols-3 gap-4">
           {MOCK.portfolio.map((p) => (
-            <div key={p.title} className="bg-[#1a1d2c] border border-[#1f2235] rounded-xl p-4">
-              <div className="text-sm font-bold text-white mb-2">{p.title}</div>
+            <div key={p.title} className="bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
+              <div className="text-sm font-bold text-[var(--text-bright)] mb-2">{p.title}</div>
               <div className="flex flex-wrap gap-1.5">
-                {p.tags.map((t) => <span key={t} className="text-[10px] bg-[#131520] text-[#94a3b8] px-2 py-0.5 rounded-full">{t}</span>)}
+                {p.tags.map((t) => <span key={t} className="text-[10px] bg-[var(--bg-surface)] text-[var(--text-muted)] px-2 py-0.5 rounded-full">{t}</span>)}
               </div>
             </div>
           ))}
         </div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Sənə Uyğun İş Elanları</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Sənə Uyğun İş Elanları</div>
         <div className="space-y-3">
           {MOCK.jobMatches.map((j) => (
-            <div key={j.title} className="flex items-center justify-between bg-[#1a1d2c] border border-[#1f2235] rounded-xl p-4">
+            <div key={j.title} className="flex items-center justify-between bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
               <div>
-                <div className="text-sm font-bold text-white">{j.title}</div>
-                <div className="text-xs text-[#94a3b8]">{j.company}</div>
+                <div className="text-sm font-bold text-[var(--text-bright)]">{j.title}</div>
+                <div className="text-xs text-[var(--text-muted)]">{j.company}</div>
               </div>
-              <span className="text-xs font-bold text-[#10b981]">{j.match}% uyğunluq</span>
+              <span className="text-xs font-bold text-[var(--success)]">{j.match}% uyğunluq</span>
             </div>
           ))}
         </div>
       </Card>
       <Card>
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-white font-medium">Müsahibəyə hazırlıq</span>
-          <span className="text-[#94a3b8]">{MOCK.interviewProgress.done}/{MOCK.interviewProgress.total} simulyasiya</span>
+          <span className="text-[var(--text-bright)] font-medium">Müsahibəyə hazırlıq</span>
+          <span className="text-[var(--text-muted)]">{MOCK.interviewProgress.done}/{MOCK.interviewProgress.total} simulyasiya</span>
         </div>
         <ProgressBar value={(MOCK.interviewProgress.done / MOCK.interviewProgress.total) * 100} />
       </Card>
@@ -294,28 +293,28 @@ function WalletPanel() {
       <SectionTitle sub="Balans, ödənişlər və əməliyyat tarixçəsi">Pul Kisəsi</SectionTitle>
       <Card className="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
-          <div className="text-xs text-[#94a3b8] uppercase tracking-wide mb-1">Cari balans</div>
-          <div className="text-3xl font-extrabold text-white">{MOCK.balance}</div>
+          <div className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-1">Cari balans</div>
+          <div className="text-3xl font-extrabold text-[var(--text-bright)]">{MOCK.balance}</div>
         </div>
-        <button className="bg-[#7c3aed] hover:bg-[#8b5cf6] text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors">Balansı artır</button>
+        <button className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-3 rounded-lg transition-colors">Balansı artır</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Ödəniş üsulu</div>
-        <div className="flex items-center gap-3 bg-[#1a1d2c] border border-[#1f2235] rounded-xl p-4 w-fit">
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Ödəniş üsulu</div>
+        <div className="flex items-center gap-3 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4 w-fit">
           <span className="text-lg">💳</span>
-          <span className="text-sm text-white">•••• •••• •••• 4242</span>
+          <span className="text-sm text-[var(--text-bright)]">•••• •••• •••• 4242</span>
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-white mb-4">Əməliyyatlar</div>
-        <div className="divide-y divide-[#1f2235]">
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Əməliyyatlar</div>
+        <div className="divide-y divide-[var(--border-dark)]">
           {MOCK.transactions.map((t, i) => (
             <div key={i} className="flex items-center justify-between py-3 text-sm">
               <div>
-                <div className="text-white">{t.desc}</div>
-                <div className="text-xs text-[#64748b] mt-0.5">{t.date}</div>
+                <div className="text-[var(--text-bright)]">{t.desc}</div>
+                <div className="text-xs text-[var(--text-darker)] mt-0.5">{t.date}</div>
               </div>
-              <span className={`font-bold ${t.amount.startsWith('+') ? 'text-[#10b981]' : 'text-[#f43f5e]'}`}>{t.amount}</span>
+              <span className={`font-bold ${t.amount.startsWith('+') ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{t.amount}</span>
             </div>
           ))}
         </div>
@@ -330,32 +329,32 @@ function GamePanel() {
       <SectionTitle sub="Nişanlar, səviyyə və icma sıralaması">Oyunlaşdırma və İcma</SectionTitle>
       <Card className="mb-6">
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-white font-bold">Səviyyə {MOCK.level}</span>
-          <span className="text-[#94a3b8]">{MOCK.xp.current} / {MOCK.xp.max} XP</span>
+          <span className="text-[var(--text-bright)] font-bold">Səviyyə {MOCK.level}</span>
+          <span className="text-[var(--text-muted)]">{MOCK.xp.current} / {MOCK.xp.max} XP</span>
         </div>
-        <ProgressBar value={(MOCK.xp.current / MOCK.xp.max) * 100} colorClass="bg-[#fbbf24]" />
+        <ProgressBar value={(MOCK.xp.current / MOCK.xp.max) * 100} colorClass="bg-[var(--brand-yellow)]" />
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Nişanlar</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Nişanlar</div>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {MOCK.badges.map((b) => (
-            <div key={b.label} className={`text-center p-3 rounded-xl border ${b.earned ? 'border-[#7c3aed]/40 bg-[#7c3aed]/10' : 'border-[#1f2235] bg-[#1a1d2c] opacity-40'}`}>
+            <div key={b.label} className={`text-center p-3 rounded-xl border ${b.earned ? 'border-[var(--purple-40)] bg-[var(--purple-10)]' : 'border-[var(--border-dark)] bg-[var(--bg-surface-secondary)] opacity-40'}`}>
               <div className="text-2xl mb-1">{b.earned ? '🏆' : '🔒'}</div>
-              <div className="text-[10px] text-white leading-tight">{b.label}</div>
+              <div className="text-[10px] text-[var(--text-bright)] leading-tight">{b.label}</div>
             </div>
           ))}
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-white mb-4">Liderlik Cədvəli</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Liderlik Cədvəli</div>
         <div className="space-y-2">
           {MOCK.leaderboard.map((p, i) => (
-            <div key={p.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${p.isMe ? 'bg-[#7c3aed]/15 border border-[#7c3aed]/40' : 'bg-[#1a1d2c]'}`}>
+            <div key={p.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${p.isMe ? 'bg-[var(--purple-15)] border border-[var(--purple-40)]' : 'bg-[var(--bg-surface-secondary)]'}`}>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-[#64748b] w-4">{i + 1}</span>
-                <span className={`text-sm ${p.isMe ? 'text-white font-bold' : 'text-[#94a3b8]'}`}>{p.name}</span>
+                <span className="text-xs font-bold text-[var(--text-darker)] w-4">{i + 1}</span>
+                <span className={`text-sm ${p.isMe ? 'text-[var(--text-bright)] font-bold' : 'text-[var(--text-muted)]'}`}>{p.name}</span>
               </div>
-              <span className="text-xs font-bold text-[#fbbf24]">{p.xp} XP</span>
+              <span className="text-xs font-bold text-[var(--brand-yellow)]">{p.xp} XP</span>
             </div>
           ))}
         </div>
@@ -368,10 +367,10 @@ function Toggle({ label, defaultChecked }) {
   const [on, setOn] = useState(defaultChecked);
   return (
     <div className="flex items-center justify-between py-3">
-      <span className="text-sm text-white">{label}</span>
+      <span className="text-sm text-[var(--text-bright)]">{label}</span>
       <button
         onClick={() => setOn(!on)}
-        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[#7c3aed]' : 'bg-[#1f2235]'}`}
+        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[var(--brand-purple)]' : 'bg-[var(--border-dark)]'}`}
       >
         <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${on ? 'left-5' : 'left-0.5'}`} />
       </button>
@@ -380,45 +379,63 @@ function Toggle({ label, defaultChecked }) {
 }
 
 function SettingsPanel({ user }) {
+  const { theme, setTheme } = useTheme();
   return (
     <div>
       <SectionTitle sub="Hesab, şifrə və bildiriş tənzimləmələri">Tənzimləmələr və Təhlükəsizlik</SectionTitle>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Hesab məlumatları</div>
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs text-[#94a3b8] mb-1 block">Ad Soyad</label>
-            <input defaultValue={MOCK.name} className="w-full bg-[#090a0f] border border-[#1f2235] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#8b5cf6]" />
-          </div>
-          <div>
-            <label className="text-xs text-[#94a3b8] mb-1 block">Email</label>
-            <input defaultValue={user?.email || ''} className="w-full bg-[#090a0f] border border-[#1f2235] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#8b5cf6]" />
-          </div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Görünüş</div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setTheme('dark')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold border transition-colors ${theme === 'dark' ? 'border-[var(--brand-purple)] bg-[var(--purple-10)] text-[var(--text-bright)]' : 'border-[var(--border-dark)] text-[var(--text-muted)]'}`}
+          >
+            🌙 Tünd
+          </button>
+          <button
+            onClick={() => setTheme('light')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold border transition-colors ${theme === 'light' ? 'border-[var(--brand-purple)] bg-[var(--purple-10)] text-[var(--text-bright)]' : 'border-[var(--border-dark)] text-[var(--text-muted)]'}`}
+          >
+            ☀️ Açıq
+          </button>
         </div>
-        <button className="mt-4 bg-[#7c3aed] hover:bg-[#8b5cf6] text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-4">Şifrəni dəyiş</div>
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Hesab məlumatları</div>
         <div className="space-y-3">
-          <input type="password" placeholder="Yeni şifrə" className="w-full bg-[#090a0f] border border-[#1f2235] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#8b5cf6]" />
-          <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[#090a0f] border border-[#1f2235] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#8b5cf6]" />
+          <div>
+            <label className="text-xs text-[var(--text-muted)] mb-1 block">Ad Soyad</label>
+            <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+          </div>
+          <div>
+            <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
+            <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+          </div>
         </div>
-        <button className="mt-4 bg-[#1a1d2c] border border-[#1f2235] hover:border-[#8b5cf6] text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
+        <button className="mt-4 bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-white mb-2">Bildirişlər</div>
-        <div className="divide-y divide-[#1f2235]">
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Şifrəni dəyiş</div>
+        <div className="space-y-3">
+          <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+          <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+        </div>
+        <button className="mt-4 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] hover:border-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
+      </Card>
+      <Card className="mb-6">
+        <div className="text-sm font-bold text-[var(--text-bright)] mb-2">Bildirişlər</div>
+        <div className="divide-y divide-[var(--border-dark)]">
           <Toggle label="Email bildirişləri" defaultChecked={true} />
           <Toggle label="Push bildirişləri" defaultChecked={false} />
           <Toggle label="Marketinq mesajları" defaultChecked={false} />
         </div>
       </Card>
-      <Card className="border-[#f43f5e]/30">
-        <div className="text-sm font-bold text-[#f43f5e] mb-2">Təhlükəli zona</div>
-        <p className="text-xs text-[#94a3b8] mb-4">Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz.</p>
+      <Card className="border-[var(--danger-30)]">
+        <div className="text-sm font-bold text-[var(--danger)] mb-2">Təhlükəli zona</div>
+        <p className="text-xs text-[var(--text-muted)] mb-4">Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz.</p>
         <button
           onClick={() => supabase.auth.signOut()}
-          className="bg-transparent border border-[#f43f5e]/50 text-[#f43f5e] hover:bg-[#f43f5e]/10 text-sm font-bold px-6 py-2.5 rounded-lg transition-colors"
+          className="bg-transparent border border-[var(--danger-50)] text-[var(--danger)] hover:bg-[var(--danger-10)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors"
         >
           Çıxış et
         </button>
@@ -434,20 +451,20 @@ export default function ProfilPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-76px)] bg-[#090a0f] flex items-center justify-center">
-        <p className="text-[#94a3b8]">Yüklənir...</p>
+      <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] flex items-center justify-center">
+        <p className="text-[var(--text-muted)]">Yüklənir...</p>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-[calc(100vh-76px)] bg-[#090a0f] flex items-center justify-center px-6">
-        <div className="bg-[#131520] border border-[#7c3aed]/30 rounded-2xl p-10 max-w-sm w-full text-center">
-          <h1 className="text-xl font-extrabold text-white mb-2">Panelə baxmaq üçün daxil ol</h1>
-          <p className="text-sm text-[#94a3b8] mb-6">Bu səhifə yalnız giriş etmiş istifadəçilər üçündür.</p>
-          <Link href="/giris" className="block bg-[#7c3aed] hover:bg-[#8b5cf6] text-white font-bold py-3 rounded-lg transition-colors">Giriş et</Link>
-          <div className="text-xs text-[#94a3b8] mt-4">Hesabın yoxdur? <Link href="/qeydiyyat" className="text-[#8b5cf6] font-semibold">Qeydiyyatdan keç</Link></div>
+      <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] flex items-center justify-center px-6">
+        <div className="bg-[var(--bg-surface)] border border-[var(--purple-30)] rounded-2xl p-10 max-w-sm w-full text-center">
+          <h1 className="text-xl font-extrabold text-[var(--text-bright)] mb-2">Panelə baxmaq üçün daxil ol</h1>
+          <p className="text-sm text-[var(--text-muted)] mb-6">Bu səhifə yalnız giriş etmiş istifadəçilər üçündür.</p>
+          <Link href="/giris" className="block bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] font-bold py-3 rounded-lg transition-colors">Giriş et</Link>
+          <div className="text-xs text-[var(--text-muted)] mt-4">Hesabın yoxdur? <Link href="/qeydiyyat" className="text-[var(--brand-purple-hover)] font-semibold">Qeydiyyatdan keç</Link></div>
         </div>
       </div>
     );
@@ -464,15 +481,16 @@ export default function ProfilPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-76px)] bg-[#090a0f] flex flex-col md:flex-row">
+    <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[#1f2235] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
-        <div className="px-5 py-5 border-b border-[#1f2235] hidden md:block">
+      <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-dark)] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
+        <div className="px-5 py-5 border-b border-[var(--border-dark)] hidden md:block">
           <div className="flex items-center gap-2">
             <img src="/mlue-icon.png" alt="" className="h-7 w-auto" />
             <img src="/mlue-wordmark.png" alt="Mlue" className="h-3 w-auto" />
-            <span className="text-[#94a3b8] font-medium text-xs ml-1">Panel</span>
+            <span className="text-[var(--text-muted)] font-medium text-xs ml-1">Panel</span>
           </div>
+        </div>
         <nav className="flex-1 flex flex-row md:flex-col-reverse gap-1.5 p-3 overflow-x-auto md:overflow-visible">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;
@@ -482,10 +500,10 @@ export default function ProfilPage() {
                 onClick={() => setActive(item.id)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition-all
                   ${isActive
-                    ? 'bg-[#7c3aed]/15 text-white border border-[#7c3aed]/40'
-                    : 'text-[#94a3b8] border border-transparent hover:bg-[#131520] hover:text-white'}`}
+                    ? 'bg-[var(--purple-15)] text-[var(--text-bright)] border border-[var(--purple-40)]'
+                    : 'text-[var(--text-muted)] border border-transparent hover:bg-[var(--bg-surface)] hover:text-[var(--text-bright)]'}`}
               >
-                {item.icon(`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#8b5cf6]' : ''}`)}
+                {item.icon(`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[var(--brand-purple-hover)]' : ''}`)}
                 <span className="hidden sm:inline">{item.label}</span>
               </button>
             );
