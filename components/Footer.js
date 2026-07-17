@@ -7,7 +7,8 @@ export default function Footer() {
         <div className="footer-top">
           <div>
             <Link href="/" className="brand">
-              <span className="brand-m">M</span><span className="brand-rest">LUE</span>
+              <img src="/mlue-icon.png" alt="" className="brand-icon" />
+              <img src="/mlue-wordmark.png" alt="Mlue" className="brand-word-img" />
             </Link>
             <p className="footer-tagline">Azərbaycan gəncləri üçün yeni nəsil rəqəmsal təhsil və karyera platforması.</p>
           </div>
