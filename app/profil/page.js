@@ -468,8 +468,11 @@ export default function ProfilPage() {
       {/* Sidebar */}
       <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[#1f2235] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
         <div className="px-5 py-5 border-b border-[#1f2235] hidden md:block">
-          <div className="text-lg font-extrabold"><span className="text-[#2f8ff0]">M</span><span className="text-white">LUE</span> <span className="text-[#94a3b8] font-medium text-sm">Panel</span></div>
-        </div>
+          <div className="flex items-center gap-2">
+            <img src="/mlue-icon.png" alt="" className="h-7 w-auto" />
+            <img src="/mlue-wordmark.png" alt="Mlue" className="h-3 w-auto" />
+            <span className="text-[#94a3b8] font-medium text-xs ml-1">Panel</span>
+          </div>
         <nav className="flex-1 flex flex-row md:flex-col-reverse gap-1.5 p-3 overflow-x-auto md:overflow-visible">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;
