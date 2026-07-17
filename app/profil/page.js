@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/components/ThemeProvider';
-import { useTheme } from '@/components/ThemeProvider';
 import { supabase } from '@/lib/supabaseClient';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
