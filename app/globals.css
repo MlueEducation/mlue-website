@@ -73,7 +73,9 @@ nav {
   max-width: var(--container); margin: 0 auto; padding: 16px 24px;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
-.brand { display: flex; align-items: center; font-weight: 800; font-size: 21px; letter-spacing: -.01em; cursor: pointer; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 21px; letter-spacing: -.01em; cursor: pointer; flex-shrink: 0; }
+.brand-icon { height: 34px; width: auto; display: block; }
+.brand-word-img { height: 15px; width: auto; display: block; }
 .brand-m { color: #2f8ff0; }
 .brand-rest { color: var(--text-bright); }
 .nav-links { display: flex; gap: 28px; font-size: 14.5px; color: var(--text-muted); flex: 1; justify-content: center; }
