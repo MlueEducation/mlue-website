@@ -130,6 +130,25 @@ function SectionTitle({ children, sub }) {
     </div>
   );
 }
+function CardHead({ title, desc }) {
+  return (
+    <div className="pb-4 mb-4 border-b border-[var(--border-dark)]">
+      <div className="text-sm font-bold text-[var(--text-bright)]">{title}</div>
+      {desc && <div className="text-xs text-[var(--text-muted)] mt-1">{desc}</div>}
+    </div>
+  );
+}
+function SettingRow({ label, desc, children }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <div>
+        <div className="text-sm font-semibold text-[var(--text-bright)]">{label}</div>
+        {desc && <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /* ---------------- Section panels ---------------- */
 function IdentityPanel({ user }) {
@@ -155,7 +174,7 @@ function IdentityPanel({ user }) {
         {MOCK.stats.map((s) => <StatCard key={s.label} {...s} />)}
       </div>
       <Card>
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Son fəaliyyət</div>
+        <CardHead title="Son fəaliyyət" desc="Hesabında son baş verən dəyişikliklər" />
         <ul className="space-y-3">
           {MOCK.activity.map((a, i) => (
             <li key={i} className="flex gap-3 text-sm text-[var(--text-muted)]">
@@ -174,12 +193,12 @@ function BioPanel() {
     <div>
       <SectionTitle sub="Digər istifadəçilərin gördüyü açıq profilin">Açıq Profil və Bio</SectionTitle>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-2">Haqqımda</div>
+        <CardHead title="Haqqımda" desc="Digər istifadəçilərin gördüyü qısa təqdimat" />
         <p className="text-sm text-[var(--text-muted)] leading-relaxed">{MOCK.bio}</p>
         <div className="text-xs text-[var(--text-darker)] mt-4">📍 {MOCK.location}</div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-3">Bacarıqlar</div>
+        <CardHead title="Bacarıqlar" desc="Profilində görünən bacarıq etiketləri" />
         <div className="flex flex-wrap gap-2">
           {MOCK.skills.map((s) => (
             <span key={s} className="text-xs font-semibold bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] text-[var(--text-bright)] px-3 py-1.5 rounded-full">{s}</span>
@@ -187,7 +206,7 @@ function BioPanel() {
         </div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-3">Bağlantılar</div>
+        <CardHead title="Bağlantılar" desc="Sosial və peşəkar profil linklərin" />
         <div className="flex flex-wrap gap-3">
           {MOCK.links.map((l) => (
             <a key={l.label} href={l.href} className="text-xs font-semibold text-[var(--brand-purple-hover)] hover:text-[#a78bfa] border border-[var(--border-dark)] px-3 py-1.5 rounded-full">{l.label} ↗</a>
@@ -209,7 +228,7 @@ function AcademicPanel() {
         <StatCard label="Sertifikat" value={MOCK.certificates.length} />
       </div>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Kurslar</div>
+        <CardHead title="Kurslar" desc="Tamamladığın və davam edən kurslar" />
         <div className="space-y-5">
           {MOCK.courses.map((c) => (
             <div key={c.title}>
@@ -223,7 +242,7 @@ function AcademicPanel() {
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Sertifikatlar</div>
+        <CardHead title="Sertifikatlar" desc="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar" />
         <div className="grid sm:grid-cols-2 gap-3">
           {MOCK.certificates.map((c) => (
             <div key={c} className="flex items-center gap-3 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
@@ -242,15 +261,16 @@ function CareerPanel() {
     <div>
       <SectionTitle sub="CV, portfolio və iş imkanları">Karyera Mərkəzi və Portfel</SectionTitle>
       <Card className="mb-6">
+        <CardHead title="CV vəziyyəti" desc="Karyera profilinin tamamlanma dərəcəsi" />
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-[var(--text-bright)] font-medium">CV tamamlanma dərəcəsi</span>
+          <span className="text-[var(--text-bright)] font-medium">Tamamlanma</span>
           <span className="text-[var(--brand-yellow)] font-bold">{MOCK.cvCompletion}%</span>
         </div>
         <ProgressBar value={MOCK.cvCompletion} colorClass="bg-[var(--brand-yellow)]" />
         <button className="mt-4 text-sm font-bold text-[var(--brand-purple-hover)] hover:text-[#a78bfa]">CV-ni redaktə et →</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Portfolio Layihələri</div>
+        <CardHead title="Portfolio Layihələri" desc="İşəgötürənlərə göstərmək üçün seçilmiş işlərin" />
         <div className="grid sm:grid-cols-3 gap-4">
           {MOCK.portfolio.map((p) => (
             <div key={p.title} className="bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
@@ -263,7 +283,7 @@ function CareerPanel() {
         </div>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Sənə Uyğun İş Elanları</div>
+        <CardHead title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun tövsiyə olunan vakansiyalar" />
         <div className="space-y-3">
           {MOCK.jobMatches.map((j) => (
             <div key={j.title} className="flex items-center justify-between bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
@@ -277,8 +297,9 @@ function CareerPanel() {
         </div>
       </Card>
       <Card>
+        <CardHead title="Müsahibəyə hazırlıq" desc="Simulyasiya olunmuş müsahibə seansların" />
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-[var(--text-bright)] font-medium">Müsahibəyə hazırlıq</span>
+          <span className="text-[var(--text-bright)] font-medium">Tamamlanma</span>
           <span className="text-[var(--text-muted)]">{MOCK.interviewProgress.done}/{MOCK.interviewProgress.total} simulyasiya</span>
         </div>
         <ProgressBar value={(MOCK.interviewProgress.done / MOCK.interviewProgress.total) * 100} />
@@ -299,14 +320,14 @@ function WalletPanel() {
         <button className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-3 rounded-lg transition-colors">Balansı artır</button>
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Ödəniş üsulu</div>
+        <CardHead title="Ödəniş üsulu" desc="Kurs alışları üçün istifadə olunan kart" />
         <div className="flex items-center gap-3 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4 w-fit">
           <span className="text-lg">💳</span>
           <span className="text-sm text-[var(--text-bright)]">•••• •••• •••• 4242</span>
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Əməliyyatlar</div>
+        <CardHead title="Əməliyyatlar" desc="Son ödəniş və balans hərəkətlərin" />
         <div className="divide-y divide-[var(--border-dark)]">
           {MOCK.transactions.map((t, i) => (
             <div key={i} className="flex items-center justify-between py-3 text-sm">
@@ -328,6 +349,7 @@ function GamePanel() {
     <div>
       <SectionTitle sub="Nişanlar, səviyyə və icma sıralaması">Oyunlaşdırma və İcma</SectionTitle>
       <Card className="mb-6">
+        <CardHead title="Səviyyə və təcrübə xalı" desc="Platformada fəallığına görə qazandığın XP" />
         <div className="flex justify-between text-sm mb-2">
           <span className="text-[var(--text-bright)] font-bold">Səviyyə {MOCK.level}</span>
           <span className="text-[var(--text-muted)]">{MOCK.xp.current} / {MOCK.xp.max} XP</span>
@@ -335,7 +357,7 @@ function GamePanel() {
         <ProgressBar value={(MOCK.xp.current / MOCK.xp.max) * 100} colorClass="bg-[var(--brand-yellow)]" />
       </Card>
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Nişanlar</div>
+        <CardHead title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər" />
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {MOCK.badges.map((b) => (
             <div key={b.label} className={`text-center p-3 rounded-xl border ${b.earned ? 'border-[var(--purple-40)] bg-[var(--purple-10)]' : 'border-[var(--border-dark)] bg-[var(--bg-surface-secondary)] opacity-40'}`}>
@@ -346,7 +368,7 @@ function GamePanel() {
         </div>
       </Card>
       <Card>
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Liderlik Cədvəli</div>
+        <CardHead title="Liderlik Cədvəli" desc="İcma daxilində ən yüksək XP-yə sahib istifadəçilər" />
         <div className="space-y-2">
           {MOCK.leaderboard.map((p, i) => (
             <div key={p.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${p.isMe ? 'bg-[var(--purple-15)] border border-[var(--purple-40)]' : 'bg-[var(--bg-surface-secondary)]'}`}>
@@ -363,11 +385,14 @@ function GamePanel() {
   );
 }
 
-function Toggle({ label, defaultChecked }) {
+function Toggle({ label, desc, defaultChecked }) {
   const [on, setOn] = useState(defaultChecked);
   return (
-    <div className="flex items-center justify-between py-3">
-      <span className="text-sm text-[var(--text-bright)]">{label}</span>
+    <div className="flex items-center justify-between py-3 gap-4">
+      <div>
+        <div className="text-sm font-semibold text-[var(--text-bright)]">{label}</div>
+        {desc && <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>}
+      </div>
       <button
         onClick={() => setOn(!on)}
         className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[var(--brand-purple)]' : 'bg-[var(--border-dark)]'}`}
@@ -383,25 +408,23 @@ function SettingsPanel({ user }) {
   return (
     <div>
       <SectionTitle sub="Hesab, şifrə və bildiriş tənzimləmələri">Tənzimləmələr və Təhlükəsizlik</SectionTitle>
+
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Görünüş</div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setTheme('dark')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold border transition-colors ${theme === 'dark' ? 'border-[var(--brand-purple)] bg-[var(--purple-10)] text-[var(--text-bright)]' : 'border-[var(--border-dark)] text-[var(--text-muted)]'}`}
+        <CardHead title="Görünüş" desc="Panelin ümumi görünüşünü fərdiləşdir" />
+        <SettingRow label="Tema" desc="İşıqlı və tünd rejim arasında seç">
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            className="bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]"
           >
-            🌙 Tünd
-          </button>
-          <button
-            onClick={() => setTheme('light')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold border transition-colors ${theme === 'light' ? 'border-[var(--brand-purple)] bg-[var(--purple-10)] text-[var(--text-bright)]' : 'border-[var(--border-dark)] text-[var(--text-muted)]'}`}
-          >
-            ☀️ Açıq
-          </button>
-        </div>
+            <option value="light">İşıqlı</option>
+            <option value="dark">Tünd</option>
+          </select>
+        </SettingRow>
       </Card>
+
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Hesab məlumatları</div>
+        <CardHead title="Hesab məlumatları" desc="Ad və email ünvanını yenilə" />
         <div className="space-y-3">
           <div>
             <label className="text-xs text-[var(--text-muted)] mb-1 block">Ad Soyad</label>
@@ -414,25 +437,27 @@ function SettingsPanel({ user }) {
         </div>
         <button className="mt-4 bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
       </Card>
+
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-4">Şifrəni dəyiş</div>
+        <CardHead title="Şifrəni dəyiş" desc="Hesabına daxil olmaq üçün yeni şifrə təyin et" />
         <div className="space-y-3">
           <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
           <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
         </div>
         <button className="mt-4 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] hover:border-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
       </Card>
+
       <Card className="mb-6">
-        <div className="text-sm font-bold text-[var(--text-bright)] mb-2">Bildirişlər</div>
+        <CardHead title="Bildirişlər" desc="Hansı bildirişləri almaq istədiyini seç" />
         <div className="divide-y divide-[var(--border-dark)]">
-          <Toggle label="Email bildirişləri" defaultChecked={true} />
-          <Toggle label="Push bildirişləri" defaultChecked={false} />
-          <Toggle label="Marketinq mesajları" defaultChecked={false} />
+          <Toggle label="Email bildirişləri" desc="Kurs yenilikləri və hesab bildirişləri email ilə göndərilsin" defaultChecked={true} />
+          <Toggle label="Push bildirişləri" desc="Brauzer bildirişləri vasitəsilə anında xəbərdar ol" defaultChecked={false} />
+          <Toggle label="Marketinq mesajları" desc="Endirim və kampaniyalar haqqında məlumat al" defaultChecked={false} />
         </div>
       </Card>
+
       <Card className="border-[var(--danger-30)]">
-        <div className="text-sm font-bold text-[var(--danger)] mb-2">Təhlükəli zona</div>
-        <p className="text-xs text-[var(--text-muted)] mb-4">Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz.</p>
+        <CardHead title="Təhlükəli zona" desc="Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz." />
         <button
           onClick={() => supabase.auth.signOut()}
           className="bg-transparent border border-[var(--danger-50)] text-[var(--danger)] hover:bg-[var(--danger-10)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors"
@@ -487,7 +512,7 @@ export default function ProfilPage() {
       <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-dark)] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
         <div className="px-5 py-5 border-b border-[var(--border-dark)] hidden md:block">
           <div className="flex items-center gap-2">
-           <img src={theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png'} alt="" className="h-7 w-auto" />
+            <img src={theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png'} alt="" className="h-7 w-auto" />
             <img src={theme === 'light' ? '/mlue-wordmark-light.png' : '/mlue-wordmark.png'} alt="Mlue" className="h-3 w-auto" />
             <span className="text-[var(--text-muted)] font-medium text-xs ml-1">Panel</span>
           </div>
