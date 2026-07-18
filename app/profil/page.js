@@ -99,6 +99,35 @@ const MOCK = {
   ],
 };
 
+/* ---------------- Onboarding-based scenario content ---------------- */
+const SCENARIO_A = {
+  uniRanking: [
+    { name: 'UNEC', points: 4210 },
+    { name: 'ADA University', points: 3980 },
+    { name: 'Bakı Dövlət Universiteti', points: 3540 },
+    { name: 'Xəzər Universiteti', points: 3105 },
+  ],
+  starterTasks: [
+    'İlk məhsul kataloqunu yarat (5 məhsul)',
+    'Sadə qiymətqoyma strategiyası hazırla',
+    'Müştəri profili (persona) çək',
+  ],
+  courseTitle: 'İlk Onlayn Mağazanı Qur',
+};
+const SCENARIO_B = {
+  jobs: [
+    { title: 'Junior Frontend Developer', company: 'TechBakı MMC' },
+    { title: 'UI/UX Dizayner (Intern)', company: 'Kreativ Studio' },
+    { title: 'Product Designer', company: 'Startup Bakı' },
+  ],
+  portfolioTips: [
+    '3-4 güclü layihəni seç, kəmiyyətdən keyfiyyətə önəm ver',
+    'Hər layihədə problemi, prosesi və nəticəni izah et',
+    'Şəxsi sayt və ya Behance/Dribbble profili yarat',
+  ],
+  articleTitle: 'İrəli Səviyyə: Component-Driven Development',
+};
+
 /* ---------------- Small UI helpers ---------------- */
 function Card({ children, className = '' }) {
   return (
@@ -157,15 +186,18 @@ function SettingRow({ label, desc, children }) {
 function IdentityPanel({ user }) {
   const email = user?.email || 'nicat.aliyev@example.com';
   const initial = email.charAt(0).toUpperCase();
+  const meta = user?.user_metadata || {};
+  const onboarded = !!meta.onboarded;
+
   return (
     <div>
-      <SectionTitle sub="Hesabına ümumi baxış">Xoş gəldin, {MOCK.name.split(' ')[0]}</SectionTitle>
+      <SectionTitle sub="Hesabına ümumi baxış">Xoş gəldin, {(meta.full_name || MOCK.name).split(' ')[0]}</SectionTitle>
       <Card className="flex items-center gap-5 mb-8">
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--brand-purple)] to-[#ec4899] flex items-center justify-center text-2xl font-extrabold text-[var(--text-bright)] flex-shrink-0">
           {initial}
         </div>
         <div className="min-w-0">
-          <div className="text-lg font-bold text-[var(--text-bright)] truncate">{MOCK.name}</div>
+          <div className="text-lg font-bold text-[var(--text-bright)] truncate">{meta.full_name || MOCK.name}</div>
           <div className="text-sm text-[var(--text-muted)] truncate">{email}</div>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[11px] font-bold uppercase tracking-wide bg-[var(--brand-yellow)] text-black px-2.5 py-1 rounded-full">{MOCK.plan}</span>
@@ -173,10 +205,99 @@ function IdentityPanel({ user }) {
           </div>
         </div>
       </Card>
+
+      {!onboarded && (
+        <Card className="mb-8 border-[var(--brand-purple)]">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="text-base font-bold text-[var(--text-bright)]">Sənə uyğun ana səhifəni quraq</div>
+              <div className="text-sm text-[var(--text-muted)] mt-1">2 sürətli sualla fərdiləşdirilmiş tövsiyələr alacaqsan</div>
+            </div>
+            <Link href="/onboarding" className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">
+              Sorğunu tamamla →
+            </Link>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
         {MOCK.stats.map((s) => <StatCard key={s.label} {...s} />)}
       </div>
-      <Card>
+
+      {onboarded && meta.status === 'student' && meta.interest === 'ecommerce' && (
+        <>
+          <Card className="mb-8">
+            <CardHead title="Universitetlər Arası Reytinq" desc="Fəallığa görə hazırkı sıralama" />
+            <div className="space-y-3">
+              {SCENARIO_A.uniRanking.map((u, i) => (
+                <div key={u.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${u.name === meta.university ? 'bg-[var(--purple-15)] border border-[var(--purple-40)]' : 'bg-[var(--bg-surface-secondary)]'}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-[var(--text-darker)] w-4">{i + 1}</span>
+                    <span className="text-sm text-[var(--text-bright)]">{u.name}</span>
+                  </div>
+                  <span className="text-xs font-bold text-[var(--brand-yellow)]">{u.points} xal</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card className="mb-8">
+            <CardHead title="E-ticarət Üzrə Başlanğıc Tapşırıqlar" desc="İlk addımlarını burdan at" />
+            <ul className="space-y-4">
+              {SCENARIO_A.starterTasks.map((t, i) => (
+                <li key={i} className="flex gap-3 text-sm text-[var(--text-muted)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-purple)] mt-1.5 flex-shrink-0" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <Card>
+            <CardHead title="Tövsiyə Olunan Kurs" desc="Marağına uyğun seçildi" />
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="text-base font-bold text-[var(--text-bright)]">🛍️ {SCENARIO_A.courseTitle}</div>
+              <Link href="/qiymetler" className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Kursa bax</Link>
+            </div>
+          </Card>
+        </>
+      )}
+
+      {onboarded && !(meta.status === 'student' && meta.interest === 'ecommerce') && (
+        <>
+          <Card className="mb-8">
+            <CardHead title="Sənə Uyğun İş Elanları" desc="IT və dizayn sahəsində açıq mövqelər" />
+            <div className="space-y-4">
+              {SCENARIO_B.jobs.map((j) => (
+                <div key={j.title} className="flex items-center justify-between bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-xl p-4">
+                  <div>
+                    <div className="text-sm font-bold text-[var(--text-bright)]">{j.title}</div>
+                    <div className="text-xs text-[var(--text-muted)]">{j.company}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card className="mb-8">
+            <CardHead title="Portfel Yaratmaq Üçün İpuçları" desc="Diqqətini bunlara ver" />
+            <ul className="space-y-4">
+              {SCENARIO_B.portfolioTips.map((t, i) => (
+                <li key={i} className="flex gap-3 text-sm text-[var(--text-muted)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-purple)] mt-1.5 flex-shrink-0" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <Card>
+            <CardHead title="İrəli Səviyyə Məqalə" desc="Bacarıqlarını dərinləşdir" />
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="text-base font-bold text-[var(--text-bright)]">💻 {SCENARIO_B.articleTitle}</div>
+              <Link href="/platforma" className="bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Oxu</Link>
+            </div>
+          </Card>
+        </>
+      )}
+
+      <Card className="mt-8">
         <CardHead title="Son fəaliyyət" desc="Hesabında son baş verən dəyişikliklər" />
         <ul className="space-y-4">
           {MOCK.activity.map((a, i) => (
