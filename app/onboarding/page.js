@@ -51,14 +51,14 @@ export default function OnboardingPage() {
 
   async function handleSubmit() {
     setSaving(true);
-    await supabase.auth.updateUser({
-      data: {
-        onboarded: true,
-        status,
-        university: status === 'student' ? university : null,
-        major: status === 'student' ? major : null,
-        interest,
-      },
+    await supabase.from('profiles').upsert({
+      id: user.id,
+      full_name: user.user_metadata?.full_name || null,
+      role: status,
+      university: status === 'student' ? university : null,
+      major: status === 'student' ? major : null,
+      interests: [interest],
+      updated_at: new Date().toISOString(),
     });
     router.push('/profil');
   }
