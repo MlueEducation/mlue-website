@@ -191,13 +191,13 @@ function IdentityPanel({ user, profile }) {
 
   return (
     <div>
-      <SectionTitle sub="Hesabına ümumi baxış">Xoş gəldin, {(meta.full_name || MOCK.name).split(' ')[0]}</SectionTitle>
+      <SectionTitle sub="Hesabına ümumi baxış">Xoş gəldin, {(p.full_name || MOCK.name).split(' ')[0]}</SectionTitle>
       <Card className="flex items-center gap-5 mb-8">
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--brand-purple)] to-[#ec4899] flex items-center justify-center text-2xl font-extrabold text-[var(--text-bright)] flex-shrink-0">
           {initial}
         </div>
         <div className="min-w-0">
-          <div className="text-lg font-bold text-[var(--text-bright)] truncate">{meta.full_name || MOCK.name}</div>
+          <div className="text-lg font-bold text-[var(--text-bright)] truncate">{p.full_name || MOCK.name}</div>
           <div className="text-sm text-[var(--text-muted)] truncate">{email}</div>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[11px] font-bold uppercase tracking-wide bg-[var(--brand-yellow)] text-black px-2.5 py-1 rounded-full">{MOCK.plan}</span>
