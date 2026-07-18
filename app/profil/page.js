@@ -597,8 +597,23 @@ function SettingsPanel({ user }) {
 export default function ProfilPage() {
   const { user, loading } = useAuth();
   const [active, setActive] = useState('identity');
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    if (!user) { setProfileLoading(false); return; }
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setProfile(data);
+        setProfileLoading(false);
+      });
+  }, [user]);
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] flex items-center justify-center">
         <p className="text-[var(--text-muted)]">Yüklənir...</p>
@@ -620,7 +635,7 @@ export default function ProfilPage() {
   }
 
   const PANELS = {
-    identity: <IdentityPanel user={user} />,
+    identity: <IdentityPanel user={user} profile={profile} />,
     bio: <BioPanel />,
     academic: <AcademicPanel />,
     career: <CareerPanel />,
