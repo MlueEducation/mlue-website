@@ -103,7 +103,7 @@ const MOCK = {
 function Card({ children, className = '' }) {
   return (
     <div
-      className={`bg-[var(--bg-surface)] border border-[var(--border-dark)] rounded-2xl p-7 ${className}`}
+      className={`bg-[var(--bg-surface)] border border-[var(--border-dark)] rounded-2xl p-8 ${className}`}
       style={{ boxShadow: 'var(--card-shadow)' }}
     >
       {children}
@@ -135,18 +135,18 @@ function SectionTitle({ children, sub }) {
 }
 function CardHead({ title, desc }) {
   return (
-    <div className="pb-5 mb-5 border-b border-[var(--border-dark)]">
-      <div className="text-[15px] font-bold text-[var(--text-bright)]">{title}</div>
-      {desc && <div className="text-xs text-[var(--text-muted)] mt-1.5">{desc}</div>}
+    <div className="pb-5 mb-6 border-b border-[var(--border-dark)]">
+      <div className="text-xl font-bold text-[var(--text-bright)]">{title}</div>
+      {desc && <div className="text-sm text-[var(--text-muted)] mt-2">{desc}</div>}
     </div>
   );
 }
 function SettingRow({ label, desc, children }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3.5">
+    <div className="flex items-center justify-between gap-4 py-4">
       <div>
-        <div className="text-sm font-semibold text-[var(--text-bright)]">{label}</div>
-        {desc && <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>}
+        <div className="text-base font-semibold text-[var(--text-bright)]">{label}</div>
+        {desc && <div className="text-sm text-[var(--text-muted)] mt-1">{desc}</div>}
       </div>
       {children}
     </div>
@@ -391,10 +391,10 @@ function GamePanel() {
 function Toggle({ label, desc, defaultChecked }) {
   const [on, setOn] = useState(defaultChecked);
   return (
-    <div className="flex items-center justify-between py-3.5 gap-4">
+    <div className="flex items-center justify-between py-4 gap-4">
       <div>
-        <div className="text-sm font-semibold text-[var(--text-bright)]">{label}</div>
-        {desc && <div className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</div>}
+        <div className="text-base font-semibold text-[var(--text-bright)]">{label}</div>
+        {desc && <div className="text-sm text-[var(--text-muted)] mt-1">{desc}</div>}
       </div>
       <button
         onClick={() => setOn(!on)}
@@ -418,7 +418,7 @@ function SettingsPanel({ user }) {
           <select
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]"
+            className="bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]"
           >
             <option value="light">İşıqlı</option>
             <option value="dark">Tünd</option>
@@ -431,11 +431,11 @@ function SettingsPanel({ user }) {
         <div className="space-y-4">
           <div>
             <label className="text-xs text-[var(--text-muted)] mb-1 block">Ad Soyad</label>
-            <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+            <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
           </div>
           <div>
             <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
-            <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+            <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
           </div>
         </div>
         <button className="mt-4 bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
@@ -444,8 +444,8 @@ function SettingsPanel({ user }) {
       <Card className="mb-8">
         <CardHead title="Şifrəni dəyiş" desc="Hesabına daxil olmaq üçün yeni şifrə təyin et" />
         <div className="space-y-4">
-          <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
-          <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+          <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+          <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
         </div>
         <button className="mt-4 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] hover:border-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
       </Card>
@@ -511,7 +511,7 @@ export default function ProfilPage() {
   return (
     <div className="min-h-[calc(100vh-76px)] bg-[var(--bg-page)] flex flex-col md:flex-row">
       {/* Sidebar */}
-     <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-dark)] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
+      <aside className="md:w-72 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border-dark)] flex flex-col md:h-[calc(100vh-76px)] md:sticky md:top-[76px]">
         <nav className="flex flex-row md:flex-col-reverse gap-2 p-3 overflow-x-auto md:overflow-visible">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;
