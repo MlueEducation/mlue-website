@@ -348,11 +348,20 @@ footer { border-top: 1px solid var(--border-dark); padding: 48px 0 32px; }
   .price-grid { grid-template-columns: 1fr; }
   .vision { grid-template-columns: 1fr; padding: 32px; }
   .stats { gap: 32px; }
+  .hero-split { grid-template-columns: 1fr; text-align: center; }
+  .hero-split .hero-inner { margin: 0 auto; }
+  .hero-illustration { max-width: 320px; margin: 0 auto; }
+  .value-grid { grid-template-columns: 1fr; gap: 40px; }
+  .course-grid { grid-template-columns: repeat(2, 1fr); }
+  .social-proof-row { gap: 24px; }
 }
 @media (max-width: 520px) {
   .feat-grid { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .waitlist { padding: 36px 24px; }
   section { padding: 72px 0; }
-  .auth-card { padding: 28px; }
+ .auth-card { padding: 28px; }
+  .course-grid { grid-template-columns: 1fr; }
+  .big-search { padding: 40px 20px; }
+  .big-search-form { flex-direction: column; }
 }
