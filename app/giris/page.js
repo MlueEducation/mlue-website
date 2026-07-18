@@ -17,13 +17,19 @@ export default function GirisPage() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setMsg({ text: error.message, type: 'error' });
       return;
     }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', data.user.id)
+      .maybeSingle();
+    setLoading(false);
     setMsg({ text: 'Daxil oldun! Yönləndirilirsən...', type: 'success' });
-    const destination = data.user?.user_metadata?.onboarded ? '/profil' : '/onboarding';
+    const destination = profile ? '/profil' : '/onboarding';
     setTimeout(() => router.push(destination), 600);
   }
 
