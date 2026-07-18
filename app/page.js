@@ -1,23 +1,95 @@
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
+import HomeSearch from '@/components/HomeSearch';
+
+const COURSES = [
+  { tag: 'Backend', title: 'Node.js və Express.js ilə Backend Arxitekturası', desc: 'Server tərəfi inkişafın əsaslarından production-ready API-lərə qədər.' },
+  { tag: 'E-ticarət', title: 'Qlobal E-ticarət İdarəetməsi və Çoxkanallı Satış', desc: 'Onlayn mağaza qurmaqdan çoxkanallı satış strategiyasına qədər.' },
+  { tag: 'Dizayn', title: 'UI/UX Dizayn Əsasları', desc: 'İstifadəçi tədqiqatından interaktiv prototipə qədər tam proses.' },
+  { tag: 'Maliyyə', title: 'Makroiqtisadiyyat və Maliyyə Analizi', desc: 'İqtisadi göstəricilərdən maliyyə qərarlarına qədər praktiki yanaşma.' },
+];
 
 export default function HomePage() {
   return (
     <>
       <section className="hero">
         <div className="orb"></div>
-        <div className="hero-inner">
-          <div className="badge"><span className="dot"></span>Tezliklə açılır — Azərbaycan üçün yeni nəsil təhsil</div>
-          <h1 className="hero-title">Bacarığını qur,<br /><span className="accent">karyeranı</span> Mlue ilə inşa et</h1>
-          <p>Video dərslər, praktiki tapşırıqlar, mentor dəstəyi və süni intellekt əsaslı fərdiləşdirmə — hamısı Azərbaycan, Türk və Rus dillərində, bir platformada. Öyrən, sınaqdan keç, sertifikat al və işə qəbula hazır ol.</p>
-          <div className="cta-row">
-            <Link href="/qeydiyyat" className="btn-primary">Qeydiyyatdan keç →</Link>
-            <Link href="/haqqimizda" className="btn-secondary">Missiyamızı oxu</Link>
+        <div className="container hero-split">
+          <div className="hero-inner" style={{ textAlign: 'left' }}>
+            <div className="badge"><span className="dot"></span>Tezliklə açılır — Azərbaycan üçün yeni nəsil təhsil</div>
+            <h1 className="hero-title">Mlue ilə peşəkar <span className="accent">karyera</span> hədəflərinə çat</h1>
+            <p>Video dərslər, praktiki tapşırıqlar, mentor dəstəyi və süni intellekt əsaslı fərdiləşdirmə — hamısı Azərbaycan, Türk və Rus dillərində, bir platformada.</p>
+            <div className="cta-row" style={{ justifyContent: 'flex-start' }}>
+              <Link href="/qeydiyyat" className="btn-primary">Karyerana Başla →</Link>
+              <Link href="/platforma" className="btn-secondary">Platformanı Kəşf Et</Link>
+            </div>
           </div>
+          <Reveal>
+            <div className="hero-illustration">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3">
+                <path d="M12 3 2 8l10 5 10-5-10-5Z" />
+                <path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" />
+                <path d="M22 8v6" />
+              </svg>
+            </div>
+          </Reveal>
+        </div>
+        <div className="container">
           <div className="stats">
             <div className="stat"><b>3 dil</b><span>AZ · TR · RU</span></div>
             <div className="stat"><b>9.99 ₼-dən</b><span>kurs başına qiymət</span></div>
             <div className="stat"><b>1.8M+</b><span>hədəf gənc auditoriya</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: 0 }}>
+        <div className="container">
+          <Reveal className="social-proof">
+            <div className="social-proof-title">Ən yaxşı universitetlər və şirkətlərlə birlikdə öyrənin</div>
+            <div className="social-proof-row">
+              <span>UNEC</span><span>ADA University</span><span>Xəzər Universiteti</span>
+              <span>PASHA Bank</span><span>Kapital Bank</span><span>Azercell</span>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <div className="value-grid">
+            <Reveal className="value-item">
+              <div className="value-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3 2 8l10 5 10-5-10-5Z" /><path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" /></svg></div>
+              <h3>Yeni bacarıqlar öyrən</h3>
+              <p>Sənayenin real ehtiyaclarına uyğun qurulmuş kurslar və praktiki tapşırıqlar.</p>
+            </Reveal>
+            <Reveal className="value-item">
+              <div className="value-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="9" r="5" /><path d="M8.5 13.5 7 21l5-2.5L17 21l-1.5-7.5" /></svg></div>
+              <h3>Dəyərli sertifikatlar qazan</h3>
+              <p>Tərəfdaş şirkətlərlə tanınma məqsədilə hazırlanan sertifikat proqramı.</p>
+            </Reveal>
+            <Reveal className="value-item">
+              <div className="value-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="8" cy="8" r="3" /><circle cx="17" cy="8" r="3" /><path d="M2 20c0-3 2.7-5 6-5s6 2 6 5M13 15.5c2.8.3 5 2.2 5 4.5" /></svg></div>
+              <h3>Peşəkar şəbəkəni genişləndir</h3>
+              <p>Mentorlar, digər öyrənənlər və tərəfdaş şirkətlərlə birbaşa əlaqə.</p>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <div className="eyebrow reveal">Kurslar</div>
+          <Reveal><h2>Tezliklə platformada</h2></Reveal>
+          <Reveal><p className="section-sub">Növbəti mərhələdə açılacaq ilk kurslardan bir neçə nümunə.</p></Reveal>
+          <div className="course-grid">
+            {COURSES.map((c) => (
+              <Reveal className="course-card" key={c.title}>
+                <span className="course-tag">{c.tag}</span>
+                <h3>{c.title}</h3>
+                <p>{c.desc}</p>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -43,39 +115,6 @@ export default function HomePage() {
               <div className="compare-item"><span className="mark">✓</span>Universitet–şirkət–tələbə tam ekosistemi</div>
             </Reveal>
           </div>
-        </div>
-      </section>
-
-      <section>
-        <div className="container">
-          <div className="eyebrow reveal">Platforma</div>
-          <Reveal><h2>Öyrənmədən işə qəbula qədər hər mərhələ</h2></Reveal>
-          <Reveal><p className="section-sub">Sənə yalnız dərs deyil, irəliləmək üçün tam sistem təqdim edirik.</p></Reveal>
-          <div className="feat-grid">
-            <Reveal className="feat-card">
-              <div className="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M10 8.5 16 12 10 15.5Z" fill="currentColor" stroke="none" /></svg></div>
-              <h3>Studio keyfiyyətində dərslər</h3>
-              <p>Peşəkar çəkiliş və dublyaj ilə hazırlanmış video kurslar.</p>
-            </Reveal>
-            <Reveal className="feat-card">
-              <div className="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /></svg></div>
-              <h3>AI əsaslı fərdiləşdirmə</h3>
-              <p>Süni intellekt sürətinə və səviyyənə uyğun tədris yolu qurur.</p>
-            </Reveal>
-            <Reveal className="feat-card">
-              <div className="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 19V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-5 4Z" /></svg></div>
-              <h3>Canlı mentor dəstəyi</h3>
-              <p>Sahə mütəxəssislərindən birbaşa geri bildirim və istiqamətləndirmə.</p>
-            </Reveal>
-            <Reveal className="feat-card">
-              <div className="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="8" width="16" height="11" rx="2" /><path d="M8 8V6a4 4 0 0 1 8 0v2" /></svg></div>
-              <h3>Praktiki tapşırıqlar</h3>
-              <p>Real ssenarilər üzərində iş üçün lazım olan bacarıqları məşq et.</p>
-            </Reveal>
-          </div>
-          <Reveal style={{ marginTop: 32, textAlign: 'center' }}>
-            <Link href="/platforma" className="btn-secondary">Bütün imkanlara bax →</Link>
-          </Reveal>
         </div>
       </section>
 
@@ -141,6 +180,17 @@ export default function HomePage() {
               <li>Məzmunun Türkiyə türkcəsinə uyğunlaşdırılması</li>
               <li>Region ölkələri üçün AI dəstəkli lokallaşdırma</li>
             </ul>
+          </Reveal>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <Reveal className="big-search">
+            <div className="eyebrow center">Axtarış</div>
+            <h2>Sənə uyğun kursu tap</h2>
+            <p className="section-sub center" style={{ marginBottom: 0 }}>Sahəni, bacarığı və ya maraq dairəni yaz, sənə uyğun məzmunu göstərək.</p>
+            <HomeSearch />
           </Reveal>
         </div>
       </section>
