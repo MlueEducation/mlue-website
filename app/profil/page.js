@@ -183,11 +183,11 @@ function SettingRow({ label, desc, children }) {
 }
 
 /* ---------------- Section panels ---------------- */
-function IdentityPanel({ user }) {
+function IdentityPanel({ user, profile }) {
   const email = user?.email || 'nicat.aliyev@example.com';
   const initial = email.charAt(0).toUpperCase();
-  const meta = user?.user_metadata || {};
-  const onboarded = !!meta.onboarded;
+  const p = profile || {};
+  const onboarded = !!profile;
 
   return (
     <div>
