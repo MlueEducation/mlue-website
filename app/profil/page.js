@@ -230,7 +230,7 @@ function IdentityPanel({ user, profile }) {
             <CardHead title="Universitetlər Arası Reytinq" desc="Fəallığa görə hazırkı sıralama" />
             <div className="space-y-3">
               {SCENARIO_A.uniRanking.map((u, i) => (
-                <div key={u.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${u.name === meta.university ? 'bg-[var(--purple-15)] border border-[var(--purple-40)]' : 'bg-[var(--bg-surface-secondary)]'}`}>
+                <div key={u.name} className={`flex items-center justify-between px-4 py-3 rounded-xl ${u.name === p.university ? 'bg-[var(--purple-15)] border border-[var(--purple-40)]' : 'bg-[var(--bg-surface-secondary)]'}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold text-[var(--text-darker)] w-4">{i + 1}</span>
                     <span className="text-sm text-[var(--text-bright)]">{u.name}</span>
