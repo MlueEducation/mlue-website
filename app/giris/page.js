@@ -16,14 +16,15 @@ export default function GirisPage() {
     setMsg({ text: '', type: '' });
     const email = e.target.email.value;
     const password = e.target.password.value;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       setMsg({ text: error.message, type: 'error' });
       return;
     }
     setMsg({ text: 'Daxil oldun! Yönləndirilirsən...', type: 'success' });
-    setTimeout(() => router.push('/profil'), 600);
+    const destination = data.user?.user_metadata?.onboarded ? '/profil' : '/onboarding';
+    setTimeout(() => router.push(destination), 600);
   }
 
   return (
