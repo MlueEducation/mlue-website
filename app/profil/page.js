@@ -224,7 +224,7 @@ function IdentityPanel({ user, profile }) {
         {MOCK.stats.map((s) => <StatCard key={s.label} {...s} />)}
       </div>
 
-      {onboarded && meta.status === 'student' && meta.interest === 'ecommerce' && (
+      {onboarded && p.role === 'student' && p.interests?.includes('ecommerce') && (
         <>
           <Card className="mb-8">
             <CardHead title="Universitetlər Arası Reytinq" desc="Fəallığa görə hazırkı sıralama" />
@@ -261,7 +261,7 @@ function IdentityPanel({ user, profile }) {
         </>
       )}
 
-      {onboarded && !(meta.status === 'student' && meta.interest === 'ecommerce') && (
+      {onboarded && !(p.role === 'student' && p.interests?.includes('ecommerce')) && (
         <>
           <Card className="mb-8">
             <CardHead title="Sənə Uyğun İş Elanları" desc="IT və dizayn sahəsində açıq mövqelər" />
