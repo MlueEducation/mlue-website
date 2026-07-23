@@ -45,14 +45,6 @@ const MOCK = {
     'CV redaktə edildi və yeniləndi',
     '"UI/UX Dizayn Əsasları" sertifikatı alındı',
   ],
-  bio: 'Full-stack developer olmaq istəyən, dizayna böyük marağı olan tələbəyəm. Komanda işində fəal, öyrənməyə həvəslə yanaşan biriyəm.',
-  location: 'Bakı, Azərbaycan',
-  skills: ['JavaScript', 'React', 'Figma', 'Excel', 'Ünsiyyət', 'Layihə İdarəetməsi'],
-  links: [
-    { label: 'LinkedIn', href: '#' },
-    { label: 'GitHub', href: '#' },
-    { label: 'Portfolio', href: '#' },
-  ],
   gpa: 87,
   courses: [
     { title: 'React ilə Frontend İnkişafı', progress: 100, done: true },
@@ -126,6 +118,65 @@ const SCENARIO_B = {
   ],
   articleTitle: 'İrəli Səviyyə: Component-Driven Development',
 };
+
+/* ---------------- Public profile: skill catalog + link validation ---------------- */
+const SKILL_CATALOG = [
+  // Proqramlaşdırma
+  'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin',
+  'HTML/CSS', 'React', 'Next.js', 'Vue.js', 'Angular', 'Node.js', 'Express.js', 'Django', 'Laravel',
+  '.NET', 'SQL', 'MongoDB', 'PostgreSQL', 'GraphQL', 'REST API', 'Git', 'Docker', 'Kubernetes', 'AWS', 'Linux',
+  // Dizayn
+  'Figma', 'Adobe XD', 'Adobe Photoshop', 'Adobe Illustrator', 'UI Dizayn', 'UX Tədqiqatı',
+  'Prototipləşdirmə', 'Motion Dizayn', 'Sketch', 'Canva',
+  // Data / Analitika
+  'Excel', 'Power BI', 'Tableau', 'Data Analitikası', 'Maşın Öyrənməsi', 'Süni İntellekt', 'Statistika',
+  'R proqramlaşdırma', 'SPSS',
+  // Biznes / Menecment
+  'Layihə İdarəetməsi', 'Agile/Scrum', 'Məhsul İdarəetməsi', 'Biznes Analitikası', 'Strateji Planlaşdırma',
+  'Satış', 'Danışıqlar Aparma', 'Maliyyə Analizi', 'Mühasibatlıq', 'HR İdarəetməsi',
+  // Marketinq
+  'Rəqəmsal Marketinq', 'SMM', 'SEO', 'Google Ads', 'Kontent Marketinqi', 'Email Marketinq',
+  'Marka Menecmenti', 'Copywriting',
+  // Dillər
+  'Azərbaycan dili', 'İngilis dili', 'Rus dili', 'Türk dili', 'Alman dili', 'Fransız dili', 'Ərəb dili', 'Çin dili',
+  // Soft skills
+  'Komanda İşi', 'Liderlik', 'Vaxt İdarəetməsi', 'Problem Həlli', 'Tənqidi Düşüncə', 'Ünsiyyət Bacarıqları',
+  'Yaradıcılıq', 'Uyğunlaşma Qabiliyyəti', 'Təqdimat Bacarıqları', 'Mentorluq',
+  // Alətlər
+  'Microsoft Office', 'Google Workspace', 'Slack', 'Jira', 'Trello', 'Notion', 'Zoom', 'WordPress', 'Shopify',
+];
+
+const MAX_SKILLS = 15;
+
+const LINK_FIELDS = [
+  {
+    id: 'linkedin_url',
+    label: 'LinkedIn',
+    placeholder: 'https://www.linkedin.com/in/istifadeci-adi',
+    pattern: /^https?:\/\/([\w-]+\.)?linkedin\.com\/in\/[A-Za-z0-9\-_%]+\/?$/i,
+    error: 'LinkedIn şəxsi profil linki linkedin.com/in/... formatında olmalıdır.',
+  },
+  {
+    id: 'facebook_url',
+    label: 'Facebook',
+    placeholder: 'https://www.facebook.com/istifadeci.adi',
+    pattern: /^https?:\/\/([\w-]+\.)?facebook\.com\/(profile\.php\?id=\d+|[A-Za-z0-9.\-_]+)\/?$/i,
+    error: 'Facebook profil linki facebook.com/istifadəçi-adı formatında olmalıdır.',
+  },
+  {
+    id: 'instagram_url',
+    label: 'Instagram',
+    placeholder: 'https://www.instagram.com/istifadeci_adi',
+    pattern: /^https?:\/\/([\w-]+\.)?instagram\.com\/[A-Za-z0-9._]+\/?$/i,
+    error: 'Instagram profil linki instagram.com/istifadəçi_adı formatında olmalıdır.',
+  },
+];
+
+function validateLinkField(field, value) {
+  const v = value.trim();
+  if (!v) return null;
+  return field.pattern.test(v) ? null : field.error;
+}
 
 /* ---------------- Shared building blocks ----------------
    One consistent "grouped panel" pattern is used everywhere instead of
@@ -214,12 +265,100 @@ function Toggle({ label, desc, defaultChecked }) {
   );
 }
 
+function SkillPicker({ selected, onChange }) {
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const filtered = SKILL_CATALOG.filter((s) => !q || s.toLowerCase().includes(q));
+  const atMax = selected.length >= MAX_SKILLS;
+
+  function toggle(skill) {
+    if (selected.includes(skill)) {
+      onChange(selected.filter((s) => s !== skill));
+    } else if (!atMax) {
+      onChange([...selected, skill]);
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs text-[var(--text-secondary)]">Sənə uyğun bacarıqları seç</span>
+        <span className={`text-xs font-bold ${atMax ? 'text-[var(--accent-warm)]' : 'text-[var(--text-tertiary)]'}`}>
+          {selected.length}/{MAX_SKILLS}
+        </span>
+      </div>
+
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {selected.map((s) => (
+            <span key={s} className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[var(--accent-soft)] text-[var(--accent)] pl-3 pr-2 py-1.5 rounded-full">
+              {s}
+              <button type="button" onClick={() => toggle(s)} aria-label={`${s} sil`} className="hover:opacity-60 leading-none">✕</button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Bacarıq axtar..."
+        className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] mb-3 focus:outline-none focus:border-[var(--accent)]"
+      />
+
+      <div className="max-h-56 overflow-y-auto border border-[var(--border)] rounded-lg p-3 flex flex-wrap gap-2 content-start">
+        {filtered.length === 0 && <span className="text-xs text-[var(--text-tertiary)] px-1">Nəticə tapılmadı</span>}
+        {filtered.map((s) => {
+          const active = selected.includes(s);
+          const disabled = !active && atMax;
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggle(s)}
+              disabled={disabled}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                active
+                  ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
+                  : disabled
+                  ? 'bg-[var(--bg-surface-2)] border-[var(--border)] text-[var(--text-tertiary)] opacity-50 cursor-not-allowed'
+                  : 'bg-[var(--bg-surface-2)] border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+              }`}
+            >
+              {s}
+            </button>
+          );
+        })}
+      </div>
+      {atMax && <p className="text-xs text-[var(--accent-warm)] mt-2">Maksimum {MAX_SKILLS} bacarıq seçə bilərsən.</p>}
+    </div>
+  );
+}
+
+function LinkInput({ field, value, onChange, error }) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">{field.label}</label>
+      <input
+        type="url"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.placeholder}
+        className={`w-full bg-[var(--bg-surface-2)] border rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none ${
+          error ? 'border-[var(--danger)]' : 'border-[var(--border)] focus:border-[var(--accent)]'
+        }`}
+      />
+      {error && <p className="text-xs text-[var(--danger)] mt-1.5">{error}</p>}
+    </div>
+  );
+}
+
 /* ---------------- Tabs ---------------- */
 function IdentityPanel({ user, profile }) {
   const email = user?.email || 'nicat.aliyev@example.com';
   const initial = email.charAt(0).toUpperCase();
   const p = profile || {};
-  const onboarded = !!profile;
+  const onboarded = !!profile?.role;
   const isEcommerceStudent = onboarded && p.role === 'student' && p.interests?.includes('ecommerce');
 
   return (
@@ -343,32 +482,152 @@ function IdentityPanel({ user, profile }) {
   );
 }
 
-function BioPanel() {
+function BioPanel({ user, profile, onSaved }) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [bio, setBio] = useState(profile?.bio || '');
+  const [skills, setSkills] = useState(profile?.skills || []);
+  const [links, setLinks] = useState({
+    linkedin_url: profile?.linkedin_url || '',
+    facebook_url: profile?.facebook_url || '',
+    instagram_url: profile?.instagram_url || '',
+  });
+  const [errors, setErrors] = useState({});
+
+  function startEdit() {
+    setBio(profile?.bio || '');
+    setSkills(profile?.skills || []);
+    setLinks({
+      linkedin_url: profile?.linkedin_url || '',
+      facebook_url: profile?.facebook_url || '',
+      instagram_url: profile?.instagram_url || '',
+    });
+    setErrors({});
+    setEditing(true);
+  }
+
+  async function handleSave() {
+    const newErrors = {};
+    LINK_FIELDS.forEach((f) => {
+      const err = validateLinkField(f, links[f.id]);
+      if (err) newErrors[f.id] = err;
+    });
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setSaving(true);
+    const payload = {
+      id: user.id,
+      bio: bio.trim(),
+      skills,
+      linkedin_url: links.linkedin_url.trim(),
+      facebook_url: links.facebook_url.trim(),
+      instagram_url: links.instagram_url.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('profiles').upsert(payload);
+    setSaving(false);
+    if (error) {
+      setErrors({ submit: 'Yadda saxlanılmadı, yenidən cəhd et.' });
+      return;
+    }
+    onSaved((prev) => ({ ...(prev || {}), ...payload }));
+    setEditing(false);
+  }
+
+  const savedLinks = LINK_FIELDS.map((f) => ({ ...f, url: profile?.[f.id] })).filter((f) => f.url);
+
   return (
     <div>
       <PageHeader sub="Digər istifadəçilərin gördüyü açıq profilin">İctimai Profil</PageHeader>
       <div className="space-y-5">
         <Panel>
           <PanelSection first title="Haqqımda" desc="Digər istifadəçilərin gördüyü qısa təqdimat">
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{MOCK.bio}</p>
-            <div className="text-xs text-[var(--text-tertiary)] mt-3">📍 {MOCK.location}</div>
+            {editing ? (
+              <div>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value.slice(0, 500))}
+                  rows={4}
+                  placeholder="Özün haqqında qısa məlumat yaz..."
+                  className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none"
+                />
+                <div className="text-xs text-[var(--text-tertiary)] mt-1.5 text-right">{bio.length}/500</div>
+              </div>
+            ) : profile?.bio ? (
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{profile.bio}</p>
+            ) : (
+              <p className="text-sm text-[var(--text-tertiary)] italic">Hələ heç nə yazılmayıb.</p>
+            )}
           </PanelSection>
-          <PanelSection title="Bacarıqlar" desc="Profilində görünən bacarıq etiketləri">
-            <div className="flex flex-wrap gap-2">
-              {MOCK.skills.map((s) => (
-                <span key={s} className="text-xs font-semibold bg-[var(--bg-surface-2)] text-[var(--text-primary)] px-3 py-1.5 rounded-full">{s}</span>
-              ))}
-            </div>
+
+          <PanelSection title="Bacarıqlar" desc={`Profilində görünən bacarıq etiketləri (maksimum ${MAX_SKILLS})`}>
+            {editing ? (
+              <SkillPicker selected={skills} onChange={setSkills} />
+            ) : profile?.skills?.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((s) => (
+                  <span key={s} className="text-xs font-semibold bg-[var(--bg-surface-2)] text-[var(--text-primary)] px-3 py-1.5 rounded-full">{s}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--text-tertiary)] italic">Hələ bacarıq seçilməyib.</p>
+            )}
           </PanelSection>
-          <PanelSection title="Bağlantılar" desc="Sosial və peşəkar profil linklərin">
-            <div className="flex flex-wrap gap-2">
-              {MOCK.links.map((l) => (
-                <a key={l.label} href={l.href} className="text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] bg-[var(--bg-surface-2)] px-3 py-1.5 rounded-full">{l.label} ↗</a>
-              ))}
-            </div>
+
+          <PanelSection title="Bağlantılar" desc="LinkedIn, Facebook və Instagram profil linklərin">
+            {editing ? (
+              <div className="space-y-4">
+                {LINK_FIELDS.map((f) => (
+                  <LinkInput
+                    key={f.id}
+                    field={f}
+                    value={links[f.id]}
+                    onChange={(v) => setLinks((prev) => ({ ...prev, [f.id]: v }))}
+                    error={errors[f.id]}
+                  />
+                ))}
+              </div>
+            ) : savedLinks.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {savedLinks.map((l) => (
+                  <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[var(--accent)] hover:text-[var(--accent-hover)] bg-[var(--bg-surface-2)] px-3 py-1.5 rounded-full">{l.label} ↗</a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--text-tertiary)] italic">Hələ bağlantı əlavə edilməyib.</p>
+            )}
           </PanelSection>
         </Panel>
-        <button className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors">Profili Düzəlt</button>
+
+        {errors.submit && <p className="text-sm text-[var(--danger)]">{errors.submit}</p>}
+
+        <div className="flex gap-3">
+          {editing ? (
+            <>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors"
+              >
+                {saving ? 'Yadda saxlanılır...' : 'Yadda saxla'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                disabled={saving}
+                className="bg-[var(--bg-surface-2)] hover:bg-[var(--border)] text-[var(--text-primary)] text-sm font-bold px-6 py-3 rounded-lg transition-colors"
+              >
+                Ləğv et
+              </button>
+            </>
+          ) : (
+            <button onClick={startEdit} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-6 py-3 rounded-lg transition-colors">
+              Profili Düzəlt
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -655,7 +914,7 @@ export default function ProfilPage() {
 
   const PANELS = {
     identity: <IdentityPanel user={user} profile={profile} />,
-    bio: <BioPanel />,
+    bio: <BioPanel user={user} profile={profile} onSaved={setProfile} />,
     academic: <AcademicPanel />,
     career: <CareerPanel />,
     wallet: <WalletPanel />,
