@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
-import { useTheme } from '@/components/ThemeProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { Flame, Award, Rocket, MessageCircle, Briefcase, Lock, Gift } from 'lucide-react';
+import { Panel, PanelSection, SettingRow, Toggle, Tooltip } from '@/components/ProfileUI';
+import AccountSettings from '@/components/AccountSettings';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -213,26 +214,6 @@ function PageHeader({ children, sub }) {
     </div>
   );
 }
-function Panel({ children, className = '' }) {
-  return (
-    <div className={`bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden ${className}`}>
-      {children}
-    </div>
-  );
-}
-function PanelSection({ title, desc, children, first = false, tint = false }) {
-  return (
-    <div className={`p-6 ${first ? '' : 'border-t border-[var(--border)]'} ${tint ? 'bg-[var(--bg-surface-2)]' : ''}`}>
-      {title && (
-        <div className="mb-4">
-          <div className="text-base font-bold text-[var(--text-primary)]">{title}</div>
-          {desc && <div className="text-sm text-[var(--text-secondary)] mt-0.5">{desc}</div>}
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
 const STAT_TONES = {
   accent: 'bg-[var(--accent-soft)] text-[var(--accent)]',
   success: 'bg-[var(--success-soft)] text-[var(--success)]',
@@ -259,47 +240,6 @@ function ProgressBar({ value, colorClass = 'bg-[var(--accent)]' }) {
     </div>
   );
 }
-function SettingRow({ label, desc, children }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div>
-        <div className="text-sm font-semibold text-[var(--text-primary)]">{label}</div>
-        {desc && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{desc}</div>}
-      </div>
-      {children}
-    </div>
-  );
-}
-function Toggle({ label, desc, defaultChecked }) {
-  const [on, setOn] = useState(defaultChecked);
-  return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div>
-        <div className="text-sm font-semibold text-[var(--text-primary)]">{label}</div>
-        {desc && <div className="text-xs text-[var(--text-secondary)] mt-0.5">{desc}</div>}
-      </div>
-      <button
-        onClick={() => setOn(!on)}
-        aria-pressed={on}
-        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}
-      >
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${on ? 'left-5' : 'left-0.5'}`} />
-      </button>
-    </div>
-  );
-}
-
-function Tooltip({ text, children }) {
-  return (
-    <div className="relative group">
-      {children}
-      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[160px] rounded-[var(--radius-sm)] bg-[var(--bg-inverse)] text-[var(--text-on-inverse)] text-[11px] font-medium px-2.5 py-1.5 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 shadow-[var(--shadow-md)]">
-        {text}
-      </div>
-    </div>
-  );
-}
-
 function SkillPicker({ selected, onChange }) {
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -947,68 +887,11 @@ function GamePanel({ user, profile }) {
   );
 }
 
-function SettingsPanel({ user }) {
-  const { theme, setTheme } = useTheme();
+function SettingsPanel({ user, profile, onSaved }) {
   return (
     <div>
       <PageHeader sub="Hesab, şifrə və bildiriş tənzimləmələri">Tənzimləmələr</PageHeader>
-      <div className="space-y-5">
-        <Panel>
-          <PanelSection first title="Görünüş" tint>
-            <SettingRow label="Tema" desc="İşıqlı və tünd rejim arasında seç">
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-              >
-                <option value="light">İşıqlı</option>
-                <option value="dark">Tünd</option>
-              </select>
-            </SettingRow>
-          </PanelSection>
-
-          <PanelSection title="Hesab məlumatları" tint>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-[var(--text-secondary)] mb-1 block">Ad Soyad</label>
-                <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
-              </div>
-              <div>
-                <label className="text-xs text-[var(--text-secondary)] mb-1 block">Email</label>
-                <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
-              </div>
-            </div>
-            <button className="mt-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
-          </PanelSection>
-
-          <PanelSection title="Şifrəni dəyiş" tint>
-            <div className="space-y-4">
-              <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
-              <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
-            </div>
-            <button className="mt-4 bg-[var(--bg-surface)] border border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-primary)] text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
-          </PanelSection>
-
-          <PanelSection title="Bildirişlər" tint>
-            <div className="divide-y divide-[var(--border)]">
-              <Toggle label="Email bildirişləri" desc="Kurs yenilikləri və hesab bildirişləri email ilə göndərilsin" defaultChecked={true} />
-              <Toggle label="Push bildirişləri" desc="Brauzer bildirişləri vasitəsilə anında xəbərdar ol" defaultChecked={false} />
-              <Toggle label="Marketinq mesajları" desc="Endirim və kampaniyalar haqqında məlumat al" defaultChecked={false} />
-            </div>
-          </PanelSection>
-        </Panel>
-
-        <div className="rounded-2xl border border-[var(--danger-30)] bg-[var(--danger-10)] p-6">
-          <div className="text-sm font-bold text-[var(--danger)] mb-1">Təhlükəli zona</div>
-          <div className="text-sm text-[var(--text-secondary)] mb-4">Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz.</div>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="bg-transparent border border-[var(--danger-50)] text-[var(--danger)] hover:bg-[var(--danger-10)] text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Çıxış et
-          </button>
-        </div>
-      </div>
+      <AccountSettings user={user} profile={profile} onSaved={onSaved} />
     </div>
   );
 }
@@ -1061,7 +944,7 @@ export default function ProfilPage() {
     career: <CareerPanel />,
     wallet: <WalletPanel />,
     game: <GamePanel user={user} profile={profile} />,
-    settings: <SettingsPanel user={user} />,
+    settings: <SettingsPanel user={user} profile={profile} onSaved={setProfile} />,
     tokens: <TokensPanel />,
     certificates: <CertificatesPanel />,
   };
