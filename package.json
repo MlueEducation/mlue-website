@@ -14,7 +14,8 @@
     "react-dom": "latest",
     "@supabase/supabase-js": "latest",
     "@vercel/analytics": "latest",
-    "geist": "latest"
+    "geist": "latest",
+    "lucide-react": "latest"
   },
   "devDependencies": {
     "tailwindcss": "latest",
