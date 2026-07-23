@@ -35,10 +35,10 @@ const MOCK = {
   memberSince: 'Yanvar 2026',
   plan: 'Pro Plan',
   stats: [
-    { label: 'Aktiv kurslar', value: '3' },
-    { label: 'Tamamlanma', value: '68%' },
-    { label: 'Seriya (streak)', value: '12 gün' },
-    { label: 'Ümumi bal (XP)', value: '2,450' },
+    { label: 'Aktiv kurslar', value: '3', icon: '📚', tone: 'accent' },
+    { label: 'Tamamlanma', value: '68%', icon: '✅', tone: 'success' },
+    { label: 'Seriya (streak)', value: '12 gün', icon: '🔥', tone: 'streak' },
+    { label: 'Ümumi bal (XP)', value: '2,450', icon: '⚡', tone: 'warm' },
   ],
   activity: [
     'React ilə Frontend İnkişafı — 4-cü modul tamamlandı',
@@ -139,17 +139,28 @@ function Card({ children, className = '' }) {
     </div>
   );
 }
-function StatCard({ label, value }) {
+const STAT_TONES = {
+  accent: 'bg-[var(--accent-soft)] text-[var(--accent)]',
+  success: 'bg-[var(--success-soft)] text-[var(--success)]',
+  streak: 'bg-[var(--streak-soft)] text-[var(--streak)]',
+  warm: 'bg-[var(--warm-soft)] text-[var(--accent-warm)]',
+};
+function StatCard({ label, value, icon, tone = 'accent' }) {
   return (
     <Card className="text-center">
-      <div className="text-2xl font-extrabold text-[var(--brand-yellow)]">{value}</div>
+      {icon && (
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl mx-auto mb-3 ${STAT_TONES[tone] || STAT_TONES.accent}`}>
+          {icon}
+        </div>
+      )}
+      <div className="text-2xl font-extrabold text-[var(--text-bright)]">{value}</div>
       <div className="text-xs text-[var(--text-muted)] mt-1 uppercase tracking-wide">{label}</div>
     </Card>
   );
 }
-function ProgressBar({ value, colorClass = 'bg-[var(--brand-purple)]' }) {
+function ProgressBar({ value, colorClass = 'bg-[var(--accent)]' }) {
   return (
-    <div className="w-full h-2 rounded-full bg-[var(--border-dark)] overflow-hidden">
+    <div className="w-full h-3 rounded-full bg-[var(--border-dark)] overflow-hidden">
       <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${value}%` }} />
     </div>
   );
@@ -200,7 +211,7 @@ function IdentityPanel({ user, profile }) {
           <div className="text-lg font-bold text-[var(--text-bright)] truncate">{p.full_name || MOCK.name}</div>
           <div className="text-sm text-[var(--text-muted)] truncate">{email}</div>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-[11px] font-bold uppercase tracking-wide bg-[var(--brand-yellow)] text-black px-2.5 py-1 rounded-full">{MOCK.plan}</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide bg-[var(--brand-yellow)] text-white px-2.5 py-1 rounded-full">{MOCK.plan}</span>
             <span className="text-xs text-[var(--text-darker)]">Üzv: {MOCK.memberSince}</span>
           </div>
         </div>
@@ -347,9 +358,9 @@ function AcademicPanel() {
     <div>
       <SectionTitle sub="Kurslar, nailiyyət balı və sertifikatlar">Akademik Göstəricilər</SectionTitle>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-8">
-        <StatCard label="Nailiyyət balı" value={`${MOCK.gpa}/100`} />
-        <StatCard label="Öyrənmə saatı" value={`${MOCK.learningHours} saat`} />
-        <StatCard label="Sertifikat" value={MOCK.certificates.length} />
+        <StatCard label="Nailiyyət balı" value={`${MOCK.gpa}/100`} icon="🎯" tone="accent" />
+        <StatCard label="Öyrənmə saatı" value={`${MOCK.learningHours} saat`} icon="⏱️" tone="warm" />
+        <StatCard label="Sertifikat" value={MOCK.certificates.length} icon="🎓" tone="success" />
       </div>
       <Card className="mb-8">
         <CardHead title="Kurslar" desc="Tamamladığın və davam edən kurslar" />
@@ -484,9 +495,11 @@ function GamePanel() {
         <CardHead title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər" />
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {MOCK.badges.map((b) => (
-            <div key={b.label} className={`text-center p-3 rounded-xl border ${b.earned ? 'border-[var(--purple-40)] bg-[var(--purple-10)]' : 'border-[var(--border-dark)] bg-[var(--bg-surface-secondary)] opacity-40'}`}>
-              <div className="text-2xl mb-1">{b.earned ? '🏆' : '🔒'}</div>
-              <div className="text-[10px] text-[var(--text-bright)] leading-tight">{b.label}</div>
+            <div key={b.label} className={`text-center p-4 rounded-2xl border transition-all ${b.earned ? 'border-[var(--accent-warm)] bg-[var(--warm-soft)]' : 'border-[var(--border-dark)] bg-[var(--bg-surface-secondary)] opacity-50'}`}>
+              <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center text-base ${b.earned ? 'bg-[var(--accent-warm)] text-white' : 'bg-[var(--border-dark)] text-[var(--text-muted)]'}`}>
+                {b.earned ? '🏆' : '🔒'}
+              </div>
+              <div className="text-[10px] font-semibold text-[var(--text-bright)] leading-tight">{b.label}</div>
             </div>
           ))}
         </div>
@@ -519,12 +532,16 @@ function Toggle({ label, desc, defaultChecked }) {
       </div>
       <button
         onClick={() => setOn(!on)}
-        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[var(--brand-purple)]' : 'bg-[var(--border-dark)]'}`}
+        aria-pressed={on}
+        className={`w-12 h-7 rounded-full transition-colors relative flex-shrink-0 ${on ? 'bg-[var(--accent)]' : 'bg-[var(--border-dark)]'}`}
       >
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${on ? 'left-5' : 'left-0.5'}`} />
+        <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-all ${on ? 'left-6' : 'left-1'}`} />
       </button>
     </div>
   );
+}
+function SettingsGroupLabel({ children }) {
+  return <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-darker)] mb-3 first:mt-0">{children}</div>;
 }
 
 function SettingsPanel({ user }) {
@@ -533,62 +550,67 @@ function SettingsPanel({ user }) {
     <div>
       <SectionTitle sub="Hesab, şifrə və bildiriş tənzimləmələri">Tənzimləmələr və Təhlükəsizlik</SectionTitle>
 
-      <Card className="mb-8">
-        <CardHead title="Görünüş" desc="Panelin ümumi görünüşünü fərdiləşdir" />
-        <SettingRow label="Tema" desc="İşıqlı və tünd rejim arasında seç">
-          <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            className="bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]"
-          >
-            <option value="light">İşıqlı</option>
-            <option value="dark">Tünd</option>
-          </select>
-        </SettingRow>
-      </Card>
-
-      <Card className="mb-8">
-        <CardHead title="Hesab məlumatları" desc="Ad və email ünvanını yenilə" />
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Ad Soyad</label>
-            <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
-          </div>
-          <div>
-            <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
-            <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+      <div className="bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] rounded-2xl overflow-hidden">
+        <div className="p-6">
+          <SettingsGroupLabel>Görünüş</SettingsGroupLabel>
+          <div className="divide-y divide-[var(--border-dark)]">
+            <SettingRow label="Tema" desc="İşıqlı və tünd rejim arasında seç">
+              <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                className="bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--accent)]"
+              >
+                <option value="light">İşıqlı</option>
+                <option value="dark">Tünd</option>
+              </select>
+            </SettingRow>
           </div>
         </div>
-        <button className="mt-4 bg-[var(--brand-purple)] hover:bg-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
-      </Card>
 
-      <Card className="mb-8">
-        <CardHead title="Şifrəni dəyiş" desc="Hesabına daxil olmaq üçün yeni şifrə təyin et" />
-        <div className="space-y-4">
-          <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
-          <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--brand-purple-hover)]" />
+        <div className="p-6 border-t border-[var(--border-dark)]">
+          <SettingsGroupLabel>Hesab məlumatları</SettingsGroupLabel>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-[var(--text-muted)] mb-1 block">Ad Soyad</label>
+              <input defaultValue={MOCK.name} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--accent)]" />
+            </div>
+            <div>
+              <label className="text-xs text-[var(--text-muted)] mb-1 block">Email</label>
+              <input defaultValue={user?.email || ''} className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--accent)]" />
+            </div>
+          </div>
+          <button className="mt-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Yadda saxla</button>
         </div>
-        <button className="mt-4 bg-[var(--bg-surface-secondary)] border border-[var(--border-dark)] hover:border-[var(--brand-purple-hover)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
-      </Card>
 
-      <Card className="mb-8">
-        <CardHead title="Bildirişlər" desc="Hansı bildirişləri almaq istədiyini seç" />
-        <div className="divide-y divide-[var(--border-dark)]">
-          <Toggle label="Email bildirişləri" desc="Kurs yenilikləri və hesab bildirişləri email ilə göndərilsin" defaultChecked={true} />
-          <Toggle label="Push bildirişləri" desc="Brauzer bildirişləri vasitəsilə anında xəbərdar ol" defaultChecked={false} />
-          <Toggle label="Marketinq mesajları" desc="Endirim və kampaniyalar haqqında məlumat al" defaultChecked={false} />
+        <div className="p-6 border-t border-[var(--border-dark)]">
+          <SettingsGroupLabel>Şifrəni dəyiş</SettingsGroupLabel>
+          <div className="space-y-4">
+            <input type="password" placeholder="Yeni şifrə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--accent)]" />
+            <input type="password" placeholder="Yeni şifrəni təsdiqlə" className="w-full bg-[var(--bg-page)] border border-[var(--border-dark)] rounded-lg px-4 py-3 text-sm text-[var(--text-bright)] focus:outline-none focus:border-[var(--accent)]" />
+          </div>
+          <button className="mt-4 bg-[var(--bg-page)] border border-[var(--border-dark)] hover:border-[var(--accent)] text-[var(--text-bright)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors">Şifrəni yenilə</button>
         </div>
-      </Card>
 
-      <Card className="border-[var(--danger-30)]">
-        <CardHead title="Təhlükəli zona" desc="Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz." />
+        <div className="p-6 border-t border-[var(--border-dark)]">
+          <SettingsGroupLabel>Bildirişlər</SettingsGroupLabel>
+          <div className="divide-y divide-[var(--border-dark)]">
+            <Toggle label="Email bildirişləri" desc="Kurs yenilikləri və hesab bildirişləri email ilə göndərilsin" defaultChecked={true} />
+            <Toggle label="Push bildirişləri" desc="Brauzer bildirişləri vasitəsilə anında xəbərdar ol" defaultChecked={false} />
+            <Toggle label="Marketinq mesajları" desc="Endirim və kampaniyalar haqqında məlumat al" defaultChecked={false} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 bg-[var(--danger-10)] border border-[var(--danger-30)] rounded-2xl p-6">
+        <SettingsGroupLabel><span className="text-[var(--danger)]">Təhlükəli zona</span></SettingsGroupLabel>
+        <div className="text-sm text-[var(--text-muted)] mb-4">Hesabını sildikdə bütün məlumatların həmişəlik silinir. Bu addım geri qaytarıla bilməz.</div>
         <button
           onClick={() => supabase.auth.signOut()}
           className="bg-transparent border border-[var(--danger-50)] text-[var(--danger)] hover:bg-[var(--danger-10)] text-sm font-bold px-6 py-2.5 rounded-lg transition-colors"
         >
           Çıxış et
         </button>
-      </Card>
+      </div>
     </div>
   );
 }
