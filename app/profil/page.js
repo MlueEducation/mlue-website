@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useTheme } from '@/components/ThemeProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { Flame, Award, Rocket, MessageCircle, Briefcase, Lock, Gift } from 'lucide-react';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -79,19 +80,38 @@ const MOCK = {
   level: 7,
   xp: { current: 2450, max: 3000 },
   badges: [
-    { label: '7 Günlük Seriya', earned: true },
-    { label: 'İlk Sertifikat', earned: true },
-    { label: 'Erkən Qoşulan', earned: true },
-    { label: '30 Günlük Seriya', earned: false },
-    { label: 'Mentor Rəyi', earned: false },
-    { label: 'Portfolio Ustası', earned: false },
+    { label: '7 Günlük Seriya', earned: true, icon: Flame },
+    { label: 'İlk Sertifikat', earned: true, icon: Award },
+    { label: 'Erkən Qoşulan', earned: true, icon: Rocket },
+    { label: '30 Günlük Seriya', earned: false, icon: Flame, requirement: '30 gün ardıcıl aktivlik lazımdır' },
+    { label: 'Mentor Rəyi', earned: false, icon: MessageCircle, requirement: 'Bir mentordan rəy almalısan' },
+    { label: 'Portfolio Ustası', earned: false, icon: Briefcase, requirement: '5 portfolio layihəsi əlavə et' },
   ],
-  leaderboard: [
-    { name: 'Aysel M.', xp: 3820 },
-    { name: 'Tural H.', xp: 3210 },
-    { name: 'Nicat Əliyev', xp: 2450, isMe: true },
-    { name: 'Günel S.', xp: 2100 },
+  dailyQuests: [
+    { id: 'q1', label: 'Bir dərsi tamamla', xp: 20, done: true },
+    { id: 'q2', label: 'Forumda bir suala cavab yaz', xp: 15, done: false },
+    { id: 'q3', label: '10 dəqiqə təcrübə et', xp: 25, done: false },
   ],
+  leaderboardByRange: {
+    week: [
+      { name: 'Aysel M.', xp: 640 },
+      { name: 'Tural H.', xp: 510 },
+      { name: '__ME__', xp: 480, isMe: true },
+      { name: 'Günel S.', xp: 390 },
+    ],
+    month: [
+      { name: 'Aysel M.', xp: 2150 },
+      { name: 'Tural H.', xp: 1890 },
+      { name: '__ME__', xp: 1720, isMe: true },
+      { name: 'Günel S.', xp: 1340 },
+    ],
+    all: [
+      { name: 'Aysel M.', xp: 3820 },
+      { name: 'Tural H.', xp: 3210 },
+      { name: '__ME__', xp: 2450, isMe: true },
+      { name: 'Günel S.', xp: 2100 },
+    ],
+  },
 };
 
 /* ---------------- Onboarding-based scenario content ---------------- */
@@ -265,6 +285,17 @@ function Toggle({ label, desc, defaultChecked }) {
       >
         <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${on ? 'left-5' : 'left-0.5'}`} />
       </button>
+    </div>
+  );
+}
+
+function Tooltip({ text, children }) {
+  return (
+    <div className="relative group">
+      {children}
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[160px] rounded-[var(--radius-sm)] bg-[var(--bg-inverse)] text-[var(--text-on-inverse)] text-[11px] font-medium px-2.5 py-1.5 text-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 shadow-[var(--shadow-md)]">
+        {text}
+      </div>
     </div>
   );
 }
@@ -791,10 +822,27 @@ function WalletPanel() {
   );
 }
 
-function GamePanel() {
+const LEADERBOARD_TABS = [
+  { id: 'week', label: 'Bu həftə' },
+  { id: 'month', label: 'Bu ay' },
+  { id: 'all', label: 'Ümumi' },
+];
+
+function GamePanel({ user, profile }) {
+  const email = user?.email || 'nicat.aliyev@example.com';
+  const initial = email.charAt(0).toUpperCase();
+  const myName = profile?.full_name || email.split('@')[0];
+
+  const [claimedIds, setClaimedIds] = useState([]);
+  const [range, setRange] = useState('all');
+
+  const leaderboard = MOCK.leaderboardByRange[range].map((row) =>
+    row.isMe ? { ...row, name: myName } : row
+  );
+
   return (
     <div>
-      <PageHeader sub="Nişanlar, səviyyə və icma sıralaması">Nailiyyətlər</PageHeader>
+      <PageHeader sub="Nişanlar, gündəlik tapşırıqlar, səviyyə və icma sıralaması">Nailiyyətlər</PageHeader>
       <Panel>
         <PanelSection first title="Səviyyə və təcrübə xalı" desc="Platformada fəallığına görə qazandığın XP">
           <div className="flex justify-between text-sm mb-2">
@@ -802,28 +850,94 @@ function GamePanel() {
             <span className="text-[var(--text-secondary)]">{MOCK.xp.current} / {MOCK.xp.max} XP</span>
           </div>
           <ProgressBar value={(MOCK.xp.current / MOCK.xp.max) * 100} colorClass="bg-[var(--accent-warm)]" />
-        </PanelSection>
-        <PanelSection title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər">
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            {MOCK.badges.map((b) => (
-              <div key={b.label} className={`text-center p-3 rounded-2xl border transition-all ${b.earned ? 'border-[var(--accent-warm)] bg-[var(--warm-soft)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'}`}>
-                <div className={`w-9 h-9 mx-auto mb-2 rounded-full flex items-center justify-center text-sm ${b.earned ? 'bg-[var(--accent-warm)] text-white' : 'bg-[var(--border)] text-[var(--text-secondary)]'}`}>
-                  {b.earned ? '🏆' : '🔒'}
-                </div>
-                <div className="text-[10px] font-semibold text-[var(--text-primary)] leading-tight">{b.label}</div>
-              </div>
-            ))}
+          <div className="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-[var(--accent-warm)]">
+            <Gift className="w-3.5 h-3.5" />
+            Səviyyə {MOCK.level + 1} mükafatı: +50 MLUE Token
           </div>
         </PanelSection>
-        <PanelSection title="Liderlik Cədvəli" desc="İcma daxilində ən yüksək XP-yə sahib istifadəçilər">
+
+        <PanelSection title="Gündəlik Tapşırıqlar" desc="Hər gün yenilənən kiçik tapşırıqlarla əlavə XP qazan">
           <div className="space-y-2">
-            {MOCK.leaderboard.map((p, i) => (
-              <div key={p.name} className={`flex items-center justify-between px-4 py-2.5 rounded-xl ${p.isMe ? 'bg-[var(--accent-soft)] border border-[var(--accent)]' : 'bg-[var(--bg-surface-2)]'}`}>
+            {MOCK.dailyQuests.map((q) => {
+              const claimed = claimedIds.includes(q.id);
+              return (
+                <div
+                  key={q.id}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
+                    q.done ? 'border-[var(--border)] bg-[var(--bg-surface)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'
+                  }`}
+                >
+                  <div>
+                    <div className="text-sm font-semibold text-[var(--text-primary)]">{q.label}</div>
+                    <div className="text-xs text-[var(--accent-warm)] font-bold mt-0.5">+{q.xp} XP</div>
+                  </div>
+                  {q.done ? (
+                    <button
+                      onClick={() => !claimed && setClaimedIds((ids) => [...ids, q.id])}
+                      disabled={claimed}
+                      className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
+                        claimed
+                          ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-default'
+                          : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
+                      }`}
+                    >
+                      {claimed ? 'Alındı ✓' : 'Al'}
+                    </button>
+                  ) : (
+                    <Lock className="w-4 h-4 text-[var(--text-tertiary)] flex-shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </PanelSection>
+
+        <PanelSection title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {MOCK.badges.map((b) => {
+              const BadgeIcon = b.icon;
+              const cell = (
+                <div className={`text-center p-3 rounded-2xl border transition-all ${b.earned ? 'border-[var(--accent-warm)] bg-[var(--warm-soft)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'}`}>
+                  <div className={`w-9 h-9 mx-auto mb-2 rounded-full flex items-center justify-center ${b.earned ? 'bg-[var(--accent-warm)] text-white' : 'bg-[var(--border)] text-[var(--text-secondary)]'}`}>
+                    <BadgeIcon className="w-4.5 h-4.5" />
+                  </div>
+                  <div className="text-[10px] font-semibold text-[var(--text-primary)] leading-tight">{b.label}</div>
+                </div>
+              );
+              return b.earned ? (
+                <div key={b.label}>{cell}</div>
+              ) : (
+                <Tooltip key={b.label} text={b.requirement}>{cell}</Tooltip>
+              );
+            })}
+          </div>
+        </PanelSection>
+
+        <PanelSection title="Liderlik Cədvəli" desc="İcma daxilində ən yüksək XP-yə sahib istifadəçilər">
+          <div className="inline-flex bg-[var(--bg-surface-2)] rounded-[var(--radius-full)] p-1 mb-4">
+            {LEADERBOARD_TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setRange(t.id)}
+                className={`text-xs font-bold px-4 py-1.5 rounded-[var(--radius-full)] transition-colors ${
+                  range === t.id ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-2">
+            {leaderboard.map((row, i) => (
+              <div key={row.isMe ? 'me' : row.name} className={`flex items-center justify-between px-4 py-2.5 rounded-xl ${row.isMe ? 'bg-[var(--accent-soft)] border border-[var(--accent)]' : 'bg-[var(--bg-surface-2)]'}`}>
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-bold text-[var(--text-tertiary)] w-4">{i + 1}</span>
-                  <span className={`text-sm ${p.isMe ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'}`}>{p.name}</span>
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
+                    {row.isMe ? initial : row.name.charAt(0)}
+                  </div>
+                  <span className={`text-sm ${row.isMe ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'}`}>{row.name}</span>
                 </div>
-                <span className="text-xs font-bold text-[var(--accent-warm)]">{p.xp} XP</span>
+                <span className="text-xs font-bold text-[var(--accent-warm)]">{row.xp} XP</span>
               </div>
             ))}
           </div>
@@ -946,7 +1060,7 @@ export default function ProfilPage() {
     academic: <AcademicPanel />,
     career: <CareerPanel />,
     wallet: <WalletPanel />,
-    game: <GamePanel />,
+    game: <GamePanel user={user} profile={profile} />,
     settings: <SettingsPanel user={user} />,
     tokens: <TokensPanel />,
     certificates: <CertificatesPanel />,
