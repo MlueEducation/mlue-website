@@ -217,6 +217,13 @@ header nav {
 .brand { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
 .brand-icon { height: 27px; width: auto; display: block; }
 .brand-word-img { height: 13px; width: auto; display: block; }
+/* The dark-theme wordmark asset has a much larger soft-glow margin baked
+   into its canvas than the flat light-theme one, so the same pixel height
+   renders visibly smaller letters — compensate so both read as the same size. */
+[data-theme="dark"] .brand-word-img { height: 22px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand-word-img { height: 22px; }
+}
 .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--text-secondary); flex: 1; justify-content: center; }
 .nav-links a { transition: color .2s var(--ease); }
 .nav-links a:hover { color: var(--text-primary); }
