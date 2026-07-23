@@ -134,7 +134,13 @@
 /* =========================================================
    Reset & base
    ========================================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* Wrapped in Tailwind's base layer so utility classes (p-*, m-*, etc.) can
+   still override it — an unlayered rule here would always win the cascade
+   over Tailwind's layered utilities regardless of specificity, silently
+   zeroing out every padding/margin utility class site-wide. */
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+}
 html { scroll-behavior: smooth; }
 body {
   background: var(--bg-page);
@@ -460,6 +466,13 @@ h1.hero-title .accent { background: linear-gradient(90deg, var(--accent), var(--
 .category-section { margin-bottom: 48px; }
 .category-heading { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 650; letter-spacing: -.01em; margin-bottom: 20px; color: var(--text-primary); }
 .category-heading svg { color: var(--accent); flex-shrink: 0; }
+
+/* ---------- onboarding step transition ---------- */
+@keyframes onboardFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.onboard-fade { animation: onboardFadeIn 0.35s ease; }
 
 /* ---------- big search ---------- */
 .big-search { background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 68px 40px; text-align: center; }

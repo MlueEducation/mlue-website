@@ -13,7 +13,16 @@ const STATUS_OPTIONS = [
   { id: 'teacher', icon: '👨‍🏫', title: 'Müəllim', desc: 'Tədris sahəsində çalışıram' },
 ];
 
-const UNIVERSITIES = ['UNEC', 'ADA University', 'Xəzər Universiteti', 'Bakı Dövlət Universiteti', 'Digər'];
+const UNIVERSITIES = [
+  'Bakı Dövlət Universiteti (BDU)', 'Azərbaycan Dövlət İqtisad Universiteti (UNEC)', 'ADA University',
+  'Xəzər Universiteti', 'Azərbaycan Texniki Universiteti (AzTU)', 'Azərbaycan Dövlət Neft və Sənaye Universiteti (ADNSU)',
+  'Azərbaycan Tibb Universiteti (ATU)', 'Bakı Mühəndislik Universiteti (BMU)', 'Azərbaycan Dillər Universiteti (ADU)',
+  'Bakı Slavyan Universiteti (BSU)', 'Azərbaycan Dövlət Pedaqoji Universiteti (ADPU)', 'Milli Aviasiya Akademiyası',
+  'Azərbaycan Memarlıq və İnşaat Universiteti (AzMİU)', 'Bakı Ali Neft Məktəbi (BHOS)', 'Qafqaz Universiteti',
+  'Odlar Yurdu Universiteti', 'Azərbaycan Dövlət Aqrar Universiteti', 'Azərbaycan Dövlət Mədəniyyət və İncəsənət Universiteti',
+  'Azərbaycan Dövlət Bədən Tərbiyəsi və İdman Akademiyası', 'Sumqayıt Dövlət Universiteti', 'Gəncə Dövlət Universiteti',
+  'Naxçıvan Dövlət Universiteti', 'Lənkəran Dövlət Universiteti', 'Digər',
+];
 
 const MAJORS = [
   'Fizika müəllimliyi', 'Riyaziyyat müəllimliyi', 'Texnologiya müəllimliyi', 'Fizika', 'Geologiya',
@@ -124,22 +133,54 @@ const DIM_GROUPS = [
 ];
 
 /* ---------------- UI helpers ---------------- */
+const STEP2_META = {
+  student: { title: 'Təhsil məlumatların', desc: 'Universitetini və ixtisasını seç ki, sənə uyğun tövsiyələr hazırlayaq.' },
+  applicant: { title: 'DİM ixtisas qrupun', desc: 'Qəbul imtahanında iştirak edəcəyin qrupu seç.' },
+  professional: { title: 'Maraq sahən', desc: 'Karyerada hansı istiqamətdə inkişaf etmək istəyirsən?' },
+  teacher: { title: 'Tədris etdiyin fənn', desc: 'Hansı fənni tədris etdiyini seç ki, sənə uyğun materiallar tövsiyə edək.' },
+};
+
 function ChoiceCard({ active, onClick, icon, title, desc }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-left p-6 rounded-2xl border transition-all w-full ${
+      className={`text-left rounded-2xl border transition-all w-full p-6 ${
         active
           ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
-          : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)]'
+          : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-2)]'
       }`}
-      style={{ boxShadow: active ? 'var(--shadow-lg)' : 'none' }}
+      style={{ boxShadow: active ? 'var(--shadow-md)' : 'none' }}
     >
-      <div className="text-3xl mb-3">{icon}</div>
+      {icon && (
+        <div
+          className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3.5 transition-colors ${
+            active ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-surface-2)]'
+          }`}
+        >
+          {icon}
+        </div>
+      )}
       <div className="text-base font-bold text-[var(--text-primary)] mb-1">{title}</div>
-      <div className="text-sm text-[var(--text-secondary)]">{desc}</div>
+      {desc && <div className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</div>}
     </button>
+  );
+}
+
+function StepDots({ step }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {[1, 2].map((n) => (
+        <span
+          key={n}
+          className="h-1.5 rounded-full transition-all duration-300"
+          style={{
+            width: step === n ? 28 : 16,
+            background: step >= n ? 'var(--accent)' : 'var(--border)',
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -187,6 +228,7 @@ export default function OnboardingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  const [step, setStep] = useState(1);
   const [status, setStatus] = useState(null);
   const [university, setUniversity] = useState(UNIVERSITIES[0]);
   const [major, setMajor] = useState('');
@@ -214,6 +256,11 @@ export default function OnboardingPage() {
     status === 'teacher' ? !!teacherSubject :
     false;
 
+  function selectStatus(id) {
+    setStatus(id);
+    setStep(2);
+  }
+
   async function handleSubmit() {
     setSaving(true);
     const specialization =
@@ -234,104 +281,147 @@ export default function OnboardingPage() {
     router.push('/profil');
   }
 
+  const meta = status ? STEP2_META[status] : null;
+
   return (
-    <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] px-6 py-16">
-      <div style={{ maxWidth: 640, margin: '0 auto' }}>
-        <div className="mb-10 text-center">
-          <div className="text-2xl font-extrabold text-[var(--text-primary)] mb-2">Xoş gəldin! 👋</div>
-          <p className="text-[var(--text-secondary)] text-sm">Sənə uyğun karyera planı qurmaq üçün bir neçə sürətli sualımız var.</p>
-        </div>
+    <div className="onboard-page min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] px-6 py-14 flex items-start justify-center">
+      <div
+        className="onboard-card w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-3xl p-8 sm:p-10"
+        style={{ maxWidth: 640, boxShadow: 'var(--shadow-lg)' }}
+      >
+        <StepDots step={step} />
 
-        {/* Status */}
-        <div className="mb-10">
-          <div className="text-lg font-bold text-[var(--text-primary)] mb-4">Hazırkı statusun</div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {STATUS_OPTIONS.map((s) => (
-              <ChoiceCard
-                key={s.id}
-                active={status === s.id}
-                onClick={() => setStatus(s.id)}
-                icon={s.icon}
-                title={s.title}
-                desc={s.desc}
-              />
-            ))}
-          </div>
-        </div>
+        {step === 1 && (
+          <div key="step1" className="onboard-fade">
+            <div className="mb-9 text-center">
+              <div className="text-2xl font-extrabold text-[var(--text-primary)] mb-2">Xoş gəldin! 👋</div>
+              <p className="text-[var(--text-secondary)] text-sm leading-relaxed">Sənə uyğun karyera planı qurmaq üçün cəmi bir sürətli sualımız var.</p>
+            </div>
 
-        {/* Student: university + searchable major */}
-        {status === 'student' && (
-          <div className="mb-10">
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-4">Təhsil məlumatların</div>
+            <div className="text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)] mb-4">Hazırkı statusun</div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs text-[var(--text-secondary)] mb-1 block">Universitet</label>
-                <select
-                  value={university}
-                  onChange={(e) => setUniversity(e.target.value)}
-                  className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-hover)]"
-                >
-                  {UNIVERSITIES.map((u) => <option key={u} value={u}>{u}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs text-[var(--text-secondary)] mb-1 block">İxtisas (axtarmaq üçün yaz)</label>
-                <SearchableSelect options={MAJORS} value={major} onChange={setMajor} placeholder="məs. Kompüter Elmləri" />
-              </div>
+              {STATUS_OPTIONS.map((s) => (
+                <ChoiceCard
+                  key={s.id}
+                  active={status === s.id}
+                  onClick={() => selectStatus(s.id)}
+                  icon={s.icon}
+                  title={s.title}
+                  desc={s.desc}
+                />
+              ))}
             </div>
           </div>
         )}
 
-        {/* Applicant: DİM group */}
-        {status === 'applicant' && (
-          <div className="mb-10">
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-1">DİM ixtisas qrupun</div>
-            <p className="text-sm text-[var(--text-secondary)] mb-4">
-              Qəbul imtahanında iştirak edəcəyin qrupu seç. Bütün qruplarda ortaq buraxılış fənləri: {COMMON_SUBJECTS.join(', ')}.
-            </p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {DIM_GROUPS.map((g) => {
-                const subjectText = g.subgroups
-                  ? g.subgroups.map((sg) => `${sg.name}: ${sg.subjects.join(', ')}`).join('  ·  ')
-                  : g.subjects.join(', ');
-                return (
-                  <ChoiceCard
-                    key={g.id}
-                    active={dimGroup === g.id}
-                    onClick={() => setDimGroup(g.id)}
-                    icon="📚"
-                    title={`${g.id} qrup`}
-                    desc={`${subjectText} — ${g.desc}`}
-                  />
-                );
-              })}
+        {step === 2 && meta && (
+          <div key="step2" className="onboard-fade">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-6"
+            >
+              ← Geri
+            </button>
+
+            <div className="mb-8">
+              <div className="text-xl font-extrabold text-[var(--text-primary)] mb-1.5">{meta.title}</div>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{meta.desc}</p>
             </div>
+
+            {/* Student: university + searchable major */}
+            {status === 'student' && (
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">Universitet</label>
+                  <select
+                    value={university}
+                    onChange={(e) => setUniversity(e.target.value)}
+                    className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                  >
+                    {UNIVERSITIES.map((u) => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">İxtisas (axtarmaq üçün yaz)</label>
+                  <SearchableSelect options={MAJORS} value={major} onChange={setMajor} placeholder="məs. Kompüter Elmləri" />
+                </div>
+              </div>
+            )}
+
+            {/* Applicant: DİM group */}
+            {status === 'applicant' && (
+              <div>
+                <p className="text-xs text-[var(--text-tertiary)] mb-5">
+                  Bütün qruplarda ortaq buraxılış fənləri: <b className="text-[var(--text-secondary)]">{COMMON_SUBJECTS.join(', ')}</b>
+                </p>
+                <div className="space-y-3">
+                  {DIM_GROUPS.map((g) => {
+                    const subjectGroups = g.subgroups || [{ name: null, subjects: g.subjects }];
+                    const active = dimGroup === g.id;
+                    return (
+                      <button
+                        type="button"
+                        key={g.id}
+                        onClick={() => setDimGroup(g.id)}
+                        className={`w-full text-left rounded-2xl border p-5 transition-all ${
+                          active
+                            ? 'border-[var(--accent)] bg-[var(--accent-soft)]'
+                            : 'border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface-2)]'
+                        }`}
+                        style={{ boxShadow: active ? 'var(--shadow-md)' : 'none' }}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <span
+                            className={`w-9 h-9 flex-shrink-0 rounded-lg flex items-center justify-center text-sm font-extrabold ${
+                              active ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg-surface-2)] text-[var(--text-primary)]'
+                            }`}
+                          >
+                            {g.id}
+                          </span>
+                          <div>
+                            <div className="text-sm font-bold text-[var(--text-primary)]">{g.id} qrup</div>
+                            <div className="text-xs text-[var(--text-secondary)]">{g.desc}</div>
+                          </div>
+                        </div>
+                        <div className="space-y-2 mt-3">
+                          {subjectGroups.map((sg) => (
+                            <div key={sg.name || 'x'} className="flex flex-wrap items-center gap-1.5">
+                              {sg.name && <span className="text-[11px] font-bold text-[var(--accent)] mr-0.5">{sg.name}:</span>}
+                              {sg.subjects.map((sub) => (
+                                <span key={sub} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--text-secondary)]">
+                                  {sub}
+                                </span>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Professional: searchable interest */}
+            {status === 'professional' && (
+              <SearchableSelect options={INTERESTS} value={interest} onChange={setInterest} placeholder="məs. Frontend Development" />
+            )}
+
+            {/* Teacher: searchable subject */}
+            {status === 'teacher' && (
+              <SearchableSelect options={TEACHER_SUBJECTS} value={teacherSubject} onChange={setTeacherSubject} placeholder="məs. Riyaziyyat müəllimi" />
+            )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit || saving}
+              className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors mt-8"
+            >
+              {saving ? 'Hazırlanır...' : 'Mənim Ana Səhifəmi Yarat'}
+            </button>
           </div>
         )}
-
-        {/* Professional: searchable interest */}
-        {status === 'professional' && (
-          <div className="mb-10">
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-4">Maraq sahən</div>
-            <SearchableSelect options={INTERESTS} value={interest} onChange={setInterest} placeholder="məs. Frontend Development" />
-          </div>
-        )}
-
-        {/* Teacher: searchable subject */}
-        {status === 'teacher' && (
-          <div className="mb-10">
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-4">Tədris etdiyin fənn</div>
-            <SearchableSelect options={TEACHER_SUBJECTS} value={teacherSubject} onChange={setTeacherSubject} placeholder="məs. Riyaziyyat müəllimi" />
-          </div>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit || saving}
-          className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors"
-        >
-          {saving ? 'Hazırlanır...' : 'Mənim Ana Səhifəmi Yarat'}
-        </button>
       </div>
     </div>
   );
