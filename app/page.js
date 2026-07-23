@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
 import AppMockup from '@/components/AppMockup';
 import HomeSearch from '@/components/HomeSearch';
+import CoursesHome from '@/components/CoursesHome';
+import { useAuth } from '@/components/AuthProvider';
 
 const COURSES = [
   { tag: 'Backend', title: 'Node.js və Express.js ilə Backend Arxitekturası', desc: 'Server tərəfi inkişafın əsaslarından production-ready API-lərə qədər.' },
@@ -34,6 +38,11 @@ const FEATURES = [
 ];
 
 export default function HomePage() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  if (user) return <CoursesHome user={user} />;
+
   return (
     <>
       <section className="hero">
