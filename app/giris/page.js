@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
+import { getSiteOrigin } from '@/lib/siteUrl';
 import GoogleIcon from '@/components/GoogleIcon';
 
 export default function GirisPage() {
@@ -16,7 +17,7 @@ export default function GirisPage() {
     setGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/profil` },
+      options: { redirectTo: `${getSiteOrigin()}/profil` },
     });
     if (error) {
       setGoogleLoading(false);

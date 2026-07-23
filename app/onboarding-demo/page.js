@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import { Mail, ArrowRight, ArrowLeft, Trophy, Check, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { getSiteOrigin } from '@/lib/siteUrl';
 import GoogleIcon from '@/components/GoogleIcon';
 
 const ROLES = [
@@ -53,7 +54,7 @@ export default function OnboardingDemoPage() {
     setGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/profil` },
+      options: { redirectTo: `${getSiteOrigin()}/profil` },
     });
     if (error) setGoogleLoading(false);
   }
