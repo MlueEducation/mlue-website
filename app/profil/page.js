@@ -11,8 +11,10 @@ const Icon = {
   identity: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="12" cy="8" r="4" /><path d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6" /></svg>,
   bio: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M7 9h6M7 13h10" /></svg>,
   academic: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M12 3 2 8l10 5 10-5-10-5Z" /><path d="M6 10.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-5.5" /></svg>,
+  certificate: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="12" cy="9" r="5" /><path d="M8.5 13.5 7 21l5-2.5L17 21l-1.5-7.5" /></svg>,
   career: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M3 12h18" /></svg>,
   wallet: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="6" width="18" height="13" rx="2" /><path d="M3 10h18" /><circle cx="16.5" cy="14.5" r="1" fill="currentColor" stroke="none" /></svg>,
+  tokens: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="9" cy="9" r="6" /><circle cx="15" cy="15" r="6" /></svg>,
   game: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M8 4h8l1 5a5 5 0 0 1-10 0Z" /><path d="M6 7H4a2 2 0 0 0 2 4M18 7h2a2 2 0 0 1-2 4" /><path d="M12 14v3M9 20h6" /></svg>,
   settings: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /></svg>,
 };
@@ -25,6 +27,8 @@ const NAV_ITEMS = [
   { id: 'wallet', label: 'Ödənişlər', icon: Icon.wallet },
   { id: 'game', label: 'Nailiyyətlər', icon: Icon.game },
   { id: 'settings', label: 'Tənzimləmələr', icon: Icon.settings },
+  { id: 'tokens', label: 'Token / Balansım', icon: Icon.tokens },
+  { id: 'certificates', label: 'Sertifikatlar', icon: Icon.certificate },
 ];
 
 /* ---------------- Mock data (placeholder until real backend exists) ---------------- */
@@ -636,12 +640,11 @@ function BioPanel({ user, profile, onSaved }) {
 function AcademicPanel() {
   return (
     <div>
-      <PageHeader sub="Kurslar, nailiyyət balı və sertifikatlar">Təhsil</PageHeader>
+      <PageHeader sub="Kurslar və nailiyyət balı">Təhsil</PageHeader>
       <div className="space-y-5">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <StatTile label="Nailiyyət balı" value={`${MOCK.gpa}/100`} icon="🎯" tone="accent" />
           <StatTile label="Öyrənmə saatı" value={`${MOCK.learningHours} saat`} icon="⏱️" tone="warm" />
-          <StatTile label="Sertifikat" value={MOCK.certificates.length} icon="🎓" tone="success" />
         </div>
         <Panel>
           <PanelSection first title="Kurslar" desc="Tamamladığın və davam edən kurslar">
@@ -657,7 +660,22 @@ function AcademicPanel() {
               ))}
             </div>
           </PanelSection>
-          <PanelSection title="Sertifikatlar" desc="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function CertificatesPanel() {
+  return (
+    <div>
+      <PageHeader sub="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">Sertifikatlar</PageHeader>
+      <div className="space-y-5">
+        <div className="max-w-[200px]">
+          <StatTile label="Ümumi sertifikat" value={MOCK.certificates.length} icon="🎓" tone="success" />
+        </div>
+        <Panel>
+          <PanelSection first title="Sertifikatlar" desc="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">
             <div className="grid sm:grid-cols-2 gap-3">
               {MOCK.certificates.map((c) => (
                 <div key={c} className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5">
@@ -723,10 +741,10 @@ function CareerPanel() {
   );
 }
 
-function WalletPanel() {
+function TokensPanel() {
   return (
     <div>
-      <PageHeader sub="Balans, ödənişlər və əməliyyat tarixçəsi">Pul Kisəsi</PageHeader>
+      <PageHeader sub="Cari balansın və balans artırma">Token / Balansım</PageHeader>
       <div className="space-y-5">
         <Panel>
           <div className="p-6 flex items-center justify-between flex-wrap gap-4">
@@ -737,6 +755,16 @@ function WalletPanel() {
             <button className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Balansı artır</button>
           </div>
         </Panel>
+      </div>
+    </div>
+  );
+}
+
+function WalletPanel() {
+  return (
+    <div>
+      <PageHeader sub="Ödəniş üsulu və əməliyyat tarixçəsi">Pul Kisəsi</PageHeader>
+      <div className="space-y-5">
         <Panel>
           <PanelSection first title="Ödəniş üsulu" desc="Kurs alışları üçün istifadə olunan kart">
             <div className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5 w-fit">
@@ -920,6 +948,8 @@ export default function ProfilPage() {
     wallet: <WalletPanel />,
     game: <GamePanel />,
     settings: <SettingsPanel user={user} />,
+    tokens: <TokensPanel />,
+    certificates: <CertificatesPanel />,
   };
 
   return (
@@ -930,17 +960,23 @@ export default function ProfilPage() {
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;
             return (
-              <button
-                key={item.id}
-                onClick={() => setActive(item.id)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors w-full text-left
-                  ${isActive
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
-                    : 'text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]'}`}
-              >
-                {item.icon('w-4 h-4 flex-shrink-0')}
-                <span>{item.label}</span>
-              </button>
+              <div key={item.id}>
+                {item.id === 'tokens' && (
+                  <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Ekosistem</span>
+                  </div>
+                )}
+                <button
+                  onClick={() => setActive(item.id)}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors w-full text-left
+                    ${isActive
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                      : 'text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]'}`}
+                >
+                  {item.icon('w-4 h-4 flex-shrink-0')}
+                  <span>{item.label}</span>
+                </button>
+              </div>
             );
           })}
         </nav>
