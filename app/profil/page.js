@@ -35,7 +35,6 @@ const NAV_ITEMS = [
 
 /* ---------------- Mock data (placeholder until real backend exists) ---------------- */
 const MOCK = {
-  name: 'Nicat Əliyev',
   role: 'Frontend İnkişafı — 3-cü səviyyə',
   memberSince: 'Yanvar 2026',
   plan: 'Pro Plan',
@@ -330,15 +329,16 @@ function LinkInput({ field, value, onChange, error }) {
 
 /* ---------------- Tabs ---------------- */
 function IdentityPanel({ user, profile }) {
-  const email = user?.email || 'nicat.aliyev@example.com';
+  const email = user.email;
   const initial = email.charAt(0).toUpperCase();
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
   const p = profile || {};
   const onboarded = !!profile?.role;
   const isEcommerceStudent = onboarded && p.role === 'student' && p.interests?.includes('ecommerce');
 
   return (
     <div>
-      <PageHeader sub="Hesabına ümumi baxış">Xoş gəldin, {(p.full_name || MOCK.name).split(' ')[0]}</PageHeader>
+      <PageHeader sub="Hesabına ümumi baxış">Xoş gəldin, {displayName.split(' ')[0]}</PageHeader>
 
       <div className="space-y-5">
         <Panel>
@@ -347,7 +347,7 @@ function IdentityPanel({ user, profile }) {
               {initial}
             </div>
             <div className="min-w-0">
-              <div className="text-base font-bold text-[var(--text-primary)] truncate">{p.full_name || MOCK.name}</div>
+              <div className="text-base font-bold text-[var(--text-primary)] truncate">{displayName}</div>
               <div className="text-sm text-[var(--text-secondary)] truncate">{email}</div>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--accent-warm)] text-white px-2 py-0.5 rounded-full">{MOCK.plan}</span>
@@ -769,9 +769,9 @@ const LEADERBOARD_TABS = [
 ];
 
 function GamePanel({ user, profile }) {
-  const email = user?.email || 'nicat.aliyev@example.com';
+  const email = user.email;
   const initial = email.charAt(0).toUpperCase();
-  const myName = profile?.full_name || email.split('@')[0];
+  const myName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
 
   const [claimedIds, setClaimedIds] = useState([]);
   const [range, setRange] = useState('all');

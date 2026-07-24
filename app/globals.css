@@ -221,15 +221,18 @@ header nav {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .brand { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
-.brand-icon { height: 27px; width: auto; display: block; }
-.brand-word-img { height: 13px; width: auto; display: block; }
-/* The dark-theme wordmark asset has a much larger soft-glow margin baked
-   into its canvas than the flat light-theme one, so the same pixel height
-   renders visibly smaller letters — compensate so both read as the same size. */
-[data-theme="dark"] .brand-word-img { height: 22px; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .brand-word-img { height: 22px; }
-}
+/* Both logo PNGs have a soft, low-alpha (not fully transparent) glow baked
+   into their canvas margins — a modest uniform crop trims the tinted halo
+   that otherwise reads as a mismatched box against the page background. */
+.brand-icon { height: 27px; width: auto; display: block; clip-path: inset(7% round 2px); }
+/* The wordmark itself is pre-cropped to its tight glyph bounding box (and
+   rendered at 2x for crisp high-DPI display) by BrandLogo.js via <canvas> —
+   see that file for why a plain CSS crop wasn't reliable. Both themes'
+   output is already scaled to the same intrinsic aspect ratio at this
+   fixed height, so no per-theme override is needed here and there's no
+   layout shift when the theme toggles. */
+.brand-word-wrap { display: block; height: 14px; }
+.brand-word-wrap .brand-word-img { display: block; height: 14px; width: auto; }
 .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--text-secondary); flex: 1; justify-content: center; }
 .nav-links a { transition: color .2s var(--ease); }
 .nav-links a:hover { color: var(--text-primary); }
@@ -448,13 +451,69 @@ h1.hero-title .accent { background: linear-gradient(90deg, var(--accent), var(--
 .courses-home-header { margin-bottom: 28px; }
 .courses-home-header h1 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 650; letter-spacing: -.02em; margin-bottom: 12px; }
 .courses-badge { margin-bottom: 0; }
-.courses-toolbar { margin-bottom: 20px; }
+.courses-toolbar { margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .courses-search {
   width: 100%; max-width: 440px; background: var(--bg-surface); border: 1px solid var(--border);
   border-radius: var(--radius-full); padding: 12px 20px; font-size: 14px; color: var(--text-primary);
   transition: border-color .2s var(--ease), box-shadow .2s var(--ease);
 }
 .courses-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* ---------- AI chat trigger + drawer ---------- */
+.ai-chat-trigger {
+  display: inline-flex; align-items: center; gap: 7px; background: var(--accent-soft); border: 1px solid var(--accent);
+  color: var(--accent); font-size: 13.5px; font-weight: 600; padding: 9px 16px; border-radius: var(--radius-full);
+  cursor: pointer; transition: background .2s var(--ease), color .2s var(--ease); white-space: nowrap; flex-shrink: 0;
+}
+.ai-chat-trigger:hover { background: var(--accent); color: #fff; }
+.ai-chat-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .4); z-index: 199;
+  opacity: 0; pointer-events: none; transition: opacity .3s var(--ease);
+}
+.ai-chat-backdrop.open { opacity: 1; pointer-events: auto; }
+.ai-chat-drawer {
+  position: fixed; top: 0; right: 0; height: 100dvh; width: 400px; max-width: 92vw;
+  background: var(--bg-surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg); z-index: 200;
+  display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s var(--ease);
+}
+.ai-chat-drawer.open { transform: translateX(0); }
+.ai-chat-header {
+  display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ai-chat-header-title { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; color: var(--text-primary); }
+.ai-chat-header-title svg { color: var(--accent); }
+.ai-chat-close {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--bg-surface-2); border: 1px solid var(--border);
+  color: var(--text-secondary); display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: border-color .2s var(--ease), color .2s var(--ease);
+}
+.ai-chat-close:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.ai-chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.ai-msg { max-width: 80%; padding: 10px 14px; border-radius: var(--radius-md); font-size: 13.5px; line-height: 1.5; }
+.ai-msg-bot { align-self: flex-start; background: var(--bg-surface-2); color: var(--text-primary); border: 1px solid var(--border); }
+.ai-msg-user { align-self: flex-end; background: var(--accent); color: #fff; }
+.ai-msg-typing { color: var(--text-tertiary); font-style: italic; }
+.ai-chat-input-row { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.ai-chat-input-row input {
+  flex: 1; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: var(--radius-full);
+  padding: 10px 16px; font-size: 13.5px; color: var(--text-primary); transition: border-color .2s var(--ease);
+}
+.ai-chat-input-row input:focus { outline: none; border-color: var(--accent); }
+.ai-chat-input-row button {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+  transition: background .2s var(--ease);
+}
+.ai-chat-input-row button:hover { background: var(--accent-hover); }
+@media (max-width: 640px) {
+  .ai-chat-drawer {
+    width: 100%; max-width: 100%; top: auto; bottom: 0; height: 85dvh;
+    border-left: none; border-top: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+  }
+  .ai-chat-drawer.open { transform: translateY(0); }
+}
 .category-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 44px; }
 .cat-pill {
   display: inline-flex; align-items: center; gap: 7px; background: var(--bg-surface); border: 1px solid var(--border);

@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Bot } from 'lucide-react';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
+import AiChatDrawer from './AiChatDrawer';
 
 const CATEGORIES = [
   {
@@ -113,6 +115,7 @@ function CatIcon({ children }) {
 export default function CoursesHome({ user }) {
   const [activeCat, setActiveCat] = useState('all');
   const [query, setQuery] = useState('');
+  const [chatOpen, setChatOpen] = useState(false);
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;
@@ -150,6 +153,9 @@ export default function CoursesHome({ user }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <button type="button" className="ai-chat-trigger" onClick={() => setChatOpen(true)}>
+            <Bot size={16} /> Süni İntellektlə Axtar
+          </button>
         </div>
 
         <div className="category-pills">
@@ -194,6 +200,7 @@ export default function CoursesHome({ user }) {
           </div>
         ))}
       </div>
+      <AiChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
     </section>
   );
 }

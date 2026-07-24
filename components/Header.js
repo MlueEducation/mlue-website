@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
-import { useTheme } from './ThemeProvider';
 import ThemeToggle from './ThemeToggle';
+import BrandLogo from './BrandLogo';
 
 const NAV_LINKS = [
   { href: '/platforma', label: 'Platforma' },
@@ -13,18 +13,6 @@ const NAV_LINKS = [
   { href: '/terefdasliq', label: 'Tərəfdaşlıq' },
   { href: '/haqqimizda', label: 'Haqqımızda' },
 ];
-
-function BrandLogo() {
-  const { theme } = useTheme();
-  const icon = theme === 'light' ? '/mlue-icon-light.png' : '/mlue-icon.png';
-  const word = theme === 'light' ? '/mlue-wordmark-light.png' : '/mlue-wordmark.png';
-  return (
-    <>
-      <img src={icon} alt="" className="brand-icon" />
-      <img src={word} alt="Mlue" className="brand-word-img" />
-    </>
-  );
-}
 
 function AuthArea({ onNavigate }) {
   const { user } = useAuth();
