@@ -236,6 +236,7 @@ export default function OnboardingPage() {
   const [interest, setInterest] = useState('');
   const [teacherSubject, setTeacherSubject] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     if (!loading && !user) router.push('/giris');
@@ -259,17 +260,19 @@ export default function OnboardingPage() {
   function selectStatus(id) {
     setStatus(id);
     setStep(2);
+    setSaveError('');
   }
 
   async function handleSubmit() {
     setSaving(true);
+    setSaveError('');
     const specialization =
       status === 'student' ? major :
       status === 'applicant' ? `${dimGroup} qrup` :
       status === 'teacher' ? teacherSubject :
       null;
 
-    await supabase.from('profiles').upsert({
+    const { error } = await supabase.from('profiles').upsert({
       id: user.id,
       full_name: user.user_metadata?.full_name || null,
       role: status,
@@ -278,6 +281,14 @@ export default function OnboardingPage() {
       interests: status === 'professional' ? [interest] : [],
       updated_at: new Date().toISOString(),
     });
+
+    if (error) {
+      console.error('Onboarding save failed:', error);
+      setSaveError('Yadda saxlanılmadı — zəhmət olmasa yenidən cəhd et. (' + error.message + ')');
+      setSaving(false);
+      return;
+    }
+
     router.push('/profil');
   }
 
@@ -411,6 +422,12 @@ export default function OnboardingPage() {
             {/* Teacher: searchable subject */}
             {status === 'teacher' && (
               <SearchableSelect options={TEACHER_SUBJECTS} value={teacherSubject} onChange={setTeacherSubject} placeholder="məs. Riyaziyyat müəllimi" />
+            )}
+
+            {saveError && (
+              <div className="mt-6 text-sm font-medium text-[var(--danger)] bg-[var(--danger-10)] border border-[var(--danger-30)] rounded-lg px-4 py-3">
+                {saveError}
+              </div>
             )}
 
             <button
