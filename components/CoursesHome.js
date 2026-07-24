@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Bot } from 'lucide-react';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
-import AiChatDrawer from './AiChatDrawer';
+import MeagleAvatar from './MeagleAvatar';
+import MeagleChatDrawer from './MeagleChatDrawer';
 
 const CATEGORIES = [
   {
@@ -154,7 +154,8 @@ export default function CoursesHome({ user }) {
             onChange={(e) => setQuery(e.target.value)}
           />
           <button type="button" className="ai-chat-trigger" onClick={() => setChatOpen(true)}>
-            <Bot size={16} /> Süni İntellektlə Axtar
+            <MeagleAvatar expression="cheerful" size={24} />
+            Meagle ilə Soruş
           </button>
         </div>
 
@@ -200,7 +201,7 @@ export default function CoursesHome({ user }) {
           </div>
         ))}
       </div>
-      <AiChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
+      <MeagleChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
     </section>
   );
 }

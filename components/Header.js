@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { supabase } from '@/lib/supabaseClient';
 import ThemeToggle from './ThemeToggle';
 import BrandLogo from './BrandLogo';
 
@@ -16,11 +17,28 @@ const NAV_LINKS = [
 
 function AuthArea({ onNavigate }) {
   const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  useEffect(() => {
+    if (!user) { setAvatarUrl(null); return; }
+    supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => setAvatarUrl(data?.avatar_url || null));
+  }, [user]);
+
   if (user) {
     const initial = user.email.charAt(0).toUpperCase();
+    const pictureUrl = avatarUrl || user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
     return (
       <Link href="/profil" className="profile-pill" onClick={onNavigate}>
-        <span className="profile-avatar">{initial}</span>
+        {pictureUrl ? (
+          <img src={pictureUrl} alt="" className="profile-avatar-img" />
+        ) : (
+          <span className="profile-avatar">{initial}</span>
+        )}
         <span className="profile-email">{user.email}</span>
       </Link>
     );
