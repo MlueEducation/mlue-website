@@ -332,6 +332,7 @@ function IdentityPanel({ user, profile }) {
   const email = user.email;
   const initial = email.charAt(0).toUpperCase();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
+  const pictureUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   const p = profile || {};
   const onboarded = !!profile?.role;
   const isEcommerceStudent = onboarded && p.role === 'student' && p.interests?.includes('ecommerce');
@@ -343,9 +344,13 @@ function IdentityPanel({ user, profile }) {
       <div className="space-y-5">
         <Panel>
           <div className="p-6 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-xl font-extrabold text-white flex-shrink-0">
-              {initial}
-            </div>
+            {pictureUrl ? (
+              <img src={pictureUrl} alt="" className="w-14 h-14 rounded-full object-cover flex-shrink-0 border border-[var(--border)]" />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-xl font-extrabold text-white flex-shrink-0">
+                {initial}
+              </div>
+            )}
             <div className="min-w-0">
               <div className="text-base font-bold text-[var(--text-primary)] truncate">{displayName}</div>
               <div className="text-sm text-[var(--text-secondary)] truncate">{email}</div>
