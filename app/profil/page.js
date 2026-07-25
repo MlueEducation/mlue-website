@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { Flame, Award, Rocket, MessageCircle, Briefcase, Lock, Gift } from 'lucide-react';
-import { Panel, PanelSection, SettingRow, Toggle, Tooltip } from '@/components/ProfileUI';
+import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
+import DimCalculatorPanel from '@/components/panels/DimCalculatorPanel';
+import ExamAnalysisPanel from '@/components/panels/ExamAnalysisPanel';
+import RoadmapPanel from '@/components/panels/RoadmapPanel';
+import StudyBuddyPanel from '@/components/panels/StudyBuddyPanel';
+import InternshipsPanel from '@/components/panels/InternshipsPanel';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -19,6 +24,11 @@ const Icon = {
   tokens: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="9" cy="9" r="6" /><circle cx="15" cy="15" r="6" /></svg>,
   game: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M8 4h8l1 5a5 5 0 0 1-10 0Z" /><path d="M6 7H4a2 2 0 0 0 2 4M18 7h2a2 2 0 0 1-2 4" /><path d="M12 14v3M9 20h6" /></svg>,
   settings: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="12" cy="12" r="3" /><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /></svg>,
+  calculator: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" /></svg>,
+  examCheck: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 3v2h6V3" /><path d="M9 12l2 2 4-4" /></svg>,
+  roadmap: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><circle cx="6" cy="18" r="2.5" /><path d="M6 8.5V15.5M8.5 6H15.5M8.5 18H15.5" /></svg>,
+  buddy: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5" /><circle cx="17" cy="7" r="2.3" /><path d="M15.5 13.2c2 .3 3.5 1.9 3.5 4.3" /></svg>,
+  briefcaseTask: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M9 13l2 2 4-4" /></svg>,
 };
 
 const NAV_ITEMS = [
@@ -29,6 +39,11 @@ const NAV_ITEMS = [
   { id: 'wallet', label: 'Ödənişlər', icon: Icon.wallet },
   { id: 'game', label: 'Nailiyyətlər', icon: Icon.game },
   { id: 'settings', label: 'Tənzimləmələr', icon: Icon.settings },
+  { id: 'dimCalculator', label: 'DİM Kalkulyatoru', icon: Icon.calculator },
+  { id: 'examAnalysis', label: 'Sınaq Nəticələri', icon: Icon.examCheck },
+  { id: 'roadmap', label: 'Yol Xəritələri', icon: Icon.roadmap },
+  { id: 'studyBuddy', label: 'Tədris Yoldaşı', icon: Icon.buddy },
+  { id: 'internships', label: 'Mikro-Təcrübələr', icon: Icon.briefcaseTask },
   { id: 'tokens', label: 'Token / Balansım', icon: Icon.tokens },
   { id: 'certificates', label: 'Sertifikatlar', icon: Icon.certificate },
 ];
@@ -64,10 +79,6 @@ const MOCK = {
     { title: 'Mlue Landing Page', tags: ['React', 'Tailwind'] },
     { title: 'Kofe Sifariş Tətbiqi (UI)', tags: ['Figma', 'UX'] },
     { title: 'Şəxsi Portfolio Sayt', tags: ['Next.js'] },
-  ],
-  jobMatches: [
-    { title: 'Junior Frontend Developer', company: 'TechBakı MMC', match: 88 },
-    { title: 'UI Dizayner (Intern)', company: 'Kreativ Studio', match: 74 },
   ],
   interviewProgress: { done: 5, total: 10 },
   balance: '45.50 ₼',
@@ -130,11 +141,6 @@ const SCENARIO_A = {
   courseTitle: 'İlk Onlayn Mağazanı Qur',
 };
 const SCENARIO_B = {
-  jobs: [
-    { title: 'Junior Frontend Developer', company: 'TechBakı MMC' },
-    { title: 'UI/UX Dizayner (Intern)', company: 'Kreativ Studio' },
-    { title: 'Product Designer', company: 'Startup Bakı' },
-  ],
   portfolioTips: [
     '3-4 güclü layihəni seç, kəmiyyətdən keyfiyyətə önəm ver',
     'Hər layihədə problemi, prosesi və nəticəni izah et',
@@ -204,41 +210,10 @@ function validateLinkField(field, value) {
 
 /* ---------------- Shared building blocks ----------------
    One consistent "grouped panel" pattern is used everywhere instead of
-   many separately-bordered/shadowed boxes, so every tab reads the same way. */
-function PageHeader({ children, sub }) {
-  return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-extrabold text-[var(--text-primary)]">{children}</h1>
-      {sub && <p className="text-[var(--text-secondary)] text-sm mt-1">{sub}</p>}
-    </div>
-  );
-}
-const STAT_TONES = {
-  accent: 'bg-[var(--accent-soft)] text-[var(--accent)]',
-  success: 'bg-[var(--success-soft)] text-[var(--success)]',
-  streak: 'bg-[var(--streak-soft)] text-[var(--streak)]',
-  warm: 'bg-[var(--warm-soft)] text-[var(--accent-warm)]',
-};
-function StatTile({ label, value, icon, tone = 'accent' }) {
-  return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl shadow-sm p-5 text-center">
-      {icon && (
-        <div className={`w-11 h-11 rounded-full flex items-center justify-center text-lg mx-auto mb-2.5 ${STAT_TONES[tone] || STAT_TONES.accent}`}>
-          {icon}
-        </div>
-      )}
-      <div className="text-xl font-extrabold text-[var(--text-primary)]">{value}</div>
-      <div className="text-[11px] text-[var(--text-secondary)] mt-1 uppercase tracking-wide">{label}</div>
-    </div>
-  );
-}
-function ProgressBar({ value, colorClass = 'bg-[var(--accent)]' }) {
-  return (
-    <div className="w-full h-3 rounded-full bg-[var(--border)] overflow-hidden">
-      <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${value}%` }} />
-    </div>
-  );
-}
+   many separately-bordered/shadowed boxes, so every tab reads the same way.
+   Panel/PanelSection/SettingRow/Toggle/Tooltip/PageHeader/StatTile/ProgressBar
+   live in components/ProfileUI.js so other files (AccountSettings, the new
+   panels/ directory) can reuse them too. */
 function SkillPicker({ selected, onChange }) {
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
@@ -328,7 +303,7 @@ function LinkInput({ field, value, onChange, error }) {
 }
 
 /* ---------------- Tabs ---------------- */
-function IdentityPanel({ user, profile }) {
+function IdentityPanel({ user, profile, onNavigate }) {
   const email = user.email;
   const initial = email.charAt(0).toUpperCase();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
@@ -414,15 +389,10 @@ function IdentityPanel({ user, profile }) {
               </>
             ) : (
               <>
-                <PanelSection first title="Sənə Uyğun İş Elanları" desc="IT və dizayn sahəsində açıq mövqelər">
-                  <div className="space-y-2">
-                    {SCENARIO_B.jobs.map((j) => (
-                      <div key={j.title} className="bg-[var(--bg-surface-2)] rounded-xl p-3.5">
-                        <div className="text-sm font-bold text-[var(--text-primary)]">{j.title}</div>
-                        <div className="text-xs text-[var(--text-secondary)]">{j.company}</div>
-                      </div>
-                    ))}
-                  </div>
+                <PanelSection first title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun mikro-təcrübə tapşırıqları">
+                  <button onClick={() => onNavigate('internships')} className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                    Mikro-Təcrübələr bölməsinə bax →
+                  </button>
                 </PanelSection>
                 <PanelSection title="Portfel Yaratmaq Üçün İpuçları" desc="Diqqətini bunlara ver">
                   <ul className="space-y-3">
@@ -667,7 +637,7 @@ function CertificatesPanel() {
   );
 }
 
-function CareerPanel() {
+function CareerPanel({ onNavigate }) {
   return (
     <div>
       <PageHeader sub="CV, portfolio və iş imkanları">Karyera Mərkəzi</PageHeader>
@@ -692,18 +662,10 @@ function CareerPanel() {
             ))}
           </div>
         </PanelSection>
-        <PanelSection title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun tövsiyə olunan vakansiyalar">
-          <div className="space-y-2">
-            {MOCK.jobMatches.map((j) => (
-              <div key={j.title} className="flex items-center justify-between bg-[var(--bg-surface-2)] rounded-xl p-3.5">
-                <div>
-                  <div className="text-sm font-bold text-[var(--text-primary)]">{j.title}</div>
-                  <div className="text-xs text-[var(--text-secondary)]">{j.company}</div>
-                </div>
-                <span className="text-xs font-bold text-[var(--success)]">{j.match}% uyğunluq</span>
-              </div>
-            ))}
-          </div>
+        <PanelSection title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun mikro-təcrübə tapşırıqları">
+          <button onClick={() => onNavigate('internships')} className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
+            Mikro-Təcrübələr bölməsinə bax →
+          </button>
         </PanelSection>
         <PanelSection title="Müsahibəyə hazırlıq" desc="Simulyasiya olunmuş müsahibə seansların">
           <div className="flex justify-between text-sm mb-2">
@@ -943,13 +905,18 @@ export default function ProfilPage() {
   }
 
   const PANELS = {
-    identity: <IdentityPanel user={user} profile={profile} />,
+    identity: <IdentityPanel user={user} profile={profile} onNavigate={setActive} />,
     bio: <BioPanel user={user} profile={profile} onSaved={setProfile} />,
     academic: <AcademicPanel />,
-    career: <CareerPanel />,
+    career: <CareerPanel onNavigate={setActive} />,
     wallet: <WalletPanel />,
     game: <GamePanel user={user} profile={profile} />,
     settings: <SettingsPanel user={user} profile={profile} onSaved={setProfile} />,
+    dimCalculator: <DimCalculatorPanel profile={profile} />,
+    examAnalysis: <ExamAnalysisPanel />,
+    roadmap: <RoadmapPanel />,
+    studyBuddy: <StudyBuddyPanel user={user} profile={profile} />,
+    internships: <InternshipsPanel />,
     tokens: <TokensPanel />,
     certificates: <CertificatesPanel />,
   };
@@ -963,6 +930,16 @@ export default function ProfilPage() {
             const isActive = active === item.id;
             return (
               <div key={item.id}>
+                {item.id === 'dimCalculator' && (
+                  <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Simulyasiyalar</span>
+                  </div>
+                )}
+                {item.id === 'studyBuddy' && (
+                  <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">İcma</span>
+                  </div>
+                )}
                 {item.id === 'tokens' && (
                   <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
                     <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Ekosistem</span>

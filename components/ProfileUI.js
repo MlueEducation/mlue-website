@@ -77,3 +77,40 @@ export function Tooltip({ text, children }) {
     </div>
   );
 }
+
+export function PageHeader({ children, sub }) {
+  return (
+    <div className="mb-6">
+      <h1 className="text-2xl font-extrabold text-[var(--text-primary)]">{children}</h1>
+      {sub && <p className="text-[var(--text-secondary)] text-sm mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+const STAT_TONES = {
+  accent: 'bg-[var(--accent-soft)] text-[var(--accent)]',
+  success: 'bg-[var(--success-soft)] text-[var(--success)]',
+  streak: 'bg-[var(--streak-soft)] text-[var(--streak)]',
+  warm: 'bg-[var(--warm-soft)] text-[var(--accent-warm)]',
+};
+export function StatTile({ label, value, icon, tone = 'accent' }) {
+  return (
+    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl shadow-sm p-5 text-center">
+      {icon && (
+        <div className={`w-11 h-11 rounded-full flex items-center justify-center text-lg mx-auto mb-2.5 ${STAT_TONES[tone] || STAT_TONES.accent}`}>
+          {icon}
+        </div>
+      )}
+      <div className="text-xl font-extrabold text-[var(--text-primary)]">{value}</div>
+      <div className="text-[11px] text-[var(--text-secondary)] mt-1 uppercase tracking-wide">{label}</div>
+    </div>
+  );
+}
+
+export function ProgressBar({ value, colorClass = 'bg-[var(--accent)]' }) {
+  return (
+    <div className="w-full h-3 rounded-full bg-[var(--border)] overflow-hidden">
+      <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${value}%` }} />
+    </div>
+  );
+}
