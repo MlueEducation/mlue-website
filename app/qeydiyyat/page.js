@@ -7,6 +7,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
 import GoogleIcon from '@/components/GoogleIcon';
 
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_ERROR = 'Şifrə ən azı 8 simvol olmalı və həm hərf, həm də rəqəm daxil etməlidir';
+
 export default function QeydiyyatPage() {
   const router = useRouter();
   const [msg, setMsg] = useState({ text: '', type: '' });
@@ -29,11 +32,15 @@ export default function QeydiyyatPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
     setMsg({ text: '', type: '' });
     const fullName = e.target.fullName.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
+    if (!PASSWORD_RULE.test(password)) {
+      setMsg({ text: PASSWORD_ERROR, type: 'error' });
+      return;
+    }
+    setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -73,8 +80,8 @@ export default function QeydiyyatPage() {
               <input
                 type={showPass ? 'text' : 'password'}
                 name="password"
-                placeholder="Şifrə (min. 6 simvol)"
-                minLength={6}
+                placeholder="Şifrə (min. 8 simvol, hərf və rəqəm)"
+                minLength={8}
                 required
                 style={{ paddingRight: 44 }}
               />

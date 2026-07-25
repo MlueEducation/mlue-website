@@ -947,13 +947,13 @@ export default function ProfilPage() {
                 )}
                 <button
                   onClick={() => setActive(item.id)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm whitespace-nowrap transition-colors w-full text-left
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors w-full text-left min-w-0
                     ${isActive
                       ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
                       : 'text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]'}`}
                 >
                   {item.icon('w-4 h-4 flex-shrink-0')}
-                  <span>{item.label}</span>
+                  <span className="flex-1 min-w-0 truncate">{item.label}</span>
                 </button>
               </div>
             );

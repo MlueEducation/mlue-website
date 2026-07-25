@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { COMMON_SUBJECTS, DIM_GROUPS } from '@/lib/dimGroups';
+import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/lib/dimGroups';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
 
 /* Small, curated mock group→majors mapping (real MAJORS list is too large to
@@ -45,7 +45,13 @@ function initialSubgroup(groupId) {
 
 function computeProbability(major, scores) {
   const subjects = Object.keys(major.weights);
-  const weightedScore = subjects.reduce((sum, s) => sum + (Number(scores[s]) || 0) * major.weights[s], 0);
+  // Normalize each subject to a 0-100 scale (some qəbul subjects go up to 150)
+  // before applying weights, so the weighted score stays comparable to cutoff.
+  const weightedScore = subjects.reduce((sum, s) => {
+    const max = getAdmissionMax(major.groupId, s);
+    const raw = Number(scores[`qebul:${s}`]) || 0;
+    return sum + (raw / max) * 100 * major.weights[s];
+  }, 0);
   const raw = 50 + (weightedScore - major.cutoff) * 1.2;
   return Math.min(98, Math.max(2, Math.round(raw)));
 }
@@ -76,6 +82,31 @@ function CircularProgress({ percent, size = 64, strokeWidth = 6, toneClass }) {
   );
 }
 
+function SubjectScoreGrid({ subjects, prefix, getMax, scores, onChange }) {
+  return (
+    <div className="grid sm:grid-cols-3 gap-3">
+      {subjects.map((subject) => {
+        const max = getMax(subject);
+        const key = `${prefix}:${subject}`;
+        return (
+          <div key={key}>
+            <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">{subject}</label>
+            <input
+              type="number"
+              min="0"
+              max={max}
+              placeholder={`0-${max}`}
+              value={scores[key] ?? ''}
+              onChange={(e) => onChange(key, e.target.value, max)}
+              className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function DimCalculatorPanel({ profile }) {
   const [groupId, setGroupId] = useState(() => parseInitialGroup(profile));
   const [subgroupName, setSubgroupName] = useState(() => initialSubgroup(parseInitialGroup(profile)));
@@ -97,10 +128,13 @@ export default function DimCalculatorPanel({ profile }) {
     return group.subjects;
   }, [group, subgroupName]);
 
-  const subjectList = useMemo(() => Array.from(new Set([...COMMON_SUBJECTS, ...groupSubjects])), [groupSubjects]);
-
-  function setScore(subject, value) {
-    setScores((s) => ({ ...s, [subject]: value }));
+  function setScore(key, value, max) {
+    if (value === '') {
+      setScores((s) => ({ ...s, [key]: '' }));
+      return;
+    }
+    const clamped = Math.max(0, Math.min(Number(value), max));
+    setScores((s) => ({ ...s, [key]: clamped }));
   }
 
   const results = useMemo(() => {
@@ -164,24 +198,26 @@ export default function DimCalculatorPanel({ profile }) {
           </PanelSection>
 
           {group && (
-            <PanelSection title="Fənn balların" desc="Hər fənn üzrə təxmini balını (0-100) daxil et">
-              <div className="grid sm:grid-cols-3 gap-3">
-                {subjectList.map((subject) => (
-                  <div key={subject}>
-                    <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">{subject}</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      placeholder="0-100"
-                      value={scores[subject] || ''}
-                      onChange={(e) => setScore(subject, e.target.value)}
-                      className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-                    />
-                  </div>
-                ))}
-              </div>
-            </PanelSection>
+            <>
+              <PanelSection title="Buraxılış fənləri" desc="Bütün qruplarda ortaq, maksimum 100 bal">
+                <SubjectScoreGrid
+                  subjects={COMMON_SUBJECTS}
+                  prefix="buraxilis"
+                  getMax={() => GRADUATION_MAX}
+                  scores={scores}
+                  onChange={setScore}
+                />
+              </PanelSection>
+              <PanelSection title="Qəbul fənləri" desc="Seçdiyin qrupa uyğun, fənndən asılı olaraq maksimum 100 və ya 150 bal">
+                <SubjectScoreGrid
+                  subjects={groupSubjects}
+                  prefix="qebul"
+                  getMax={(subject) => getAdmissionMax(groupId, subject)}
+                  scores={scores}
+                  onChange={setScore}
+                />
+              </PanelSection>
+            </>
           )}
         </Panel>
 
