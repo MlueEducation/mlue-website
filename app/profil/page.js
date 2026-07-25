@@ -925,7 +925,7 @@ export default function ProfilPage() {
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] flex flex-col md:h-[calc(100vh-var(--header-h))] md:sticky md:top-[var(--header-h)]">
-        <nav className="flex flex-row md:flex-col gap-1 p-3 overflow-x-auto md:overflow-visible">
+        <nav className="flex flex-row md:flex-col gap-1 p-3 overflow-x-auto md:overflow-x-visible md:overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;
             return (
