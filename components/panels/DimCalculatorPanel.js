@@ -1,11 +1,27 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/lib/dimGroups';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
 
 const SAVE_XP_REWARD = 30;
+/* The one-time XP reward is gated through the existing `badges_earned`
+   table's (user_id, badge_key) unique constraint rather than a client-side
+   "have I saved before?" check — inserting this row is atomic in Postgres,
+   so even two racing tabs/requests can't both win and double-award XP. */
+const DIM_XP_BADGE_KEY = 'dim-first-save';
+
+function formatHistoryDate(iso) {
+  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function summarizeScores(result) {
+  return Object.entries(result.subjects_and_scores || {})
+    .filter(([key]) => key.startsWith('qebul:'))
+    .map(([key, score]) => `${key.slice('qebul:'.length)}: ${score}`)
+    .join(', ');
+}
 
 /* Small, curated mock group→majors mapping (real MAJORS list is too large to
    score meaningfully) — each major's weights sum to 1 across its specialized
@@ -115,8 +131,23 @@ export default function DimCalculatorPanel({ profile, user, onXpAwarded }) {
   const [subgroupName, setSubgroupName] = useState(() => initialSubgroup(parseInitialGroup(profile)));
   const [scores, setScores] = useState({});
   const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
+  const [lastSaveAwardedXp, setLastSaveAwardedXp] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   const group = DIM_GROUPS.find((g) => g.id === groupId) || null;
+
+  useEffect(() => {
+    supabase
+      .from('exam_results')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setHistory(data || []);
+        setHistoryLoading(false);
+      });
+  }, [user.id]);
 
   function selectGroup(id) {
     setGroupId(id);
@@ -153,18 +184,26 @@ export default function DimCalculatorPanel({ profile, user, onXpAwarded }) {
 
   async function saveResults() {
     setSaveState('saving');
-    const { error } = await supabase.from('exam_results').insert({
+    const { data, error } = await supabase.from('exam_results').insert({
       user_id: user.id,
       major_group: groupId,
       subgroup: subgroupName,
       subjects_and_scores: scores,
-    });
-    if (!error) {
-      onXpAwarded(SAVE_XP_REWARD);
-      setSaveState('saved');
-    } else {
+    }).select().single();
+    if (error) {
       setSaveState('idle');
+      return;
     }
+    setHistory((h) => [data, ...h]);
+
+    const { error: badgeError } = await supabase.from('badges_earned').insert({ user_id: user.id, badge_key: DIM_XP_BADGE_KEY });
+    if (!badgeError) {
+      onXpAwarded(SAVE_XP_REWARD);
+      setLastSaveAwardedXp(true);
+    } else {
+      setLastSaveAwardedXp(false);
+    }
+    setSaveState('saved');
   }
 
   return (
@@ -275,13 +314,37 @@ export default function DimCalculatorPanel({ profile, user, onXpAwarded }) {
                         : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white disabled:opacity-60'
                     }`}
                   >
-                    {saveState === 'saved' ? `Saxlanıldı ✓ (+${SAVE_XP_REWARD} XP)` : saveState === 'saving' ? 'Saxlanılır...' : 'Nəticələrimi saxla'}
+                    {saveState === 'saved'
+                      ? `Saxlanıldı ✓${lastSaveAwardedXp ? ` (+${SAVE_XP_REWARD} XP)` : ''}`
+                      : saveState === 'saving' ? 'Saxlanılır...' : 'Nəticələrimi saxla'}
                   </button>
                 </>
               )}
             </PanelSection>
           </Panel>
         )}
+
+        <Panel>
+          <PanelSection first title="Nəticə Tarixçəsi" desc="Əvvəllər saxladığın bütün DİM Kalkulyatoru nəticələri">
+            {historyLoading ? (
+              <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : history.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">Hələ heç bir nəticə saxlamamısan.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {history.map((h) => (
+                  <div key={h.id} className="bg-[var(--bg-surface-2)] rounded-xl p-4">
+                    <div className="flex items-center justify-between gap-3 mb-1">
+                      <span className="text-sm font-bold text-[var(--text-primary)]">{h.subgroup || `${h.major_group} qrup`}</span>
+                      <span className="text-[11px] text-[var(--text-tertiary)] flex-shrink-0">{formatHistoryDate(h.created_at)}</span>
+                    </div>
+                    <p className="text-xs text-[var(--text-secondary)]">{summarizeScores(h) || 'Bal daxil edilməyib'}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </PanelSection>
+        </Panel>
       </div>
     </div>
   );
