@@ -25,6 +25,7 @@ export default function CoursePlayerPage() {
 
   const [enrollmentChecked, setEnrollmentChecked] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
+  const [enrollmentError, setEnrollmentError] = useState(null);
   const [progressMap, setProgressMap] = useState({});
   const [activeLessonId, setActiveLessonId] = useState(() => lessons[0]?.id);
   const [courseCompleted, setCourseCompleted] = useState(false);
@@ -39,9 +40,20 @@ export default function CoursePlayerPage() {
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Enrollment check failed:', error.message);
+          setEnrollmentError('Kursun statusunu yoxlayarkən xəta baş verdi.');
+          setEnrollmentChecked(true);
+          return;
+        }
         setEnrolled(!!data);
         setCourseCompleted(!!data?.completed_at);
+        setEnrollmentChecked(true);
+      })
+      .catch((err) => {
+        console.error('Enrollment check threw:', err);
+        setEnrollmentError('Kursun statusunu yoxlayarkən xəta baş verdi.');
         setEnrollmentChecked(true);
       });
 
@@ -58,10 +70,10 @@ export default function CoursePlayerPage() {
   }, [user, course]);
 
   useEffect(() => {
-    if (enrollmentChecked && !enrolled) {
+    if (enrollmentChecked && !enrolled && !enrollmentError) {
       router.push(`/courses/${courseId}`);
     }
-  }, [enrollmentChecked, enrolled, courseId, router]);
+  }, [enrollmentChecked, enrolled, enrollmentError, courseId, router]);
 
   const unlockedIds = useMemo(() => {
     const set = new Set();
@@ -125,6 +137,18 @@ export default function CoursePlayerPage() {
     return (
       <div data-theme="dark" className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center">
         <p className="text-[var(--text-secondary)]">Yüklənir...</p>
+      </div>
+    );
+  }
+
+  if (enrollmentError) {
+    return (
+      <div data-theme="dark" className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center px-6">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm rounded-2xl p-10 max-w-sm w-full text-center">
+          <h1 className="text-xl font-extrabold text-[var(--text-primary)] mb-2">Xəta baş verdi</h1>
+          <p className="text-sm text-[var(--text-secondary)] mb-6">{enrollmentError}</p>
+          <Link href={`/courses/${courseId}`} className="block bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold py-3 rounded-lg transition-colors">Kurs səhifəsinə qayıt</Link>
+        </div>
       </div>
     );
   }

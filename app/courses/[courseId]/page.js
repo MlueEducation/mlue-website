@@ -15,6 +15,7 @@ export default function CourseDetailsPage() {
   const [enrolled, setEnrolled] = useState(false);
   const [checking, setChecking] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [enrollError, setEnrollError] = useState(null);
 
   useEffect(() => {
     if (!user || !course) { setChecking(false); return; }
@@ -24,8 +25,13 @@ export default function CourseDetailsPage() {
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error('Enrollment check failed:', error.message);
         setEnrolled(!!data);
+        setChecking(false);
+      })
+      .catch((err) => {
+        console.error('Enrollment check threw:', err);
         setChecking(false);
       });
   }, [user, course]);
@@ -40,12 +46,24 @@ export default function CourseDetailsPage() {
 
   async function handleEnroll() {
     if (!user) { router.push('/giris'); return; }
-    if (enrolled) { router.push(`/courses/${course.id}/learn`); return; }
     setEnrolling(true);
-    await supabase.from('user_courses').upsert(
-      { user_id: user.id, course_id: course.id },
-      { onConflict: 'user_id,course_id' }
-    );
+    setEnrollError(null);
+    try {
+      const { error } = await supabase.from('user_courses').upsert(
+        { user_id: user.id, course_id: course.id },
+        { onConflict: 'user_id,course_id' }
+      );
+      if (error) throw error;
+      setEnrolled(true);
+    } catch (err) {
+      console.error('Enrollment failed:', err);
+      setEnrollError('Qeydiyyat alınmadı. Zəhmət olmasa yenidən cəhd et.');
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
+  function handleStart() {
     router.push(`/courses/${course.id}/learn`);
   }
 
@@ -100,14 +118,36 @@ export default function CourseDetailsPage() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleEnroll}
-          disabled={enrolling || checking}
-          className="w-full sm:w-auto bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white font-bold px-8 py-3.5 rounded-lg transition-colors"
-        >
-          {enrolling ? 'Qeydiyyat edilir...' : enrolled ? 'Kursa davam et' : 'Kursu Al'}
-        </button>
+        {enrolled ? (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <button
+              type="button"
+              disabled
+              className="w-full sm:w-auto bg-[var(--success-soft)] text-[var(--success)] font-bold px-6 py-3.5 rounded-lg cursor-default"
+            >
+              ✅ Kurs Əlavə Edildi
+            </button>
+            <button
+              type="button"
+              onClick={handleStart}
+              className="w-full sm:w-auto bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold px-8 py-3.5 rounded-lg transition-colors"
+            >
+              ▶️ Kursa Başla
+            </button>
+          </div>
+        ) : (
+          <div>
+            <button
+              type="button"
+              onClick={handleEnroll}
+              disabled={enrolling || checking}
+              className="w-full sm:w-auto bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white font-bold px-8 py-3.5 rounded-lg transition-colors"
+            >
+              {enrolling ? 'Qeydiyyat edilir...' : 'Kursu Al'}
+            </button>
+            {enrollError && <p className="text-sm text-[var(--danger)] mt-3">{enrollError}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
