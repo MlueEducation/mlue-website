@@ -430,7 +430,7 @@ h1.hero-title .accent { background: linear-gradient(90deg, var(--accent), var(--
 
 /* ---------- course cards ---------- */
 .course-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.course-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px 24px; overflow: hidden; transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease); }
+.course-card { display: block; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 26px 24px; overflow: hidden; transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease); text-decoration: none; color: inherit; }
 .course-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
 .course-card-media { position: relative; aspect-ratio: 16 / 9; margin: -26px -24px 18px; overflow: hidden; }
 .course-thumb-dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px); background-size: 14px 14px; opacity: .5; }

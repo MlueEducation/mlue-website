@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
 import MeagleAvatar from './MeagleAvatar';
@@ -10,7 +11,7 @@ const CATEGORIES = [
   {
     id: 'data', label: 'Data Elmi', icon: ICONS.data,
     courses: [
-      { title: 'Python ilə Data Analitikasına Giriş', level: 'Başlanğıc', duration: '5 həftə' },
+      { id: 'python-data-analitikasi', title: 'Python ilə Data Analitikasına Giriş', level: 'Başlanğıc', duration: '5 həftə' },
       { title: 'SQL və Verilənlər Bazası Əsasları', level: 'Başlanğıc', duration: '4 həftə' },
       { title: 'Maşın Öyrənməsinə Giriş', level: 'Orta', duration: '8 həftə' },
       { title: 'Power BI ilə Biznes Analitikası', level: 'Orta', duration: '4 həftə' },
@@ -20,7 +21,7 @@ const CATEGORIES = [
     id: 'business', label: 'Biznes', icon: ICONS.business,
     courses: [
       { title: 'Sahibkarlıq Əsasları: Fikirdən Məhsula', level: 'Başlanğıc', duration: '6 həftə' },
-      { title: 'Rəqəmsal Marketinq Strategiyası', level: 'Orta', duration: '5 həftə' },
+      { id: 'reqemsal-marketinq-strategiyasi', title: 'Rəqəmsal Marketinq Strategiyası', level: 'Orta', duration: '5 həftə' },
       { title: 'Maliyyə Analizi və Büdcələmə', level: 'Orta', duration: '6 həftə' },
       { title: 'Layihə İdarəetməsi (Agile/Scrum)', level: 'Başlanğıc', duration: '4 həftə' },
     ],
@@ -28,7 +29,7 @@ const CATEGORIES = [
   {
     id: 'cs', label: 'Kompüter Elmləri', icon: ICONS.cs,
     courses: [
-      { title: 'Alqoritmlər və Data Strukturları', level: 'Orta', duration: '8 həftə' },
+      { id: 'alqoritmler-data-strukturlari', title: 'Alqoritmlər və Data Strukturları', level: 'Orta', duration: '8 həftə' },
       { title: 'Python Proqramlaşdırmaya Giriş', level: 'Başlanğıc', duration: '6 həftə' },
       { title: 'Obyekt Yönümlü Proqramlaşdırma (Java)', level: 'Orta', duration: '7 həftə' },
       { title: 'Kompüter Elmlərinin Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
@@ -73,7 +74,7 @@ const CATEGORIES = [
   {
     id: 'language', label: 'Dil Öyrənmə', icon: ICONS.language,
     courses: [
-      { title: 'İngilis Dili — Biznes Kommunikasiyası', level: 'Orta', duration: '8 həftə' },
+      { id: 'ingilis-dili-biznes', title: 'İngilis Dili — Biznes Kommunikasiyası', level: 'Orta', duration: '8 həftə' },
       { title: 'Türk Dilində Sərbəst Danışıq', level: 'Başlanğıc', duration: '6 həftə' },
       { title: 'Rus Dili Əsasları', level: 'Başlanğıc', duration: '6 həftə' },
       { title: 'IELTS-ə Hazırlıq Proqramı', level: 'İrəli', duration: '8 həftə' },
@@ -82,7 +83,7 @@ const CATEGORIES = [
   {
     id: 'arts', label: 'İncəsənət və Humanitar Elmlər', icon: ICONS.arts,
     courses: [
-      { title: 'Qrafik Dizayn Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
+      { id: 'qrafik-dizayn-esaslari', title: 'Qrafik Dizayn Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
       { title: 'Fotoqrafiya Sənəti', level: 'Başlanğıc', duration: '4 həftə' },
       { title: 'Dünya Tarixinə Səyahət', level: 'Başlanğıc', duration: '5 həftə' },
       { title: 'Yaradıcı Yazı Sənəti', level: 'Orta', duration: '4 həftə' },
@@ -92,7 +93,7 @@ const CATEGORIES = [
     id: 'personal', label: 'Şəxsi İnkişaf', icon: ICONS.personal,
     courses: [
       { title: 'Vaxt İdarəetməsi və Məhsuldarlıq', level: 'Başlanğıc', duration: '3 həftə' },
-      { title: 'Liderlik Bacarıqlarının İnkişafı', level: 'Orta', duration: '5 həftə' },
+      { id: 'liderlik-bacariqlari', title: 'Liderlik Bacarıqlarının İnkişafı', level: 'Orta', duration: '5 həftə' },
       { title: 'Effektiv Ünsiyyət və Natiqlik', level: 'Başlanğıc', duration: '4 həftə' },
       { title: 'Karyera Planlaması və CV Hazırlığı', level: 'Başlanğıc', duration: '3 həftə' },
     ],
@@ -185,18 +186,29 @@ export default function CoursesHome({ user }) {
               {cat.label}
             </h2>
             <div className="course-grid">
-              {cat.courses.map((c, i) => (
-                <div className="course-card" key={c.title}>
-                  <CourseThumb categoryId={cat.id} variant={i} />
-                  <span className="course-tag">{cat.label}</span>
-                  <h3>{c.title}</h3>
-                  <div className="course-meta">
-                    <span>{c.level}</span>
-                    <span className="course-meta-dot">·</span>
-                    <span>{c.duration}</span>
+              {cat.courses.map((c, i) => {
+                const cardBody = (
+                  <>
+                    <CourseThumb categoryId={cat.id} variant={i} />
+                    <span className="course-tag">{cat.label}</span>
+                    <h3>{c.title}</h3>
+                    <div className="course-meta">
+                      <span>{c.level}</span>
+                      <span className="course-meta-dot">·</span>
+                      <span>{c.duration}</span>
+                    </div>
+                  </>
+                );
+                return c.id ? (
+                  <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
+                    {cardBody}
+                  </Link>
+                ) : (
+                  <div className="course-card" key={c.title}>
+                    {cardBody}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
