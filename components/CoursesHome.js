@@ -109,7 +109,7 @@ export default function CoursesHome({ user }) {
             <div className="course-grid">
               {cat.courses.map((c, i) => (
                 <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
-                  <CourseThumb categoryId={cat.id} variant={i} />
+                  <CourseThumb categoryId={cat.id} variant={i} thumbnailUrl={c.thumbnailUrl} />
                   <span className="course-tag">{cat.label}</span>
                   <h3>{c.title}</h3>
                   <div className="course-meta">

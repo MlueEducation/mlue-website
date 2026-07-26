@@ -1,8 +1,19 @@
 import { CATEGORY_ICONS, CATEGORY_GRADIENTS } from './categoryIcons';
 
-/* Abstract, illustrated course-card cover — every course gets a picture,
-   Coursera-style, without depending on external image generation. */
-export default function CourseThumb({ categoryId, variant = 0 }) {
+/* Course-card cover. Uses the real thumbnail uploaded in MLUE Studio when one
+   exists; otherwise falls back to the abstract illustrated gradient so every
+   course still gets a picture without depending on external image
+   generation. */
+export default function CourseThumb({ categoryId, variant = 0, thumbnailUrl }) {
+  if (thumbnailUrl) {
+    return (
+      <div className="course-card-media" aria-hidden="true">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+      </div>
+    );
+  }
+
   const [from, to] = CATEGORY_GRADIENTS[categoryId] || ['#1D4ED8', '#38BDF8'];
   const icon = CATEGORY_ICONS[categoryId];
   const blobX = variant % 2 === 0 ? '78%' : '18%';

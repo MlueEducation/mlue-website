@@ -12,6 +12,14 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
   return (
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)]">
       <div className="max-w-3xl mx-auto px-6 py-12">
+        {course.thumbnailUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={course.thumbnailUrl}
+            alt=""
+            className="w-full aspect-video object-cover rounded-2xl mb-8"
+          />
+        )}
         <div className="mb-8">
           <div className="text-xs font-bold uppercase tracking-wide text-[var(--accent)] mb-2">{course.level} · {course.duration}</div>
           <h1 className="text-3xl font-extrabold text-[var(--text-primary)] mb-3">{course.title}</h1>
