@@ -10,8 +10,6 @@ import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
 
-const COMPLETION_XP_REWARD = 100;
-
 function allLessons(course) {
   return course.curriculum.flatMap((m) => m.lessons);
 }
@@ -120,7 +118,10 @@ export default function CoursePlayerPage() {
     await supabase.from('user_courses').update({ completed_at: new Date().toISOString(), progress_percentage: 100 }).eq('user_id', user.id).eq('course_id', course.id);
     await supabase.from('certificates').insert({ user_id: user.id, course_name: course.title });
     const { data: profileRow } = await supabase.from('profiles').select('xp_points').eq('id', user.id).maybeSingle();
-    await supabase.from('profiles').update({ xp_points: (profileRow?.xp_points || 0) + COMPLETION_XP_REWARD }).eq('id', user.id);
+    await supabase.from('profiles').update({ xp_points: (profileRow?.xp_points || 0) + course.xpReward }).eq('id', user.id);
+    if (course.tokenReward > 0) {
+      await supabase.from('token_transactions').insert({ user_id: user.id, description: course.title, amount: course.tokenReward });
+    }
     setCourseCompleted(true);
     setCompleting(false);
   }
