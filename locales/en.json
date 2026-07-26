@@ -1,0 +1,21 @@
+{
+  "nav.identity": "Overview",
+  "nav.myCourses": "My Courses",
+  "nav.game": "Achievements",
+  "nav.settings": "Settings",
+
+  "settings.title": "Settings",
+  "settings.sub": "Account, password and notification settings",
+  "settings.appearance": "Appearance",
+  "settings.theme": "Theme",
+  "settings.themeDesc": "Choose between light and dark mode",
+  "settings.themeLight": "Light",
+  "settings.themeDark": "Dark",
+  "settings.language": "Language",
+  "settings.languageDesc": "Choose the platform's interface language",
+  "settings.accountInfo": "Account information",
+  "settings.name": "Full Name",
+  "settings.email": "Email",
+  "settings.save": "Save",
+  "settings.saving": "Saving..."
+}

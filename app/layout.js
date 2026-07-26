@@ -4,6 +4,7 @@ import { GeistMono } from 'geist/font/mono';
 import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { LanguageProvider } from '@/components/LanguageProvider';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -26,11 +27,13 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ThemeProvider>
-          <AuthProvider>
-            <Header />
-            <main>{children}</main>
-            <Footer />
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </AuthProvider>
+          </LanguageProvider>
         </ThemeProvider>
         <Analytics />
       </body>

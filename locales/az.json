@@ -1,0 +1,21 @@
+{
+  "nav.identity": "Ümumi baxış",
+  "nav.myCourses": "Kurslarım",
+  "nav.game": "Nailiyyətlər",
+  "nav.settings": "Tənzimləmələr",
+
+  "settings.title": "Tənzimləmələr",
+  "settings.sub": "Hesab, şifrə və bildiriş tənzimləmələri",
+  "settings.appearance": "Görünüş",
+  "settings.theme": "Tema",
+  "settings.themeDesc": "İşıqlı və tünd rejim arasında seç",
+  "settings.themeLight": "İşıqlı",
+  "settings.themeDark": "Tünd",
+  "settings.language": "Dil",
+  "settings.languageDesc": "Platformanın interfeys dilini seç",
+  "settings.accountInfo": "Hesab məlumatları",
+  "settings.name": "Ad Soyad",
+  "settings.email": "Email",
+  "settings.save": "Yadda saxla",
+  "settings.saving": "Yadda saxlanılır..."
+}

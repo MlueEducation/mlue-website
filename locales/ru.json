@@ -1,0 +1,21 @@
+{
+  "nav.identity": "Обзор",
+  "nav.myCourses": "Мои курсы",
+  "nav.game": "Достижения",
+  "nav.settings": "Настройки",
+
+  "settings.title": "Настройки",
+  "settings.sub": "Настройки аккаунта, пароля и уведомлений",
+  "settings.appearance": "Оформление",
+  "settings.theme": "Тема",
+  "settings.themeDesc": "Выберите светлый или тёмный режим",
+  "settings.themeLight": "Светлая",
+  "settings.themeDark": "Тёмная",
+  "settings.language": "Язык",
+  "settings.languageDesc": "Выберите язык интерфейса платформы",
+  "settings.accountInfo": "Информация об аккаунте",
+  "settings.name": "Имя и фамилия",
+  "settings.email": "Эл. почта",
+  "settings.save": "Сохранить",
+  "settings.saving": "Сохранение..."
+}

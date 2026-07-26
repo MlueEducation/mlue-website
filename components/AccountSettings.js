@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
 import { useTheme } from '@/components/ThemeProvider';
+import { useLanguage, LANGUAGES } from '@/components/LanguageProvider';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip } from '@/components/ProfileUI';
 import GoogleIcon from '@/components/GoogleIcon';
 import { Camera, ShieldCheck, Laptop, Smartphone } from 'lucide-react';
@@ -98,6 +99,7 @@ function SwitchAccountCard() {
 /* ---------------- Ümumi ---------------- */
 function GeneralTab({ user, profile, onSaved }) {
   const { theme, setTheme } = useTheme();
+  const { t, lang, setLang } = useLanguage();
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatarFile, setAvatarFile] = useState(null);
@@ -130,6 +132,13 @@ function GeneralTab({ user, profile, onSaved }) {
   const nameLocked = !!profile?.last_name_updated_at && daysSince(profile.last_name_updated_at) < LOCK_DAYS;
   const emailLocked = !!profile?.last_email_updated_at && daysSince(profile.last_email_updated_at) < LOCK_DAYS;
   const initial = (user?.email || '?').charAt(0).toUpperCase();
+
+  function handleLanguageChange(code) {
+    setLang(code);
+    supabase.from('profiles').upsert({ id: user.id, preferred_language: code }).then(({ error }) => {
+      if (error) console.error('Dil seçimi bazaya yazılmadı:', error.message);
+    });
+  }
 
   function handleAvatarChange(e) {
     const file = e.target.files?.[0];
@@ -185,16 +194,32 @@ function GeneralTab({ user, profile, onSaved }) {
 
   return (
     <Panel>
-      <PanelSection first title="Görünüş" tint>
-        <SettingRow label="Tema" desc="İşıqlı və tünd rejim arasında seç">
+      <PanelSection first title={t('settings.appearance', 'Görünüş')} tint>
+        <SettingRow label={t('settings.theme', 'Tema')} desc={t('settings.themeDesc', 'İşıqlı və tünd rejim arasında seç')}>
           <select
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
             className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
           >
-            <option value="light">İşıqlı</option>
-            <option value="dark">Tünd</option>
+            <option value="light">{t('settings.themeLight', 'İşıqlı')}</option>
+            <option value="dark">{t('settings.themeDark', 'Tünd')}</option>
           </select>
+        </SettingRow>
+        <SettingRow label={t('settings.language', 'Dil')} desc={t('settings.languageDesc', "Platformanın interfeys dilini seç")}>
+          <div className="inline-flex bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-full)] p-1">
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => handleLanguageChange(l.code)}
+                className={`text-xs font-bold px-3.5 py-1.5 rounded-[var(--radius-full)] transition-colors ${
+                  lang === l.code ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </SettingRow>
       </PanelSection>
 
@@ -218,10 +243,10 @@ function GeneralTab({ user, profile, onSaved }) {
         </div>
       </PanelSection>
 
-      <PanelSection title="Hesab məlumatları" tint>
+      <PanelSection title={t('settings.accountInfo', 'Hesab məlumatları')} tint>
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">Ad Soyad</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">{t('settings.name', 'Ad Soyad')}</label>
             {nameLocked ? (
               <Tooltip text={`${LOCK_DAYS} gündə bir dəfə dəyişdirilə bilər`}>
                 <input value={fullName} disabled className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-tertiary)] cursor-not-allowed" />
@@ -240,7 +265,7 @@ function GeneralTab({ user, profile, onSaved }) {
             )}
           </div>
           <div>
-            <label className="text-xs text-[var(--text-secondary)] mb-1 block">Email</label>
+            <label className="text-xs text-[var(--text-secondary)] mb-1 block">{t('settings.email', 'Email')}</label>
             {emailLocked ? (
               <Tooltip text={`${LOCK_DAYS} gündə bir dəfə dəyişdirilə bilər`}>
                 <input value={email} disabled className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-tertiary)] cursor-not-allowed" />
@@ -266,7 +291,7 @@ function GeneralTab({ user, profile, onSaved }) {
           disabled={saving}
           className="mt-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
         >
-          {saving ? 'Yadda saxlanılır...' : 'Yadda saxla'}
+          {saving ? t('settings.saving', 'Yadda saxlanılır...') : t('settings.save', 'Yadda saxla')}
         </button>
       </PanelSection>
     </Panel>

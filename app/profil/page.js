@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { Flame, Award, Rocket, MessageCircle, Briefcase, Gift } from 'lucide-react';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
@@ -975,9 +976,10 @@ function GamePanel({ user, profile, onXpAwarded }) {
 }
 
 function SettingsPanel({ user, profile, onSaved }) {
+  const { t } = useLanguage();
   return (
     <div>
-      <PageHeader sub="Hesab, şifrə və bildiriş tənzimləmələri">Tənzimləmələr</PageHeader>
+      <PageHeader sub={t('settings.sub', 'Hesab, şifrə və bildiriş tənzimləmələri')}>{t('settings.title', 'Tənzimləmələr')}</PageHeader>
       <AccountSettings user={user} profile={profile} onSaved={onSaved} />
     </div>
   );
@@ -997,6 +999,7 @@ function applyDailyStreak(profile) {
 /* ---------------- Main dashboard ---------------- */
 export default function ProfilPage() {
   const { user, loading } = useAuth();
+  const { t, lang, setLang } = useLanguage();
   const [active, setActive] = useState('identity');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -1013,6 +1016,9 @@ export default function ProfilPage() {
         const updated = applyDailyStreak(data);
         setProfile(updated);
         setProfileLoading(false);
+        if (updated.preferred_language && updated.preferred_language !== lang) {
+          setLang(updated.preferred_language);
+        }
         if (updated !== data) {
           supabase.from('profiles').update({
             current_streak: updated.current_streak,
@@ -1043,13 +1049,15 @@ export default function ProfilPage() {
     );
   }
 
-  function awardXp(amount) {
-    setProfile((p) => {
-      if (!p) return p;
-      const next = { ...p, xp_points: (p.xp_points || 0) + amount };
-      supabase.from('profiles').update({ xp_points: next.xp_points }).eq('id', user.id);
-      return next;
-    });
+  async function awardXp(amount) {
+    const prevXp = profile?.xp_points || 0;
+    const nextXp = prevXp + amount;
+    setProfile((p) => (p ? { ...p, xp_points: nextXp } : p));
+    const { error } = await supabase.from('profiles').update({ xp_points: nextXp }).eq('id', user.id);
+    if (error) {
+      console.error('XP saxlanılmadı, geri qaytarılır:', error.message);
+      setProfile((p) => (p ? { ...p, xp_points: prevXp } : p));
+    }
   }
 
   const PANELS = {
@@ -1108,7 +1116,7 @@ export default function ProfilPage() {
                       : 'text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-surface-2)] hover:text-[var(--text-primary)]'}`}
                 >
                   {item.icon('w-4 h-4 flex-shrink-0')}
-                  <span className="flex-1 min-w-0 truncate">{item.label}</span>
+                  <span className="flex-1 min-w-0 truncate">{t(`nav.${item.id}`, item.label)}</span>
                 </button>
               </div>
             );
