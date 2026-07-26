@@ -12,6 +12,8 @@ import ExamAnalysisPanel from '@/components/panels/ExamAnalysisPanel';
 import RoadmapPanel from '@/components/panels/RoadmapPanel';
 import StudyBuddyPanel from '@/components/panels/StudyBuddyPanel';
 import InternshipsPanel from '@/components/panels/InternshipsPanel';
+import MyCoursesPanel from '@/components/panels/MyCoursesPanel';
+import MyNotesPanel from '@/components/panels/MyNotesPanel';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -29,12 +31,16 @@ const Icon = {
   roadmap: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="18" r="2.5" /><circle cx="6" cy="18" r="2.5" /><path d="M6 8.5V15.5M8.5 6H15.5M8.5 18H15.5" /></svg>,
   buddy: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><circle cx="9" cy="8" r="3" /><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5" /><circle cx="17" cy="7" r="2.3" /><path d="M15.5 13.2c2 .3 3.5 1.9 3.5 4.3" /></svg>,
   briefcaseTask: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M9 13l2 2 4-4" /></svg>,
+  myCourses: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /><path d="M8 13h5" /></svg>,
+  myNotes: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M14 3v5h5" /><path d="M8 13h8M8 17h5" /></svg>,
 };
 
 const NAV_ITEMS = [
   { id: 'identity', label: 'Ümumi baxış', icon: Icon.identity },
   { id: 'bio', label: 'İctimai profil', icon: Icon.bio },
   { id: 'academic', label: 'Təhsil', icon: Icon.academic },
+  { id: 'myCourses', label: 'Kurslarım', icon: Icon.myCourses },
+  { id: 'myNotes', label: 'Kurs Qeydlərim', icon: Icon.myNotes },
   { id: 'career', label: 'Karyera', icon: Icon.career },
   { id: 'wallet', label: 'Ödənişlər', icon: Icon.wallet },
   { id: 'game', label: 'Nailiyyətlər', icon: Icon.game },
@@ -70,12 +76,6 @@ const MOCK = {
     '"UI/UX Dizayn Əsasları" sertifikatı alındı',
   ],
   gpa: 87,
-  courses: [
-    { title: 'React ilə Frontend İnkişafı', progress: 100, done: true },
-    { title: 'UI/UX Dizayn Əsasları', progress: 100, done: true },
-    { title: 'Data Analitikası Əsasları', progress: 45, done: false },
-    { title: 'İngilis Dili — Biznes Kommunikasiyası', progress: 20, done: false },
-  ],
   learningHours: 142,
   leaderboardByRange: {
     week: [
@@ -562,7 +562,7 @@ function BioPanel({ user, profile, onSaved }) {
   );
 }
 
-function AcademicPanel() {
+function AcademicPanel({ onNavigate }) {
   return (
     <div>
       <PageHeader sub="Kurslar və nailiyyət balı">Təhsil</PageHeader>
@@ -572,18 +572,13 @@ function AcademicPanel() {
           <StatTile label="Öyrənmə saatı" value={`${MOCK.learningHours} saat`} icon="⏱️" tone="warm" />
         </div>
         <Panel>
-          <PanelSection first title="Kurslar" desc="Tamamladığın və davam edən kurslar">
-            <div className="space-y-5">
-              {MOCK.courses.map((c) => (
-                <div key={c.title}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="text-[var(--text-primary)] font-medium">{c.title}</span>
-                    <span className={c.done ? 'text-[var(--success)]' : 'text-[var(--text-secondary)]'}>{c.progress}%</span>
-                  </div>
-                  <ProgressBar value={c.progress} colorClass={c.done ? 'bg-[var(--success)]' : 'bg-[var(--accent)]'} />
-                </div>
-              ))}
-            </div>
+          <PanelSection first title="Kurslar" desc="Qeydiyyatdan keçdiyin kursların real siyahısı və irəliləyişi">
+            <button
+              onClick={() => onNavigate('myCourses')}
+              className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]"
+            >
+              Kurslarım bölməsinə bax →
+            </button>
           </PanelSection>
         </Panel>
       </div>
@@ -1060,7 +1055,9 @@ export default function ProfilPage() {
   const PANELS = {
     identity: <IdentityPanel user={user} profile={profile} onNavigate={setActive} />,
     bio: <BioPanel user={user} profile={profile} onSaved={setProfile} />,
-    academic: <AcademicPanel />,
+    academic: <AcademicPanel onNavigate={setActive} />,
+    myCourses: <MyCoursesPanel user={user} />,
+    myNotes: <MyNotesPanel user={user} />,
     career: <CareerPanel user={user} profile={profile} onNavigate={setActive} />,
     wallet: <WalletPanel user={user} />,
     game: <GamePanel user={user} profile={profile} onXpAwarded={awardXp} />,
@@ -1083,6 +1080,11 @@ export default function ProfilPage() {
             const isActive = active === item.id;
             return (
               <div key={item.id}>
+                {item.id === 'myCourses' && (
+                  <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Kurslar</span>
+                  </div>
+                )}
                 {item.id === 'dimCalculator' && (
                   <div className="hidden md:block w-full mt-3 mb-1.5 pt-3 px-4 border-t border-[var(--border)]">
                     <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--text-tertiary)]">Simulyasiyalar</span>

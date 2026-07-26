@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Lock, FileText, Download } from 'lucide-react';
+import { Lock, FileText, Download, Plus, ArrowLeft } from 'lucide-react';
 import MeagleAvatar from '@/components/MeagleAvatar';
 import MeagleChatDrawer from '@/components/MeagleChatDrawer';
 import { supabase } from '@/lib/supabaseClient';
@@ -71,49 +71,101 @@ function MaterialsTab({ materials }) {
   );
 }
 
-function NotesTab({ user, courseId, lessonId }) {
-  const [content, setContent] = useState('');
-  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
+function formatNoteDate(iso) {
+  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function NotesTab({ user, courseId, activeLessonId }) {
+  const [mode, setMode] = useState('list'); // list | create
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [draft, setDraft] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setContent('');
-    setSaveState('idle');
+    setLoading(true);
     supabase
-      .from('lesson_notes')
-      .select('content')
+      .from('notes')
+      .select('*')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .eq('lesson_id', lessonId)
-      .maybeSingle()
-      .then(({ data }) => setContent(data?.content || ''));
-  }, [user.id, courseId, lessonId]);
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setNotes(data || []);
+        setLoading(false);
+      });
+  }, [user.id, courseId]);
 
-  async function save() {
-    setSaveState('saving');
-    const { error } = await supabase.from('lesson_notes').upsert(
-      { user_id: user.id, course_id: courseId, lesson_id: lessonId, content, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id,course_id,lesson_id' }
+  async function saveNote() {
+    if (!draft.trim()) return;
+    setSaving(true);
+    const { data, error } = await supabase
+      .from('notes')
+      .insert({ user_id: user.id, course_id: courseId, lesson_id: activeLessonId || null, content: draft.trim() })
+      .select()
+      .single();
+    setSaving(false);
+    if (!error) {
+      setNotes((n) => [data, ...n]);
+      setDraft('');
+      setMode('list');
+    }
+  }
+
+  if (mode === 'create') {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => { setMode('list'); setDraft(''); }}
+          className="flex items-center gap-1.5 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-3"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Geri
+        </button>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Bu kursla bağlı qeydini bura yaz..."
+          rows={10}
+          autoFocus
+          className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none"
+        />
+        <button
+          type="button"
+          onClick={saveNote}
+          disabled={saving || !draft.trim()}
+          className="mt-3 text-sm font-bold px-5 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white transition-colors"
+        >
+          {saving ? 'Saxlanılır...' : 'Yadda saxla'}
+        </button>
+      </div>
     );
-    setSaveState(error ? 'idle' : 'saved');
   }
 
   return (
     <div>
-      <textarea
-        value={content}
-        onChange={(e) => { setContent(e.target.value); setSaveState('idle'); }}
-        placeholder="Bu dərslə bağlı qeydlərini bura yaz..."
-        rows={10}
-        className="w-full bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] resize-none"
-      />
       <button
         type="button"
-        onClick={save}
-        disabled={saveState === 'saving'}
-        className="mt-3 text-sm font-bold px-5 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white transition-colors"
+        onClick={() => setMode('create')}
+        className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-2.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors mb-4"
       >
-        {saveState === 'saved' ? 'Saxlanıldı ✓' : saveState === 'saving' ? 'Saxlanılır...' : 'Qeydi saxla'}
+        <Plus className="w-4 h-4" /> Yeni qeyd yarat
       </button>
+
+      {loading ? (
+        <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+      ) : notes.length === 0 ? (
+        <p className="text-sm text-[var(--text-secondary)]">Bu kursla bağlı hələ qeydin yoxdur.</p>
+      ) : (
+        <div className="space-y-2">
+          {notes.map((n) => (
+            <div key={n.id} className="bg-[var(--bg-surface-2)] rounded-lg px-3.5 py-3">
+              <div className="text-[11px] text-[var(--text-tertiary)] mb-1">{formatNoteDate(n.created_at)}</div>
+              <p className="text-sm text-[var(--text-primary)] line-clamp-2">{n.content}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -150,7 +202,7 @@ export default function CoursePlayerSidebar({ user, course, progressMap, activeL
           />
         )}
         {tab === 'materials' && <MaterialsTab materials={course.materials} />}
-        {tab === 'notes' && <NotesTab user={user} courseId={course.id} lessonId={activeLessonId} />}
+        {tab === 'notes' && <NotesTab user={user} courseId={course.id} activeLessonId={activeLessonId} />}
       </div>
 
       <div className="p-4 border-t border-[var(--border)]">

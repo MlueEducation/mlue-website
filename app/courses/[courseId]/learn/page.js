@@ -85,11 +85,14 @@ export default function CoursePlayerPage() {
 
   async function completeLesson(lessonId) {
     if (progressMap[lessonId]) return;
-    setProgressMap((m) => ({ ...m, [lessonId]: true }));
+    const nextProgressMap = { ...progressMap, [lessonId]: true };
+    setProgressMap(nextProgressMap);
     await supabase.from('lesson_progress').upsert(
       { user_id: user.id, course_id: course.id, lesson_id: lessonId, completed_at: new Date().toISOString() },
       { onConflict: 'user_id,course_id,lesson_id' }
     );
+    const percent = Math.round((Object.keys(nextProgressMap).length / lessons.length) * 100);
+    await supabase.from('user_courses').update({ progress_percentage: percent }).eq('user_id', user.id).eq('course_id', course.id);
     const idx = lessons.findIndex((l) => l.id === lessonId);
     const next = lessons[idx + 1];
     if (next) setActiveLessonId(next.id);
@@ -97,7 +100,7 @@ export default function CoursePlayerPage() {
 
   async function completeCourse() {
     setCompleting(true);
-    await supabase.from('user_courses').update({ completed_at: new Date().toISOString() }).eq('user_id', user.id).eq('course_id', course.id);
+    await supabase.from('user_courses').update({ completed_at: new Date().toISOString(), progress_percentage: 100 }).eq('user_id', user.id).eq('course_id', course.id);
     await supabase.from('certificates').insert({ user_id: user.id, course_name: course.title });
     const { data: profileRow } = await supabase.from('profiles').select('xp_points').eq('id', user.id).maybeSingle();
     await supabase.from('profiles').update({ xp_points: (profileRow?.xp_points || 0) + COMPLETION_XP_REWARD }).eq('id', user.id);
