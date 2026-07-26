@@ -5,7 +5,8 @@ import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/components/LanguageProvider';
-import SiteChrome from '@/components/SiteChrome';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export const metadata = {
   title: 'Mlue — Yeni Nəsil Rəqəmsal Təhsil və Karyera Platforması',
@@ -28,7 +29,9 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <LanguageProvider>
             <AuthProvider>
-              <SiteChrome>{children}</SiteChrome>
+              <Header />
+              <main>{children}</main>
+              <Footer />
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
