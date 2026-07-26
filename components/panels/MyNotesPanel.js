@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
-import { getCourseById } from '@/lib/courseCatalog';
+import { getCoursesByIds } from '@/lib/courses';
 
 function formatNoteDate(iso) {
   return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function groupByCourse(notes) {
+function groupByCourse(notes, courseMap) {
   const groups = new Map();
   notes.forEach((note) => {
     if (!groups.has(note.course_id)) groups.set(note.course_id, []);
@@ -17,7 +17,7 @@ function groupByCourse(notes) {
   });
   return Array.from(groups.entries()).map(([courseId, items]) => ({
     courseId,
-    title: getCourseById(courseId)?.title || courseId,
+    title: courseMap.get(courseId)?.title || courseId,
     notes: items,
   }));
 }
@@ -40,6 +40,7 @@ function NoteCard({ note, expanded, onToggle }) {
 
 export default function MyNotesPanel({ user }) {
   const [notes, setNotes] = useState([]);
+  const [courseMap, setCourseMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState(new Set());
 
@@ -49,9 +50,16 @@ export default function MyNotesPanel({ user }) {
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setNotes(data || []);
-        setLoading(false);
+      .then(async ({ data }) => {
+        const rows = data || [];
+        setNotes(rows);
+        try {
+          setCourseMap(await getCoursesByIds(rows.map((n) => n.course_id)));
+        } catch (err) {
+          console.error('Course lookup failed:', err);
+        } finally {
+          setLoading(false);
+        }
       });
   }, [user.id]);
 
@@ -64,7 +72,7 @@ export default function MyNotesPanel({ user }) {
     });
   }
 
-  const groups = groupByCourse(notes);
+  const groups = groupByCourse(notes, courseMap);
 
   return (
     <div>

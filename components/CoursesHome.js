@@ -1,112 +1,28 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
 import MeagleAvatar from './MeagleAvatar';
 import MeagleChatDrawer from './MeagleChatDrawer';
+import { getAllCourses } from '@/lib/courses';
 
+/* Category taxonomy stays a static JS constant — icons are React SVG
+   components, not real DB content — but each category's course list is now
+   fetched from Supabase (see getAllCourses) instead of being hardcoded. */
 const CATEGORIES = [
-  {
-    id: 'data', label: 'Data Elmi', icon: ICONS.data,
-    courses: [
-      { id: 'python-data-analitikasi', title: 'Python ilə Data Analitikasına Giriş', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'SQL və Verilənlər Bazası Əsasları', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Maşın Öyrənməsinə Giriş', level: 'Orta', duration: '8 həftə' },
-      { title: 'Power BI ilə Biznes Analitikası', level: 'Orta', duration: '4 həftə' },
-    ],
-  },
-  {
-    id: 'business', label: 'Biznes', icon: ICONS.business,
-    courses: [
-      { title: 'Sahibkarlıq Əsasları: Fikirdən Məhsula', level: 'Başlanğıc', duration: '6 həftə' },
-      { id: 'reqemsal-marketinq-strategiyasi', title: 'Rəqəmsal Marketinq Strategiyası', level: 'Orta', duration: '5 həftə' },
-      { title: 'Maliyyə Analizi və Büdcələmə', level: 'Orta', duration: '6 həftə' },
-      { title: 'Layihə İdarəetməsi (Agile/Scrum)', level: 'Başlanğıc', duration: '4 həftə' },
-    ],
-  },
-  {
-    id: 'cs', label: 'Kompüter Elmləri', icon: ICONS.cs,
-    courses: [
-      { id: 'alqoritmler-data-strukturlari', title: 'Alqoritmlər və Data Strukturları', level: 'Orta', duration: '8 həftə' },
-      { title: 'Python Proqramlaşdırmaya Giriş', level: 'Başlanğıc', duration: '6 həftə' },
-      { title: 'Obyekt Yönümlü Proqramlaşdırma (Java)', level: 'Orta', duration: '7 həftə' },
-      { title: 'Kompüter Elmlərinin Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
-    ],
-  },
-  {
-    id: 'it', label: 'İnformasiya Texnologiyaları', icon: ICONS.it,
-    courses: [
-      { title: 'Node.js və Express.js ilə Backend Arxitekturası', level: 'İrəli', duration: '7 həftə' },
-      { title: 'Şəbəkə Əsasları və IT Dəstək', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'Kibertəhlükəsizliyə Giriş', level: 'Orta', duration: '6 həftə' },
-      { title: 'Bulud Texnologiyaları (AWS Əsasları)', level: 'Orta', duration: '5 həftə' },
-    ],
-  },
-  {
-    id: 'health', label: 'Səhiyyə', icon: ICONS.health,
-    courses: [
-      { title: 'İctimai Səhiyyəyə Giriş', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Qidalanma və Sağlam Həyat Tərzi', level: 'Başlanğıc', duration: '3 həftə' },
-      { title: 'Sağlamlıq Sistemlərinin İdarə Edilməsi', level: 'Orta', duration: '5 həftə' },
-      { title: 'Zehni Sağlamlıq və Stress İdarəetməsi', level: 'Başlanğıc', duration: '3 həftə' },
-    ],
-  },
-  {
-    id: 'physics', label: 'Fizika Elmləri və Mühəndislik', icon: ICONS.physics,
-    courses: [
-      { title: 'Mühəndislik Mexanikasının Əsasları', level: 'Orta', duration: '6 həftə' },
-      { title: 'Yenilənə Bilən Enerji Mənbələri', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Fizikaya Giriş: Klassik Mexanika', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'CAD ilə 3D Modelləşdirmə', level: 'Orta', duration: '5 həftə' },
-    ],
-  },
-  {
-    id: 'social', label: 'Sosial Elmlər', icon: ICONS.social,
-    courses: [
-      { title: 'Psixologiyaya Giriş', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'Sosiologiya: Cəmiyyəti Anlamaq', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Beynəlxalq Münasibətlərə Giriş', level: 'Orta', duration: '6 həftə' },
-      { title: 'Davranış İqtisadiyyatı', level: 'Orta', duration: '4 həftə' },
-    ],
-  },
-  {
-    id: 'language', label: 'Dil Öyrənmə', icon: ICONS.language,
-    courses: [
-      { id: 'ingilis-dili-biznes', title: 'İngilis Dili — Biznes Kommunikasiyası', level: 'Orta', duration: '8 həftə' },
-      { title: 'Türk Dilində Sərbəst Danışıq', level: 'Başlanğıc', duration: '6 həftə' },
-      { title: 'Rus Dili Əsasları', level: 'Başlanğıc', duration: '6 həftə' },
-      { title: 'IELTS-ə Hazırlıq Proqramı', level: 'İrəli', duration: '8 həftə' },
-    ],
-  },
-  {
-    id: 'arts', label: 'İncəsənət və Humanitar Elmlər', icon: ICONS.arts,
-    courses: [
-      { id: 'qrafik-dizayn-esaslari', title: 'Qrafik Dizayn Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'Fotoqrafiya Sənəti', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Dünya Tarixinə Səyahət', level: 'Başlanğıc', duration: '5 həftə' },
-      { title: 'Yaradıcı Yazı Sənəti', level: 'Orta', duration: '4 həftə' },
-    ],
-  },
-  {
-    id: 'personal', label: 'Şəxsi İnkişaf', icon: ICONS.personal,
-    courses: [
-      { title: 'Vaxt İdarəetməsi və Məhsuldarlıq', level: 'Başlanğıc', duration: '3 həftə' },
-      { id: 'liderlik-bacariqlari', title: 'Liderlik Bacarıqlarının İnkişafı', level: 'Orta', duration: '5 həftə' },
-      { title: 'Effektiv Ünsiyyət və Natiqlik', level: 'Başlanğıc', duration: '4 həftə' },
-      { title: 'Karyera Planlaması və CV Hazırlığı', level: 'Başlanğıc', duration: '3 həftə' },
-    ],
-  },
-  {
-    id: 'math', label: 'Riyaziyyat və Məntiq', icon: ICONS.math,
-    courses: [
-      { title: 'Xətti Cəbrə Giriş', level: 'Orta', duration: '6 həftə' },
-      { title: 'Ehtimal Nəzəriyyəsi və Statistika', level: 'Orta', duration: '6 həftə' },
-      { title: 'Məntiqi Düşüncə və Problem Həlli', level: 'Başlanğıc', duration: '3 həftə' },
-      { title: 'Kalkulusun Əsasları', level: 'İrəli', duration: '7 həftə' },
-    ],
-  },
+  { id: 'data', label: 'Data Elmi', icon: ICONS.data },
+  { id: 'business', label: 'Biznes', icon: ICONS.business },
+  { id: 'cs', label: 'Kompüter Elmləri', icon: ICONS.cs },
+  { id: 'it', label: 'İnformasiya Texnologiyaları', icon: ICONS.it },
+  { id: 'health', label: 'Səhiyyə', icon: ICONS.health },
+  { id: 'physics', label: 'Fizika Elmləri və Mühəndislik', icon: ICONS.physics },
+  { id: 'social', label: 'Sosial Elmlər', icon: ICONS.social },
+  { id: 'language', label: 'Dil Öyrənmə', icon: ICONS.language },
+  { id: 'arts', label: 'İncəsənət və Humanitar Elmlər', icon: ICONS.arts },
+  { id: 'personal', label: 'Şəxsi İnkişaf', icon: ICONS.personal },
+  { id: 'math', label: 'Riyaziyyat və Məntiq', icon: ICONS.math },
 ];
 
 function CatIcon({ children }) {
@@ -117,6 +33,19 @@ export default function CoursesHome({ user }) {
   const [activeCat, setActiveCat] = useState('all');
   const [query, setQuery] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
+  const [allCourses, setAllCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState(false);
+
+  useEffect(() => {
+    getAllCourses()
+      .then((data) => { setAllCourses(data); setCoursesLoading(false); })
+      .catch((err) => {
+        console.error('Courses fetch failed:', err);
+        setCoursesError(true);
+        setCoursesLoading(false);
+      });
+  }, []);
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;
@@ -131,10 +60,12 @@ export default function CoursesHome({ user }) {
       .filter((cat) => activeCat === 'all' || activeCat === cat.id)
       .map((cat) => ({
         ...cat,
-        courses: cat.courses.filter((c) => !q || c.title.toLowerCase().includes(q) || cat.label.toLowerCase().includes(q)),
+        courses: allCourses
+          .filter((c) => c.categoryId === cat.id)
+          .filter((c) => !q || c.title.toLowerCase().includes(q) || cat.label.toLowerCase().includes(q)),
       }))
       .filter((cat) => cat.courses.length > 0);
-  }, [activeCat, query]);
+  }, [activeCat, query, allCourses]);
 
   return (
     <section className="courses-home">
@@ -177,38 +108,29 @@ export default function CoursesHome({ user }) {
           ))}
         </div>
 
-        {sections.length === 0 && <p className="section-sub">Axtarışına uyğun kurs tapılmadı.</p>}
+        {coursesLoading && <p className="section-sub">Yüklənir...</p>}
+        {coursesError && <p className="section-sub">Kurslar yüklənərkən xəta baş verdi.</p>}
+        {!coursesLoading && !coursesError && sections.length === 0 && <p className="section-sub">Axtarışına uyğun kurs tapılmadı.</p>}
 
-        {sections.map((cat) => (
+        {!coursesLoading && !coursesError && sections.map((cat) => (
           <div className="category-section" key={cat.id}>
             <h2 className="category-heading">
               <CatIcon>{cat.icon}</CatIcon>
               {cat.label}
             </h2>
             <div className="course-grid">
-              {cat.courses.map((c, i) => {
-                const cardBody = (
-                  <>
-                    <CourseThumb categoryId={cat.id} variant={i} />
-                    <span className="course-tag">{cat.label}</span>
-                    <h3>{c.title}</h3>
-                    <div className="course-meta">
-                      <span>{c.level}</span>
-                      <span className="course-meta-dot">·</span>
-                      <span>{c.duration}</span>
-                    </div>
-                  </>
-                );
-                return c.id ? (
-                  <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
-                    {cardBody}
-                  </Link>
-                ) : (
-                  <div className="course-card" key={c.title}>
-                    {cardBody}
+              {cat.courses.map((c, i) => (
+                <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
+                  <CourseThumb categoryId={cat.id} variant={i} />
+                  <span className="course-tag">{cat.label}</span>
+                  <h3>{c.title}</h3>
+                  <div className="course-meta">
+                    <span>{c.level}</span>
+                    <span className="course-meta-dot">·</span>
+                    <span>{c.duration}</span>
                   </div>
-                );
-              })}
+                </Link>
+              ))}
             </div>
           </div>
         ))}

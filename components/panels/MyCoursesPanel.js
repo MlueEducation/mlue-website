@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Panel, PanelSection, PageHeader, ProgressBar } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
-import { getCourseById } from '@/lib/courseCatalog';
+import { getCoursesByIds } from '@/lib/courses';
 
-function CourseRow({ enrollment, onContinue }) {
-  const course = getCourseById(enrollment.course_id);
+function CourseRow({ enrollment, courseMap, onContinue }) {
+  const course = courseMap.get(enrollment.course_id) || null;
   const title = course?.title || enrollment.course_id;
   const isCompleted = !!enrollment.completed_at;
 
@@ -42,6 +42,7 @@ function CourseRow({ enrollment, onContinue }) {
 export default function MyCoursesPanel({ user }) {
   const router = useRouter();
   const [enrollments, setEnrollments] = useState([]);
+  const [courseMap, setCourseMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,9 +51,16 @@ export default function MyCoursesPanel({ user }) {
       .select('*')
       .eq('user_id', user.id)
       .order('enrolled_at', { ascending: false })
-      .then(({ data }) => {
-        setEnrollments(data || []);
-        setLoading(false);
+      .then(async ({ data }) => {
+        const rows = data || [];
+        setEnrollments(rows);
+        try {
+          setCourseMap(await getCoursesByIds(rows.map((e) => e.course_id)));
+        } catch (err) {
+          console.error('Course lookup failed:', err);
+        } finally {
+          setLoading(false);
+        }
       });
   }, [user.id]);
 
@@ -76,7 +84,7 @@ export default function MyCoursesPanel({ user }) {
             ) : (
               <div className="space-y-3">
                 {active.map((e) => (
-                  <CourseRow key={e.id} enrollment={e} onContinue={handleContinue} />
+                  <CourseRow key={e.id} enrollment={e} courseMap={courseMap} onContinue={handleContinue} />
                 ))}
               </div>
             )}
@@ -88,7 +96,7 @@ export default function MyCoursesPanel({ user }) {
             <PanelSection first title="Tamamlanmış kurslar" desc="Uğurla bitirdiyin kurslar">
               <div className="space-y-3">
                 {completed.map((e) => (
-                  <CourseRow key={e.id} enrollment={e} onContinue={handleContinue} />
+                  <CourseRow key={e.id} enrollment={e} courseMap={courseMap} onContinue={handleContinue} />
                 ))}
               </div>
             </PanelSection>

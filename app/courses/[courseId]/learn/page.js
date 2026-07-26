@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
-import { getCourseById } from '@/lib/courseCatalog';
+import { getCourseById } from '@/lib/courses';
 import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
@@ -20,7 +20,8 @@ export default function CoursePlayerPage() {
   const { courseId } = useParams();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const course = getCourseById(courseId);
+  const [course, setCourse] = useState(null);
+  const [courseLoading, setCourseLoading] = useState(true);
   const lessons = useMemo(() => (course ? allLessons(course) : []), [course]);
 
   const [enrollmentChecked, setEnrollmentChecked] = useState(false);
@@ -30,6 +31,22 @@ export default function CoursePlayerPage() {
   const [activeLessonId, setActiveLessonId] = useState(() => lessons[0]?.id);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCourseLoading(true);
+    getCourseById(courseId)
+      .then((data) => { if (!cancelled) { setCourse(data); setCourseLoading(false); } })
+      .catch((err) => {
+        console.error('Course fetch failed:', err);
+        if (!cancelled) setCourseLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (course && lessons.length > 0 && !activeLessonId) setActiveLessonId(lessons[0].id);
+  }, [course, lessons, activeLessonId]);
 
   useEffect(() => {
     if (!user || !course) return;
@@ -108,7 +125,7 @@ export default function CoursePlayerPage() {
     setCompleting(false);
   }
 
-  if (loading) {
+  if (loading || courseLoading) {
     return (
       <div data-theme="dark" className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center">
         <p className="text-[var(--text-secondary)]">Yüklənir...</p>
@@ -120,6 +137,18 @@ export default function CoursePlayerPage() {
     return (
       <div data-theme="dark" className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center">
         <p className="text-[var(--text-secondary)]">Kurs tapılmadı.</p>
+      </div>
+    );
+  }
+
+  if (course.curriculum.length === 0) {
+    return (
+      <div data-theme="dark" className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center px-6">
+        <div className="bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm rounded-2xl p-10 max-w-sm w-full text-center">
+          <h1 className="text-xl font-extrabold text-[var(--text-primary)] mb-2">Məzmun hazırlanır</h1>
+          <p className="text-sm text-[var(--text-secondary)] mb-6">Bu kursun dərsləri hələ əlavə olunmayıb.</p>
+          <Link href={`/courses/${courseId}`} className="block bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold py-3 rounded-lg transition-colors">Kurs səhifəsinə qayıt</Link>
+        </div>
       </div>
     );
   }
