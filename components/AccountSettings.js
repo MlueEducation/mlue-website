@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
 import { useTheme } from '@/components/ThemeProvider';
@@ -58,7 +59,38 @@ export default function AccountSettings({ user, profile, onSaved }) {
       {tab === 'notifications' && <NotificationsTab user={user} profile={profile} onSaved={onSaved} />}
       {tab === 'connections' && <ConnectionsTab user={user} />}
 
+      <SwitchAccountCard />
       <DangerZone user={user} />
+    </div>
+  );
+}
+
+/* ---------------- Hesab dəyiş ---------------- */
+function SwitchAccountCard() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSwitch() {
+    setLoading(true);
+    await supabase.auth.signOut();
+    router.push('/giris');
+  }
+
+  return (
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--bg-surface)] p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-[var(--text-primary)]">Hesab dəyiş</div>
+          <div className="text-xs text-[var(--text-secondary)] mt-0.5">Bu hesabdan çıxış edib başqa bir hesabla daxil ola bilərsən.</div>
+        </div>
+        <button
+          onClick={handleSwitch}
+          disabled={loading}
+          className="flex-shrink-0 bg-[var(--bg-surface-2)] hover:bg-[var(--border)] disabled:opacity-50 text-[var(--text-primary)] text-sm font-bold px-5 py-2.5 rounded-lg transition-colors border border-[var(--border)]"
+        >
+          {loading ? 'Çıxış edilir...' : 'Hesab dəyiş'}
+        </button>
+      </div>
     </div>
   );
 }
