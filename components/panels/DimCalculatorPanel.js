@@ -3,6 +3,9 @@
 import { useMemo, useState } from 'react';
 import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/lib/dimGroups';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
+import { supabase } from '@/lib/supabaseClient';
+
+const SAVE_XP_REWARD = 30;
 
 /* Small, curated mock group→majors mapping (real MAJORS list is too large to
    score meaningfully) — each major's weights sum to 1 across its specialized
@@ -107,16 +110,18 @@ function SubjectScoreGrid({ subjects, prefix, getMax, scores, onChange }) {
   );
 }
 
-export default function DimCalculatorPanel({ profile }) {
+export default function DimCalculatorPanel({ profile, user, onXpAwarded }) {
   const [groupId, setGroupId] = useState(() => parseInitialGroup(profile));
   const [subgroupName, setSubgroupName] = useState(() => initialSubgroup(parseInitialGroup(profile)));
   const [scores, setScores] = useState({});
+  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
 
   const group = DIM_GROUPS.find((g) => g.id === groupId) || null;
 
   function selectGroup(id) {
     setGroupId(id);
     setSubgroupName(initialSubgroup(id));
+    setSaveState('idle');
   }
 
   const groupSubjects = useMemo(() => {
@@ -129,6 +134,7 @@ export default function DimCalculatorPanel({ profile }) {
   }, [group, subgroupName]);
 
   function setScore(key, value, max) {
+    setSaveState('idle');
     if (value === '') {
       setScores((s) => ({ ...s, [key]: '' }));
       return;
@@ -144,6 +150,22 @@ export default function DimCalculatorPanel({ profile }) {
       .map((m) => ({ ...m, probability: computeProbability(m, scores) }))
       .sort((a, b) => b.probability - a.probability);
   }, [groupId, subgroupName, scores]);
+
+  async function saveResults() {
+    setSaveState('saving');
+    const { error } = await supabase.from('exam_results').insert({
+      user_id: user.id,
+      major_group: groupId,
+      subgroup: subgroupName,
+      subjects_and_scores: scores,
+    });
+    if (!error) {
+      onXpAwarded(SAVE_XP_REWARD);
+      setSaveState('saved');
+    } else {
+      setSaveState('idle');
+    }
+  }
 
   return (
     <div>
@@ -223,21 +245,39 @@ export default function DimCalculatorPanel({ profile }) {
 
         {group && (
           <Panel>
-            <PanelSection first title="Uyğun ixtisaslar" desc="Daxil etdiyin ballara əsasən təxmini qəbul ehtimalı">
+            <PanelSection
+              first
+              title="Uyğun ixtisaslar"
+              desc="Daxil etdiyin ballara əsasən təxmini qəbul ehtimalı"
+            >
               {results.length === 0 ? (
                 <p className="text-sm text-[var(--text-secondary)]">Bu qrup üçün nümunə ixtisas tapılmadı.</p>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {results.map((m) => (
-                    <div key={m.name} className="flex items-center gap-4 bg-[var(--bg-surface-2)] rounded-xl p-4">
-                      <CircularProgress percent={m.probability} toneClass={toneFor(m.probability)} />
-                      <div className="min-w-0">
-                        <div className="text-sm font-bold text-[var(--text-primary)]">{m.name}</div>
-                        {m.subgroup && <div className="text-[11px] text-[var(--text-tertiary)]">{m.subgroup}</div>}
+                <>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                    {results.map((m) => (
+                      <div key={m.name} className="flex items-center gap-4 bg-[var(--bg-surface-2)] rounded-xl p-4">
+                        <CircularProgress percent={m.probability} toneClass={toneFor(m.probability)} />
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-[var(--text-primary)]">{m.name}</div>
+                          {m.subgroup && <div className="text-[11px] text-[var(--text-tertiary)]">{m.subgroup}</div>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={saveResults}
+                    disabled={saveState !== 'idle'}
+                    className={`text-sm font-bold px-5 py-2.5 rounded-lg transition-colors ${
+                      saveState === 'saved'
+                        ? 'bg-[var(--success-soft)] text-[var(--success)] cursor-default'
+                        : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white disabled:opacity-60'
+                    }`}
+                  >
+                    {saveState === 'saved' ? `Saxlanıldı ✓ (+${SAVE_XP_REWARD} XP)` : saveState === 'saving' ? 'Saxlanılır...' : 'Nəticələrimi saxla'}
+                  </button>
+                </>
               )}
             </PanelSection>
           </Panel>

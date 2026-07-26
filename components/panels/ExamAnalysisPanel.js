@@ -1,30 +1,22 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Panel, PanelSection, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import MeagleAvatar from '@/components/MeagleAvatar';
 import CourseThumb from '@/components/CourseThumb';
+import { supabase } from '@/lib/supabaseClient';
+import { getAdmissionMax } from '@/lib/dimGroups';
 
-const MOCK_EXAM_RESULT = {
-  examTitle: 'DİM Sınaq İmtahanı #4 — Riyaziyyat-informatika (Rİ)',
-  date: '18 iyul 2026',
-  totalScore: 612,
-  maxScore: 700,
-  topics: [
-    { name: 'İnteqrallar', correct: 3, total: 10 },
-    { name: 'Törəmə', correct: 7, total: 10 },
-    { name: 'Triqonometriya', correct: 4, total: 8 },
-    { name: 'Ehtimal nəzəriyyəsi', correct: 8, total: 10 },
-    { name: 'Alqoritmlər', correct: 6, total: 10 },
-    { name: 'Elektromaqnetizm', correct: 5, total: 10 },
-  ],
-};
-
-const RECOMMENDATIONS_BY_TOPIC = {
-  'İnteqrallar': { categoryId: 'math', title: 'Kalkulusun Əsasları', level: 'İrəli', duration: '7 həftə' },
-  'Triqonometriya': { categoryId: 'math', title: 'Xətti Cəbrə Giriş', level: 'Orta', duration: '6 həftə' },
-  'Alqoritmlər': { categoryId: 'cs', title: 'Alqoritmlər və Data Strukturları', level: 'Orta', duration: '8 həftə' },
-  'Elektromaqnetizm': { categoryId: 'physics', title: 'Fizikaya Giriş: Klassik Mexanika', level: 'Başlanğıc', duration: '5 həftə' },
+const RECOMMENDATIONS_BY_SUBJECT = {
+  'Riyaziyyat': { categoryId: 'math', title: 'Kalkulusun Əsasları', level: 'İrəli', duration: '7 həftə' },
+  'Fizika': { categoryId: 'physics', title: 'Fizikaya Giriş: Klassik Mexanika', level: 'Başlanğıc', duration: '5 həftə' },
+  'Kimya': { categoryId: 'health', title: 'Qidalanma və Sağlam Həyat Tərzi', level: 'Başlanğıc', duration: '3 həftə' },
+  'İnformatika': { categoryId: 'cs', title: 'Alqoritmlər və Data Strukturları', level: 'Orta', duration: '8 həftə' },
+  'Coğrafiya': { categoryId: 'social', title: 'Beynəlxalq Münasibətlərə Giriş', level: 'Orta', duration: '6 həftə' },
+  'Tarix': { categoryId: 'social', title: 'Dünya Tarixinə Səyahət', level: 'Başlanğıc', duration: '5 həftə' },
+  'Biologiya': { categoryId: 'health', title: 'İctimai Səhiyyəyə Giriş', level: 'Başlanğıc', duration: '4 həftə' },
+  'Az. dili və ədəbiyyatı': { categoryId: 'language', title: 'Yaradıcı Yazı Sənəti', level: 'Orta', duration: '4 həftə' },
+  'Ədəbiyyat': { categoryId: 'arts', title: 'Yaradıcı Yazı Sənəti', level: 'Orta', duration: '4 həftə' },
 };
 const DEFAULT_RECOMMENDATIONS = [
   { categoryId: 'math', title: 'Ehtimal Nəzəriyyəsi və Statistika', level: 'Orta', duration: '6 həftə' },
@@ -32,16 +24,41 @@ const DEFAULT_RECOMMENDATIONS = [
   { categoryId: 'cs', title: 'Kompüter Elmlərinin Əsasları', level: 'Başlanğıc', duration: '5 həftə' },
 ];
 
-export default function ExamAnalysisPanel() {
-  const { examTitle, date, totalScore, maxScore, topics } = MOCK_EXAM_RESULT;
+function parseTopics(result) {
+  return Object.entries(result.subjects_and_scores)
+    .filter(([key]) => key.startsWith('qebul:'))
+    .map(([key, score]) => {
+      const subject = key.slice('qebul:'.length);
+      const max = getAdmissionMax(result.major_group, subject);
+      return { name: subject, correct: Number(score) || 0, total: max };
+    });
+}
+
+export default function ExamAnalysisPanel({ user }) {
+  const [result, setResult] = useState(undefined); // undefined = loading, null = no result yet
+
+  useEffect(() => {
+    supabase
+      .from('exam_results')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => setResult(data || null));
+  }, [user.id]);
+
+  const topics = useMemo(() => (result ? parseTopics(result) : []), [result]);
+  const totalScore = useMemo(() => topics.reduce((s, t) => s + t.correct, 0), [topics]);
+  const maxScore = useMemo(() => topics.reduce((s, t) => s + t.total, 0), [topics]);
 
   const weakTopics = useMemo(
-    () => topics.filter((t) => t.correct / t.total < 0.6).sort((a, b) => a.correct / a.total - b.correct / b.total).slice(0, 2),
+    () => topics.filter((t) => t.total > 0 && t.correct / t.total < 0.6).sort((a, b) => a.correct / a.total - b.correct / b.total).slice(0, 2),
     [topics]
   );
 
   const recommendations = useMemo(() => {
-    const fromWeak = weakTopics.map((t) => RECOMMENDATIONS_BY_TOPIC[t.name]).filter(Boolean);
+    const fromWeak = weakTopics.map((t) => RECOMMENDATIONS_BY_SUBJECT[t.name]).filter(Boolean);
     const combined = [...fromWeak];
     for (const rec of DEFAULT_RECOMMENDATIONS) {
       if (combined.length >= 3) break;
@@ -52,8 +69,38 @@ export default function ExamAnalysisPanel() {
 
   const meagleMessage =
     weakTopics.length > 0
-      ? `Sən ${weakTopics.map((t) => t.name).join(' və ')} mövzusunda çətinlik çəkmisən — bu materialları nəzərdən keçirməyini tövsiyə edirəm:`
-      : 'Təbriklər — bütün mövzularda güclü nəticə göstərmisən! Səviyyəni saxlamaq üçün bu kursları da nəzərdən keçirə bilərsən:';
+      ? `Sən ${weakTopics.map((t) => t.name).join(' və ')} fənnində çətinlik çəkmisən — bu materialları nəzərdən keçirməyini tövsiyə edirəm:`
+      : 'Təbriklər — bütün fənlərdə güclü nəticə göstərmisən! Səviyyəni saxlamaq üçün bu kursları da nəzərdən keçirə bilərsən:';
+
+  if (result === undefined) {
+    return (
+      <div>
+        <PageHeader sub="Son sınaq imtahanının təhlili və Meagle-in tövsiyələri">Sınaq Nəticələri</PageHeader>
+        <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div>
+        <PageHeader sub="Son sınaq imtahanının təhlili və Meagle-in tövsiyələri">Sınaq Nəticələri</PageHeader>
+        <Panel>
+          <PanelSection first>
+            <div className="flex gap-4 items-start">
+              <MeagleAvatar expression="neutral" size={48} />
+              <div className="bg-[var(--accent-soft)] rounded-2xl rounded-tl-none p-4 text-sm text-[var(--text-primary)] leading-relaxed">
+                Hələ sınaq imtahanı nəticən yoxdur — DİM Kalkulyatorunda ballarını daxil edib ilk nəticəni saxla, mən də sənə fərdi tövsiyələr verim.
+              </div>
+            </div>
+          </PanelSection>
+        </Panel>
+      </div>
+    );
+  }
+
+  const examTitle = `DİM Kalkulyatoru Nəticəsi — ${result.subgroup || `${result.major_group} qrup`}`;
+  const date = new Date(result.created_at).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
     <div>
@@ -64,7 +111,7 @@ export default function ExamAnalysisPanel() {
           <div className="text-xs text-[var(--text-tertiary)] mb-4">{date}</div>
           <div className="grid grid-cols-2 gap-4">
             <StatTile label="Nəticə" value={`${totalScore} / ${maxScore}`} icon="📊" tone="accent" />
-            <StatTile label="Faiz" value={`${Math.round((totalScore / maxScore) * 100)}%`} icon="✅" tone="success" />
+            <StatTile label="Faiz" value={`${maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0}%`} icon="✅" tone="success" />
           </div>
         </div>
 
@@ -94,11 +141,11 @@ export default function ExamAnalysisPanel() {
             </div>
           </PanelSection>
 
-          <PanelSection title="Mövzu üzrə nəticələr" desc="Hər mövzuda düzgün cavablanan sualların nisbəti">
+          <PanelSection title="Fənn üzrə nəticələr" desc="Qəbul fənlərində qazandığın balların maksimuma nisbəti">
             <div className="space-y-3">
               {topics.map((t) => {
-                const pct = Math.round((t.correct / t.total) * 100);
-                const weak = t.correct / t.total < 0.6;
+                const pct = t.total > 0 ? Math.round((t.correct / t.total) * 100) : 0;
+                const weak = t.total > 0 && t.correct / t.total < 0.6;
                 return (
                   <div key={t.name}>
                     <div className="flex justify-between text-sm mb-1.5">

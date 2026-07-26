@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ProfileUI';
+import { supabase } from '@/lib/supabaseClient';
 
 const MOCK_BUDDIES = [
   { id: 1, name: 'Nərmin Əliyeva', group: 'II qrup — İqtisadiyyat', sharedCourses: ['Data Analitikası Əsasları', 'İngilis Dili — Biznes Kommunikasiyası'], matchPercent: 92 },
@@ -12,8 +13,21 @@ const MOCK_BUDDIES = [
   { id: 6, name: 'Elvin Quliyev', group: 'II qrup — Marketinq', sharedCourses: ['UI/UX Dizayn Əsasları', 'Data Analitikası Əsasları'], matchPercent: 84 },
 ];
 
-export default function StudyBuddyPanel() {
+export default function StudyBuddyPanel({ user }) {
   const [connectedIds, setConnectedIds] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from('study_buddy_connections')
+      .select('buddy_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => setConnectedIds((data || []).map((r) => r.buddy_id)));
+  }, [user.id]);
+
+  async function connect(buddyId) {
+    setConnectedIds((ids) => [...ids, buddyId]);
+    await supabase.from('study_buddy_connections').insert({ user_id: user.id, buddy_id: buddyId });
+  }
 
   return (
     <div>
@@ -41,7 +55,7 @@ export default function StudyBuddyPanel() {
               <button
                 type="button"
                 disabled={connected}
-                onClick={() => setConnectedIds((ids) => [...ids, b.id])}
+                onClick={() => connect(b.id)}
                 className={`w-full text-sm font-bold px-5 py-2 rounded-lg transition-colors ${
                   connected
                     ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed'

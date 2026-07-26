@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Send } from 'lucide-react';
 import MeagleAvatar from './MeagleAvatar';
+import { useAuth } from './AuthProvider';
+import { supabase } from '@/lib/supabaseClient';
 
 const CANNED_REPLIES = [
   {
@@ -24,17 +26,47 @@ const CANNED_REPLIES = [
 ];
 const FALLBACK_REPLY = 'Hələ erkən mərhələdəyəm və hər sualı başa düşə bilmirəm — yuxarıdakı axtarış qutusu və ya kateqoriya filtrləri ilə daha dəqiq nəticə tapa bilərsən.';
 
-function getReply(text) {
+/* Meagle has no real LLM behind it — these replies are still canned/local,
+   but the ones below are templated with the user's own real Supabase data
+   (exam scores, certificates, XP/streak) instead of generic text, so
+   answers about "my scores" or "my progress" are actually personal. */
+function getPersonalizedReply(text, context) {
+  if (/bal|nəticə|neçə xal/i.test(text)) {
+    if (!context.examResult) {
+      return 'Hələ DİM Kalkulyatorunda saxladığın bir nəticən yoxdur — Simulyasiyalar bölməsindən "DİM Kalkulyatoru"na keçib ballarını daxil et, mən də sənə orada təhlil verim.';
+    }
+    const scores = Object.entries(context.examResult.subjects_and_scores || {})
+      .filter(([key]) => key.startsWith('qebul:'))
+      .map(([key, score]) => `${key.slice('qebul:'.length)}: ${score}`)
+      .join(', ');
+    return `Son saxladığın nəticəyə görə ${context.examResult.subgroup || context.examResult.major_group + ' qrup'} üzrə ballarin belədir — ${scores}. Zəif fənni Sınaq Nəticələri bölməsindən görüb hədəfli kurs tövsiyəsi ala bilərsən.`;
+  }
+  if (/sertifikat/i.test(text)) {
+    return context.certificateCount > 0
+      ? `Hazırda ${context.certificateCount} sertifikatın var — Sertifikatlar bölməsindən onlara baxa bilərsən.`
+      : 'Hələ sertifikatın yoxdur — bir kursu tamamlayaraq ilk sertifikatını qazana bilərsən.';
+  }
+  if (/xp|səviyyə|irəliləyiş|streak|seriya/i.test(text)) {
+    return `Hazırda ${context.xp} XP-n və ${context.streak} günlük seriyan var — Nailiyyətlər bölməsindən gündəlik tapşırıqları tamamlayaraq daha da artıra bilərsən.`;
+  }
+  return null;
+}
+
+function getReply(text, context) {
+  const personalized = getPersonalizedReply(text, context);
+  if (personalized) return personalized;
   const found = CANNED_REPLIES.find((r) => r.match.test(text));
   return found ? found.text : FALLBACK_REPLY;
 }
 
 export default function MeagleChatDrawer({ open, onClose }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     { role: 'bot', text: 'Salam! Mən Meagle — kurs seçimində sənə necə kömək edə bilərəm?' },
   ]);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState('idle'); // idle | typing | thinking
+  const [context, setContext] = useState({ profile: null, examResult: null, certificateCount: 0, xp: 0, streak: 0 });
   const listRef = useRef(null);
   const timeoutRef = useRef(null);
 
@@ -43,6 +75,23 @@ export default function MeagleChatDrawer({ open, onClose }) {
   }, [messages, status]);
 
   useEffect(() => () => clearTimeout(timeoutRef.current), []);
+
+  useEffect(() => {
+    if (!user) return;
+    Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      supabase.from('exam_results').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('certificates').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+    ]).then(([profileRes, examRes, certRes]) => {
+      setContext({
+        profile: profileRes.data,
+        examResult: examRes.data,
+        certificateCount: certRes.count || 0,
+        xp: profileRes.data?.xp_points || 0,
+        streak: profileRes.data?.current_streak || 0,
+      });
+    });
+  }, [user]);
 
   function handleChange(e) {
     setInput(e.target.value);
@@ -57,7 +106,7 @@ export default function MeagleChatDrawer({ open, onClose }) {
     setInput('');
     setStatus('thinking');
     timeoutRef.current = setTimeout(() => {
-      setMessages((m) => [...m, { role: 'bot', text: getReply(text) }]);
+      setMessages((m) => [...m, { role: 'bot', text: getReply(text, context) }]);
       setStatus('idle');
     }, 600 + Math.random() * 300);
   }

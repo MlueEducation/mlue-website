@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ProfileUI';
+import { supabase } from '@/lib/supabaseClient';
 
 const MOCK_INTERNSHIPS = [
   { id: 1, company: 'TechBakı MMC', logoLetter: 'T', title: 'Landing Page Klonu Hazırla', desc: 'Verilmiş Figma dizaynına əsasən responsive landing page kodla.', skills: ['HTML/CSS', 'React'], duration: '3-5 gün', reward: '15 MLUE Token' },
@@ -12,8 +13,21 @@ const MOCK_INTERNSHIPS = [
   { id: 6, company: 'Marketinq Ofisi', logoLetter: 'M', title: 'SEO Auditi Apar', desc: 'Verilmiş sayt üçün əsas SEO problemlərini müəyyən et və hesabat yaz.', skills: ['SEO', 'Kontent Marketinqi'], duration: '2 gün', reward: '10 MLUE Token' },
 ];
 
-export default function InternshipsPanel() {
+export default function InternshipsPanel({ user }) {
   const [startedIds, setStartedIds] = useState([]);
+
+  useEffect(() => {
+    supabase
+      .from('internship_applications')
+      .select('internship_id')
+      .eq('user_id', user.id)
+      .then(({ data }) => setStartedIds((data || []).map((r) => r.internship_id)));
+  }, [user.id]);
+
+  async function start(internshipId) {
+    setStartedIds((ids) => [...ids, internshipId]);
+    await supabase.from('internship_applications').insert({ user_id: user.id, internship_id: internshipId });
+  }
 
   return (
     <div>
@@ -45,7 +59,7 @@ export default function InternshipsPanel() {
               <button
                 type="button"
                 disabled={started}
-                onClick={() => setStartedIds((ids) => [...ids, job.id])}
+                onClick={() => start(job.id)}
                 className={`w-full text-sm font-bold px-5 py-2 rounded-lg transition-colors ${
                   started
                     ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed'

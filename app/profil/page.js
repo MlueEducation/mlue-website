@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
-import { Flame, Award, Rocket, MessageCircle, Briefcase, Lock, Gift } from 'lucide-react';
+import { Flame, Award, Rocket, MessageCircle, Briefcase, Gift } from 'lucide-react';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import DimCalculatorPanel from '@/components/panels/DimCalculatorPanel';
@@ -48,16 +48,20 @@ const NAV_ITEMS = [
   { id: 'certificates', label: 'Sertifikatlar', icon: Icon.certificate },
 ];
 
-/* ---------------- Mock data (placeholder until real backend exists) ---------------- */
+/* ---------------- Mock data ----------------
+   Most of what used to live here now comes from real, per-user Supabase
+   tables (see the panels below). What's left has no real source of truth
+   yet: there's no course-enrollment system anywhere in the app to derive
+   gpa/courses/learningHours from, and a real multi-user leaderboard needs
+   a Supabase view/RPC exposing other users' data (a privacy decision left
+   for a future pass, same tradeoff already made once for this exact
+   leaderboard's "name" field). */
 const MOCK = {
-  role: 'Frontend İnkişafı — 3-cü səviyyə',
   memberSince: 'Yanvar 2026',
   plan: 'Pro Plan',
   stats: [
     { label: 'Aktiv kurslar', value: '3', icon: '📚', tone: 'accent' },
     { label: 'Tamamlanma', value: '68%', icon: '✅', tone: 'success' },
-    { label: 'Seriya (streak)', value: '12 gün', icon: '🔥', tone: 'streak' },
-    { label: 'Ümumi bal (XP)', value: '2,450', icon: '⚡', tone: 'warm' },
   ],
   activity: [
     'React ilə Frontend İnkişafı — 4-cü modul tamamlandı',
@@ -72,37 +76,7 @@ const MOCK = {
     { title: 'Data Analitikası Əsasları', progress: 45, done: false },
     { title: 'İngilis Dili — Biznes Kommunikasiyası', progress: 20, done: false },
   ],
-  certificates: ['React ilə Frontend İnkişafı', 'UI/UX Dizayn Əsasları'],
   learningHours: 142,
-  cvCompletion: 92,
-  portfolio: [
-    { title: 'Mlue Landing Page', tags: ['React', 'Tailwind'] },
-    { title: 'Kofe Sifariş Tətbiqi (UI)', tags: ['Figma', 'UX'] },
-    { title: 'Şəxsi Portfolio Sayt', tags: ['Next.js'] },
-  ],
-  interviewProgress: { done: 5, total: 10 },
-  balance: '45.50 ₼',
-  transactions: [
-    { date: '12 iyul 2026', desc: 'Kurs alışı — Data Analitikası', amount: '-9.99 ₼' },
-    { date: '05 iyul 2026', desc: 'Balans artırıldı', amount: '+50.00 ₼' },
-    { date: '28 iyun 2026', desc: 'Kurs alışı — UI/UX Əsasları', amount: '-9.99 ₼' },
-    { date: '20 iyun 2026', desc: 'Erkən qeydiyyat endirimi', amount: '+5.00 ₼' },
-  ],
-  level: 7,
-  xp: { current: 2450, max: 3000 },
-  badges: [
-    { label: '7 Günlük Seriya', earned: true, icon: Flame },
-    { label: 'İlk Sertifikat', earned: true, icon: Award },
-    { label: 'Erkən Qoşulan', earned: true, icon: Rocket },
-    { label: '30 Günlük Seriya', earned: false, icon: Flame, requirement: '30 gün ardıcıl aktivlik lazımdır' },
-    { label: 'Mentor Rəyi', earned: false, icon: MessageCircle, requirement: 'Bir mentordan rəy almalısan' },
-    { label: 'Portfolio Ustası', earned: false, icon: Briefcase, requirement: '5 portfolio layihəsi əlavə et' },
-  ],
-  dailyQuests: [
-    { id: 'q1', label: 'Bir dərsi tamamla', xp: 20, done: true },
-    { id: 'q2', label: 'Forumda bir suala cavab yaz', xp: 15, done: false },
-    { id: 'q3', label: '10 dəqiqə təcrübə et', xp: 25, done: false },
-  ],
   leaderboardByRange: {
     week: [
       { name: 'Aysel M.', xp: 640 },
@@ -350,7 +324,12 @@ function IdentityPanel({ user, profile, onNavigate }) {
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {MOCK.stats.map((s) => <StatTile key={s.label} {...s} />)}
+          {[
+            MOCK.stats[0],
+            MOCK.stats[1],
+            { label: 'Seriya (streak)', value: `${profile?.current_streak ?? 0} gün`, icon: '🔥', tone: 'streak' },
+            { label: 'Ümumi bal (XP)', value: (profile?.xp_points ?? 0).toLocaleString('az-AZ'), icon: '⚡', tone: 'warm' },
+          ].map((s) => <StatTile key={s.label} {...s} />)}
         </div>
 
         {onboarded && (
@@ -612,24 +591,45 @@ function AcademicPanel() {
   );
 }
 
-function CertificatesPanel() {
+function CertificatesPanel({ user }) {
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('certificates')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('issue_date', { ascending: false })
+      .then(({ data }) => {
+        setCertificates(data || []);
+        setLoading(false);
+      });
+  }, [user.id]);
+
   return (
     <div>
       <PageHeader sub="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">Sertifikatlar</PageHeader>
       <div className="space-y-5">
         <div className="max-w-[200px]">
-          <StatTile label="Ümumi sertifikat" value={MOCK.certificates.length} icon="🎓" tone="success" />
+          <StatTile label="Ümumi sertifikat" value={certificates.length} icon="🎓" tone="success" />
         </div>
         <Panel>
           <PanelSection first title="Sertifikatlar" desc="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">
-            <div className="grid sm:grid-cols-2 gap-3">
-              {MOCK.certificates.map((c) => (
-                <div key={c} className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5">
-                  <span className="text-xl">🎓</span>
-                  <span className="text-sm text-[var(--text-primary)] font-medium">{c}</span>
-                </div>
-              ))}
-            </div>
+            {loading ? (
+              <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : certificates.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">Hələ sertifikatın yoxdur — bir kurs tamamlayaraq ilk sertifikatını qazan.</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {certificates.map((c) => (
+                  <div key={c.id} className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5">
+                    <span className="text-xl">🎓</span>
+                    <span className="text-sm text-[var(--text-primary)] font-medium">{c.course_name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </PanelSection>
         </Panel>
       </div>
@@ -637,7 +637,38 @@ function CertificatesPanel() {
   );
 }
 
-function CareerPanel({ onNavigate }) {
+const INTERVIEW_SESSIONS_TARGET = 10;
+
+function computeCvCompletion(profile) {
+  const fields = [
+    profile?.full_name,
+    profile?.bio,
+    profile?.skills?.length > 0,
+    profile?.avatar_url,
+    profile?.linkedin_url || profile?.facebook_url || profile?.instagram_url,
+  ];
+  const filled = fields.filter(Boolean).length;
+  return Math.round((filled / fields.length) * 100);
+}
+
+function CareerPanel({ user, profile, onNavigate }) {
+  const [portfolio, setPortfolio] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const cvCompletion = computeCvCompletion(profile);
+  const interviewDone = profile?.interview_sessions_done || 0;
+
+  useEffect(() => {
+    supabase
+      .from('portfolio_projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setPortfolio(data || []);
+        setLoading(false);
+      });
+  }, [user.id]);
+
   return (
     <div>
       <PageHeader sub="CV, portfolio və iş imkanları">Karyera Mərkəzi</PageHeader>
@@ -645,22 +676,28 @@ function CareerPanel({ onNavigate }) {
         <PanelSection first title="CV vəziyyəti" desc="Karyera profilinin tamamlanma dərəcəsi">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-[var(--text-primary)] font-medium">Tamamlanma</span>
-            <span className="text-[var(--accent-warm)] font-bold">{MOCK.cvCompletion}%</span>
+            <span className="text-[var(--accent-warm)] font-bold">{cvCompletion}%</span>
           </div>
-          <ProgressBar value={MOCK.cvCompletion} colorClass="bg-[var(--accent-warm)]" />
-          <button className="mt-4 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">CV-ni redaktə et →</button>
+          <ProgressBar value={cvCompletion} colorClass="bg-[var(--accent-warm)]" />
+          <button onClick={() => onNavigate('bio')} className="mt-4 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">CV-ni redaktə et →</button>
         </PanelSection>
         <PanelSection title="Portfolio Layihələri" desc="İşəgötürənlərə göstərmək üçün seçilmiş işlərin">
-          <div className="grid sm:grid-cols-3 gap-4">
-            {MOCK.portfolio.map((p) => (
-              <div key={p.title} className="bg-[var(--bg-surface-2)] rounded-xl p-4">
-                <div className="text-sm font-bold text-[var(--text-primary)] mb-2">{p.title}</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {p.tags.map((t) => <span key={t} className="text-[10px] bg-[var(--bg-surface)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{t}</span>)}
+          {loading ? (
+            <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+          ) : portfolio.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">Hələ portfolio layihən yoxdur.</p>
+          ) : (
+            <div className="grid sm:grid-cols-3 gap-4">
+              {portfolio.map((p) => (
+                <div key={p.id} className="bg-[var(--bg-surface-2)] rounded-xl p-4">
+                  <div className="text-sm font-bold text-[var(--text-primary)] mb-2">{p.title}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(p.tags || []).map((t) => <span key={t} className="text-[10px] bg-[var(--bg-surface)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{t}</span>)}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </PanelSection>
         <PanelSection title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun mikro-təcrübə tapşırıqları">
           <button onClick={() => onNavigate('internships')} className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
@@ -670,35 +707,82 @@ function CareerPanel({ onNavigate }) {
         <PanelSection title="Müsahibəyə hazırlıq" desc="Simulyasiya olunmuş müsahibə seansların">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-[var(--text-primary)] font-medium">Tamamlanma</span>
-            <span className="text-[var(--text-secondary)]">{MOCK.interviewProgress.done}/{MOCK.interviewProgress.total} simulyasiya</span>
+            <span className="text-[var(--text-secondary)]">{interviewDone}/{INTERVIEW_SESSIONS_TARGET} simulyasiya</span>
           </div>
-          <ProgressBar value={(MOCK.interviewProgress.done / MOCK.interviewProgress.total) * 100} />
+          <ProgressBar value={(interviewDone / INTERVIEW_SESSIONS_TARGET) * 100} />
         </PanelSection>
       </Panel>
     </div>
   );
 }
 
-function TokensPanel() {
+function TokensPanel({ user }) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('token_transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setTransactions(data || []);
+        setLoading(false);
+      });
+  }, [user.id]);
+
+  const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
+
   return (
     <div>
-      <PageHeader sub="Cari balansın və balans artırma">Token / Balansım</PageHeader>
+      <PageHeader sub="Cari balansın və əməliyyat tarixçən">Token / Balansım</PageHeader>
       <div className="space-y-5">
         <Panel>
           <div className="p-6 flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">Cari balans</div>
-              <div className="text-2xl font-extrabold text-[var(--text-primary)]">{MOCK.balance}</div>
+              <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : `${balance} MLUE Token`}</div>
             </div>
-            <button className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors">Balansı artır</button>
           </div>
+          {!loading && (
+            <PanelSection title="Əməliyyatlar" desc="Token qazandığın və istifadə etdiyin hallar">
+              {transactions.length === 0 ? (
+                <p className="text-sm text-[var(--text-secondary)]">Hələ token əməliyyatın yoxdur — nailiyyət qazanaraq token qazanmağa başla.</p>
+              ) : (
+                <div className="divide-y divide-[var(--border)]">
+                  {transactions.map((t) => (
+                    <div key={t.id} className="flex items-center justify-between py-3 text-sm">
+                      <div className="text-[var(--text-primary)]">{t.description}</div>
+                      <span className={`font-bold ${t.amount >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{t.amount >= 0 ? '+' : ''}{t.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PanelSection>
+          )}
         </Panel>
       </div>
     </div>
   );
 }
 
-function WalletPanel() {
+function WalletPanel({ user }) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('wallet_transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setTransactions(data || []);
+        setLoading(false);
+      });
+  }, [user.id]);
+
   return (
     <div>
       <PageHeader sub="Ödəniş üsulu və əməliyyat tarixçəsi">Pul Kisəsi</PageHeader>
@@ -711,17 +795,23 @@ function WalletPanel() {
             </div>
           </PanelSection>
           <PanelSection title="Əməliyyatlar" desc="Son ödəniş və balans hərəkətlərin">
-            <div className="divide-y divide-[var(--border)]">
-              {MOCK.transactions.map((t, i) => (
-                <div key={i} className="flex items-center justify-between py-3 text-sm">
-                  <div>
-                    <div className="text-[var(--text-primary)]">{t.desc}</div>
-                    <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{t.date}</div>
+            {loading ? (
+              <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : transactions.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">Hələ heç bir əməliyyatın yoxdur.</p>
+            ) : (
+              <div className="divide-y divide-[var(--border)]">
+                {transactions.map((t) => (
+                  <div key={t.id} className="flex items-center justify-between py-3 text-sm">
+                    <div>
+                      <div className="text-[var(--text-primary)]">{t.description}</div>
+                      <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{new Date(t.created_at).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                    </div>
+                    <span className={`font-bold ${t.amount >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{t.amount >= 0 ? '+' : ''}{t.amount.toFixed(2)} ₼</span>
                   </div>
-                  <span className={`font-bold ${t.amount.startsWith('+') ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{t.amount}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </PanelSection>
         </Panel>
       </div>
@@ -735,13 +825,57 @@ const LEADERBOARD_TABS = [
   { id: 'all', label: 'Ümumi' },
 ];
 
-function GamePanel({ user, profile }) {
+const LEVEL_XP_STEP = 500;
+const DAILY_QUESTS = [
+  { id: 'q1', label: 'Bir dərsi tamamla', xp: 20 },
+  { id: 'q2', label: 'Forumda bir suala cavab yaz', xp: 15 },
+  { id: 'q3', label: '10 dəqiqə təcrübə et', xp: 25 },
+];
+const EARLY_ADOPTER_CUTOFF = new Date('2027-01-01');
+
+function GamePanel({ user, profile, onXpAwarded }) {
   const email = user.email;
   const initial = email.charAt(0).toUpperCase();
   const myName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
 
-  const [claimedIds, setClaimedIds] = useState([]);
+  const [claimedToday, setClaimedToday] = useState([]);
+  const [certCount, setCertCount] = useState(0);
+  const [portfolioCount, setPortfolioCount] = useState(0);
   const [range, setRange] = useState('all');
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    supabase.from('daily_quest_claims').select('quest_key').eq('user_id', user.id).eq('claimed_on', today)
+      .then(({ data }) => setClaimedToday((data || []).map((r) => r.quest_key)));
+    supabase.from('certificates').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+      .then(({ count }) => setCertCount(count || 0));
+    supabase.from('portfolio_projects').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+      .then(({ count }) => setPortfolioCount(count || 0));
+  }, [user.id, today]);
+
+  async function claimQuest(quest) {
+    if (claimedToday.includes(quest.id)) return;
+    const { error } = await supabase.from('daily_quest_claims').insert({ user_id: user.id, quest_key: quest.id, claimed_on: today, xp_awarded: quest.xp });
+    if (!error) {
+      setClaimedToday((k) => [...k, quest.id]);
+      onXpAwarded(quest.xp);
+    }
+  }
+
+  const xp = profile?.xp_points || 0;
+  const level = Math.floor(xp / LEVEL_XP_STEP) + 1;
+  const xpIntoLevel = xp % LEVEL_XP_STEP;
+  const streak = profile?.current_streak || 0;
+
+  const badges = [
+    { key: 'streak-7', label: '7 Günlük Seriya', icon: Flame, earned: streak >= 7, requirement: '7 gün ardıcıl aktivlik lazımdır' },
+    { key: 'first-cert', label: 'İlk Sertifikat', icon: Award, earned: certCount >= 1, requirement: 'Bir sertifikat qazanmalısan' },
+    { key: 'early', label: 'Erkən Qoşulan', icon: Rocket, earned: new Date(user.created_at) < EARLY_ADOPTER_CUTOFF, requirement: 'Erkən qeydiyyat dövründə qoşulmalısan' },
+    { key: 'streak-30', label: '30 Günlük Seriya', icon: Flame, earned: streak >= 30, requirement: '30 gün ardıcıl aktivlik lazımdır' },
+    { key: 'mentor-review', label: 'Mentor Rəyi', icon: MessageCircle, earned: false, requirement: 'Bir mentordan rəy almalısan' },
+    { key: 'portfolio-master', label: 'Portfolio Ustası', icon: Briefcase, earned: portfolioCount >= 5, requirement: '5 portfolio layihəsi əlavə et' },
+  ];
 
   const leaderboard = MOCK.leaderboardByRange[range].map((row) =>
     row.isMe ? { ...row, name: myName } : row
@@ -753,46 +887,37 @@ function GamePanel({ user, profile }) {
       <Panel>
         <PanelSection first title="Səviyyə və təcrübə xalı" desc="Platformada fəallığına görə qazandığın XP">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-[var(--text-primary)] font-bold">Səviyyə {MOCK.level}</span>
-            <span className="text-[var(--text-secondary)]">{MOCK.xp.current} / {MOCK.xp.max} XP</span>
+            <span className="text-[var(--text-primary)] font-bold">Səviyyə {level}</span>
+            <span className="text-[var(--text-secondary)]">{xpIntoLevel} / {LEVEL_XP_STEP} XP</span>
           </div>
-          <ProgressBar value={(MOCK.xp.current / MOCK.xp.max) * 100} colorClass="bg-[var(--accent-warm)]" />
+          <ProgressBar value={(xpIntoLevel / LEVEL_XP_STEP) * 100} colorClass="bg-[var(--accent-warm)]" />
           <div className="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-[var(--accent-warm)]">
             <Gift className="w-3.5 h-3.5" />
-            Səviyyə {MOCK.level + 1} mükafatı: +50 MLUE Token
+            Səviyyə {level + 1} mükafatı: +50 MLUE Token
           </div>
         </PanelSection>
 
         <PanelSection title="Gündəlik Tapşırıqlar" desc="Hər gün yenilənən kiçik tapşırıqlarla əlavə XP qazan">
           <div className="space-y-2">
-            {MOCK.dailyQuests.map((q) => {
-              const claimed = claimedIds.includes(q.id);
+            {DAILY_QUESTS.map((q) => {
+              const claimed = claimedToday.includes(q.id);
               return (
-                <div
-                  key={q.id}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
-                    q.done ? 'border-[var(--border)] bg-[var(--bg-surface)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'
-                  }`}
-                >
+                <div key={q.id} className="flex items-center justify-between px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]">
                   <div>
                     <div className="text-sm font-semibold text-[var(--text-primary)]">{q.label}</div>
                     <div className="text-xs text-[var(--accent-warm)] font-bold mt-0.5">+{q.xp} XP</div>
                   </div>
-                  {q.done ? (
-                    <button
-                      onClick={() => !claimed && setClaimedIds((ids) => [...ids, q.id])}
-                      disabled={claimed}
-                      className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
-                        claimed
-                          ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-default'
-                          : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
-                      }`}
-                    >
-                      {claimed ? 'Alındı ✓' : 'Al'}
-                    </button>
-                  ) : (
-                    <Lock className="w-4 h-4 text-[var(--text-tertiary)] flex-shrink-0" />
-                  )}
+                  <button
+                    onClick={() => claimQuest(q)}
+                    disabled={claimed}
+                    className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
+                      claimed
+                        ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-default'
+                        : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
+                    }`}
+                  >
+                    {claimed ? 'Alındı ✓' : 'Al'}
+                  </button>
                 </div>
               );
             })}
@@ -801,7 +926,7 @@ function GamePanel({ user, profile }) {
 
         <PanelSection title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər">
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            {MOCK.badges.map((b) => {
+            {badges.map((b) => {
               const BadgeIcon = b.icon;
               const cell = (
                 <div className={`text-center p-3 rounded-2xl border transition-all ${b.earned ? 'border-[var(--accent-warm)] bg-[var(--warm-soft)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'}`}>
@@ -812,9 +937,9 @@ function GamePanel({ user, profile }) {
                 </div>
               );
               return b.earned ? (
-                <div key={b.label}>{cell}</div>
+                <div key={b.key}>{cell}</div>
               ) : (
-                <Tooltip key={b.label} text={b.requirement}>{cell}</Tooltip>
+                <Tooltip key={b.key} text={b.requirement}>{cell}</Tooltip>
               );
             })}
           </div>
@@ -863,6 +988,17 @@ function SettingsPanel({ user, profile, onSaved }) {
   );
 }
 
+/* Once-per-day streak bump: same day as last visit -> unchanged, exactly
+   yesterday -> +1, any bigger gap (or first ever visit) -> resets to 1. */
+function applyDailyStreak(profile) {
+  const today = new Date().toISOString().slice(0, 10);
+  const last = profile.last_activity_at ? profile.last_activity_at.slice(0, 10) : null;
+  if (last === today) return profile;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const newStreak = last === yesterday ? (profile.current_streak || 0) + 1 : 1;
+  return { ...profile, current_streak: newStreak, last_activity_at: new Date().toISOString() };
+}
+
 /* ---------------- Main dashboard ---------------- */
 export default function ProfilPage() {
   const { user, loading } = useAuth();
@@ -878,8 +1014,16 @@ export default function ProfilPage() {
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setProfile(data);
+        if (!data) { setProfile(data); setProfileLoading(false); return; }
+        const updated = applyDailyStreak(data);
+        setProfile(updated);
         setProfileLoading(false);
+        if (updated !== data) {
+          supabase.from('profiles').update({
+            current_streak: updated.current_streak,
+            last_activity_at: updated.last_activity_at,
+          }).eq('id', user.id);
+        }
       });
   }, [user]);
 
@@ -904,21 +1048,30 @@ export default function ProfilPage() {
     );
   }
 
+  function awardXp(amount) {
+    setProfile((p) => {
+      if (!p) return p;
+      const next = { ...p, xp_points: (p.xp_points || 0) + amount };
+      supabase.from('profiles').update({ xp_points: next.xp_points }).eq('id', user.id);
+      return next;
+    });
+  }
+
   const PANELS = {
     identity: <IdentityPanel user={user} profile={profile} onNavigate={setActive} />,
     bio: <BioPanel user={user} profile={profile} onSaved={setProfile} />,
     academic: <AcademicPanel />,
-    career: <CareerPanel onNavigate={setActive} />,
-    wallet: <WalletPanel />,
-    game: <GamePanel user={user} profile={profile} />,
+    career: <CareerPanel user={user} profile={profile} onNavigate={setActive} />,
+    wallet: <WalletPanel user={user} />,
+    game: <GamePanel user={user} profile={profile} onXpAwarded={awardXp} />,
     settings: <SettingsPanel user={user} profile={profile} onSaved={setProfile} />,
-    dimCalculator: <DimCalculatorPanel profile={profile} />,
-    examAnalysis: <ExamAnalysisPanel />,
-    roadmap: <RoadmapPanel />,
+    dimCalculator: <DimCalculatorPanel profile={profile} user={user} onXpAwarded={awardXp} />,
+    examAnalysis: <ExamAnalysisPanel user={user} />,
+    roadmap: <RoadmapPanel user={user} />,
     studyBuddy: <StudyBuddyPanel user={user} profile={profile} />,
-    internships: <InternshipsPanel />,
-    tokens: <TokensPanel />,
-    certificates: <CertificatesPanel />,
+    internships: <InternshipsPanel user={user} />,
+    tokens: <TokensPanel user={user} />,
+    certificates: <CertificatesPanel user={user} />,
   };
 
   return (
