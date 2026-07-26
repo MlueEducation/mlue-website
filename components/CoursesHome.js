@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
 import MeagleAvatar from './MeagleAvatar';
 import MeagleChatDrawer from './MeagleChatDrawer';
-import { getAllCourses } from '@/lib/courses';
+import { useCourseList } from '@/hooks/useCoursesData';
 
 /* Category taxonomy stays a static JS constant — icons are React SVG
    components, not real DB content — but each category's course list is now
@@ -33,19 +33,7 @@ export default function CoursesHome({ user }) {
   const [activeCat, setActiveCat] = useState('all');
   const [query, setQuery] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
-  const [allCourses, setAllCourses] = useState([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
-  const [coursesError, setCoursesError] = useState(false);
-
-  useEffect(() => {
-    getAllCourses()
-      .then((data) => { setAllCourses(data); setCoursesLoading(false); })
-      .catch((err) => {
-        console.error('Courses fetch failed:', err);
-        setCoursesError(true);
-        setCoursesLoading(false);
-      });
-  }, []);
+  const { data: allCourses = [], isLoading: coursesLoading, isError: coursesError } = useCourseList();
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;

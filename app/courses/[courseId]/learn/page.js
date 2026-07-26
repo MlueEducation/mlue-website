@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
-import { getCourseById } from '@/lib/courses';
+import { useCourse } from '@/hooks/useCoursesData';
 import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
@@ -18,8 +18,7 @@ export default function CoursePlayerPage() {
   const { courseId } = useParams();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [course, setCourse] = useState(null);
-  const [courseLoading, setCourseLoading] = useState(true);
+  const { data: course, isLoading: courseLoading } = useCourse(courseId);
   const lessons = useMemo(() => (course ? allLessons(course) : []), [course]);
 
   const [enrollmentChecked, setEnrollmentChecked] = useState(false);
@@ -30,17 +29,15 @@ export default function CoursePlayerPage() {
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    setCourseLoading(true);
-    getCourseById(courseId)
-      .then((data) => { if (!cancelled) { setCourse(data); setCourseLoading(false); } })
-      .catch((err) => {
-        console.error('Course fetch failed:', err);
-        if (!cancelled) setCourseLoading(false);
-      });
-    return () => { cancelled = true; };
-  }, [courseId]);
+  // Kept above every early return (Rules of Hooks) and narrowed to
+  // lessons+activeLessonId only, so VideoPlayer's memo comparator (see
+  // components/course/VideoPlayer.js) is handed a referentially-stable
+  // lesson object whenever the active lesson's own id/videoUrl are
+  // unchanged, even if `course` itself was refetched via realtime.
+  const activeLesson = useMemo(
+    () => lessons.find((l) => l.id === activeLessonId),
+    [lessons, activeLessonId]
+  );
 
   useEffect(() => {
     if (course && lessons.length > 0 && !activeLessonId) setActiveLessonId(lessons[0].id);
@@ -186,7 +183,6 @@ export default function CoursePlayerPage() {
     );
   }
 
-  const activeLesson = lessons.find((l) => l.id === activeLessonId);
   const completedCount = Object.keys(progressMap).length;
   const progressPercent = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
   const allDone = lessons.length > 0 && completedCount >= lessons.length;

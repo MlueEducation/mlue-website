@@ -1,6 +1,8 @@
 'use client';
 
-export default function VideoPlayer({ lesson, onComplete }) {
+import { memo } from 'react';
+
+function VideoPlayer({ lesson, onComplete }) {
   if (!lesson) return null;
 
   if (!lesson.videoUrl) {
@@ -24,3 +26,20 @@ export default function VideoPlayer({ lesson, onComplete }) {
     </div>
   );
 }
+
+/* Realtime course-content updates (see hooks/useCoursesData.js) can hand this
+   component a new `lesson` object reference whenever ANY course field
+   changes, even ones with nothing to do with what's playing (a title typo
+   fix, a mentor name edit). Only re-render when what's actually shown to the
+   viewer could have changed — the lesson identity or its video source.
+   `onComplete` is a new closure every parent render and is deliberately
+   ignored here; it's only read inside a user gesture (onEnded/click), never
+   during render, so an out-of-date-by-one-render reference is harmless. */
+function lessonPropsAreEqual(prevProps, nextProps) {
+  return (
+    prevProps.lesson?.id === nextProps.lesson?.id &&
+    prevProps.lesson?.videoUrl === nextProps.lesson?.videoUrl
+  );
+}
+
+export default memo(VideoPlayer, lessonPropsAreEqual);

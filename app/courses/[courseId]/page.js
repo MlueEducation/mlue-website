@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
-import { getCourseById } from '@/lib/courses';
+import { useCourse } from '@/hooks/useCoursesData';
 import CourseDetailsView from '@/components/course/CourseDetailsView';
 
 export default function CourseDetailsPage() {
@@ -12,27 +12,12 @@ export default function CourseDetailsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [course, setCourse] = useState(null);
-  const [courseLoading, setCourseLoading] = useState(true);
-  const [courseError, setCourseError] = useState(false);
+  const { data: course, isLoading: courseLoading, isError: courseError } = useCourse(courseId);
 
   const [enrolled, setEnrolled] = useState(false);
   const [checking, setChecking] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setCourseLoading(true);
-    setCourseError(false);
-    getCourseById(courseId)
-      .then((data) => { if (!cancelled) { setCourse(data); setCourseLoading(false); } })
-      .catch((err) => {
-        console.error('Course fetch failed:', err);
-        if (!cancelled) { setCourseError(true); setCourseLoading(false); }
-      });
-    return () => { cancelled = true; };
-  }, [courseId]);
 
   useEffect(() => {
     if (!user || !course) { setChecking(false); return; }

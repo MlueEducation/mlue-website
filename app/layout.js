@@ -5,6 +5,8 @@ import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/components/LanguageProvider';
+import QueryProvider from '@/components/QueryProvider';
+import CourseRealtimeSync from '@/components/CourseRealtimeSync';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -28,11 +30,14 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <LanguageProvider>
-            <AuthProvider>
-              <Header />
-              <main>{children}</main>
-              <Footer />
-            </AuthProvider>
+            <QueryProvider>
+              <AuthProvider>
+                <CourseRealtimeSync />
+                <Header />
+                <main>{children}</main>
+                <Footer />
+              </AuthProvider>
+            </QueryProvider>
           </LanguageProvider>
         </ThemeProvider>
         <Analytics />

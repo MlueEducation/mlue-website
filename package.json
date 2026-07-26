@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",
+    "@tanstack/query-sync-storage-persister": "^5.101.4",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-query-persist-client": "^5.101.4",
     "@vercel/analytics": "latest",
     "geist": "latest",
     "lucide-react": "latest",
