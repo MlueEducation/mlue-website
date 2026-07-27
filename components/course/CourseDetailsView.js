@@ -1,10 +1,54 @@
 'use client';
 
+import { Link2 } from 'lucide-react';
+
 /* Pure presentational — extracted verbatim from app/courses/[courseId]/page.js
    so MLUE Studio's PreviewModal can render the exact same student-facing
    markup against in-progress (possibly unsaved) builder state, with zero risk
    of the preview drifting from what students actually see. All state/handlers
    are passed in as props; this component fetches nothing itself. */
+
+function InstructorCard({ instructor }) {
+  const initials = instructor.fullName ? instructor.fullName.split(' ').map((n) => n[0]).join('') : '?';
+  // lucide-react no longer ships brand/logo icons (removed for trademark
+  // reasons) — a generic link glyph + platform label is used instead.
+  const socials = [
+    { url: instructor.linkedinUrl, label: 'LinkedIn' },
+    { url: instructor.facebookUrl, label: 'Facebook' },
+    { url: instructor.instagramUrl, label: 'Instagram' },
+  ].filter((s) => s.url);
+
+  return (
+    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-6 mb-8">
+      <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">Müəllim Haqqında</h2>
+      <div className="flex items-center gap-4 mb-4">
+        {instructor.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={instructor.avatarUrl} alt="" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-lg font-extrabold text-white flex-shrink-0">
+            {initials}
+          </div>
+        )}
+        <div>
+          <div className="text-sm font-bold text-[var(--text-primary)]">{instructor.fullName}</div>
+          {instructor.specialtyTitle && <div className="text-xs text-[var(--text-secondary)]">{instructor.specialtyTitle}</div>}
+        </div>
+      </div>
+      {instructor.bio && <p className="text-sm text-[var(--text-secondary)] mb-4">{instructor.bio}</p>}
+      {socials.length > 0 && (
+        <div className="flex items-center gap-4">
+          {socials.map(({ url, label }) => (
+            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+              <Link2 className="w-3.5 h-3.5" /> {label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CourseDetailsView({ course, enrolled, checking, enrolling, enrollError, onEnroll, onStart }) {
   const hasContent = course.curriculum.length > 0 && course.curriculum.some((m) => m.lessons.length > 0);
   const mentorInitials = course.mentor ? course.mentor.split(' ').map((n) => n[0]).join('') : '?';
@@ -24,7 +68,7 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
           <div className="text-xs font-bold uppercase tracking-wide text-[var(--accent)] mb-2">{course.level} · {course.duration}</div>
           <h1 className="text-3xl font-extrabold text-[var(--text-primary)] mb-3">{course.title}</h1>
           {course.summary && <p className="text-[var(--text-secondary)] mb-5">{course.summary}</p>}
-          {course.mentor && (
+          {!course.instructor && course.mentor && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-sm font-extrabold text-white flex-shrink-0">
                 {mentorInitials}
@@ -36,6 +80,8 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
             </div>
           )}
         </div>
+
+        {course.instructor && <InstructorCard instructor={course.instructor} />}
 
         {course.whatYouWillLearn.length > 0 && (
           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-6 mb-6">

@@ -1,5 +1,13 @@
 [
   {
+    "id": "mueellim-qeydiyyati-ve-tehlukesizlik-yenilenmesi",
+    "title": "Müəllim qeydiyyatı və hesab təhlükəsizliyi təzələndi 🔐",
+    "description": "MLUE Studio-ya artıq dəvət kodu ilə təhlükəsiz qeydiyyatdan keçmək mümkündür, adminlər komanda üzvlərini idarə edə bilir (bloklama daxil), müəllimlər isə kursları həmişəlik silə bilmir — yalnız qaralamaya keçirə bilirlər. Bundan əlavə, hər kurs səhifəsində indi müəllim haqqında ətraflı məlumat (foto, bio, sosial keçidlər) görünür və bu məlumat anında yenilənir.",
+    "platform": "Hamısı",
+    "category": "Yenilik",
+    "created_at": "2026-07-27T12:00:00.000Z"
+  },
+  {
     "id": "kurs-sekilleri-artiq-gorunur",
     "title": "Kurs şəkilləri artıq düzgün göstərilir 🐛",
     "description": "MLUE Studio-da kurslara əlavə etdiyin şəkillər indiyə qədər saytda görünmürdü. Bu düzəldildi — yüklədiyin şəkil artıq həm kataloqda, həm də kursun öz səhifəsində dərhal görünür.",

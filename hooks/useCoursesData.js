@@ -45,6 +45,18 @@ export function useCourseRealtimeSync() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, (payload) => {
         invalidateCourse(payload.new?.course_id ?? payload.old?.course_id);
       })
+      // Instructor bio/avatar/specialty edits, synced via the DB-side
+      // public_instructor_profiles mirror (never `profiles` directly — see
+      // lib/courses.js). No course_id is present on this payload, so we
+      // broadly invalidate every cached course query rather than resolving
+      // exactly which course(s) reference this instructor: profile edits are
+      // rare and cheap to refetch, and this table only ever contains staff
+      // rows, so there's no risk of over-triggering on ordinary student
+      // profile churn the way a raw `profiles` subscription would.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'public_instructor_profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['courses'] });
+        queryClient.invalidateQueries({ queryKey: ['course'], exact: false });
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
