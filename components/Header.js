@@ -6,6 +6,11 @@ import { useAuth } from './AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import ThemeToggle from './ThemeToggle';
 import BrandLogo from './BrandLogo';
+import NewsPulseDot from './NewsPulseDot';
+
+function markNewsRead() {
+  window.localStorage.setItem('mlue-last-read-news', new Date().toISOString());
+}
 
 const NAV_LINKS = [
   { href: '/platforma', label: 'Platforma' },
@@ -77,6 +82,10 @@ export default function Header() {
           {NAV_LINKS.map((l) => (
             <Link key={l.href} href={l.href}>{l.label}</Link>
           ))}
+          <Link href="/#mlue-news" className="relative" onClick={markNewsRead}>
+            Xəbərlər
+            <NewsPulseDot />
+          </Link>
         </div>
         <div className="nav-right">
           <ThemeToggle />
@@ -91,6 +100,14 @@ export default function Header() {
           {NAV_LINKS.map((l) => (
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
           ))}
+          <Link
+            href="/#mlue-news"
+            className="relative"
+            onClick={() => { markNewsRead(); setOpen(false); }}
+          >
+            Xəbərlər
+            <NewsPulseDot />
+          </Link>
         </div>
         <div className="nav-overlay-auth"><AuthArea onNavigate={() => setOpen(false)} /></div>
       </div>

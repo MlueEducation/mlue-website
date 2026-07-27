@@ -5,6 +5,7 @@ import Reveal from '@/components/Reveal';
 import AppMockup from '@/components/AppMockup';
 import HomeSearch from '@/components/HomeSearch';
 import CoursesHome from '@/components/CoursesHome';
+import MlueNews from '@/components/MlueNews';
 import { useAuth } from '@/components/AuthProvider';
 
 const COURSES = [
@@ -248,6 +249,12 @@ export default function HomePage() {
             <p className="section-sub center" style={{ marginBottom: 0 }}>Sahəni, bacarığı və ya maraq dairəni yaz, sənə uyğun məzmunu göstərək.</p>
             <HomeSearch />
           </Reveal>
+        </div>
+      </section>
+
+      <section id="mlue-news">
+        <div className="container">
+          <MlueNews />
         </div>
       </section>
 

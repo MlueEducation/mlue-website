@@ -27,6 +27,7 @@
 
   --success: #00822b;
   --danger: #c93a3a;
+  --warning: #b45309;
 
   --radius-sm: 10px;
   --radius-md: 18px;
@@ -67,6 +68,7 @@
   /* Profil dashboard accents */
   --success-soft: color-mix(in srgb, var(--success) 12%, transparent);
   --warm-soft: color-mix(in srgb, var(--accent-warm) 14%, transparent);
+  --warning-soft: color-mix(in srgb, var(--warning) 12%, transparent);
   --streak: #ff9600;
   --streak-soft: rgba(255, 150, 0, .14);
 }
@@ -92,6 +94,7 @@
 
   --success: #2fbf71;
   --danger: #ff6b6b;
+  --warning: #f59e0b;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, .5);
@@ -122,6 +125,7 @@
 
     --success: #2fbf71;
     --danger: #ff6b6b;
+    --warning: #f59e0b;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .5);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, .5);
@@ -142,6 +146,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 }
 html { scroll-behavior: smooth; }
+#mlue-news { scroll-margin-top: var(--header-h); }
 body {
   background: var(--bg-page);
   color: var(--text-primary);
