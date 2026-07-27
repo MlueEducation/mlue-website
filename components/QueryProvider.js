@@ -26,7 +26,18 @@ export default function QueryProvider({ children }) {
       queries: {
         staleTime: STALE_TIME,
         gcTime: GC_TIME,
-        refetchOnWindowFocus: true,
+        // 'always' (not `true`) forces a background revalidation on every
+        // mount/focus regardless of staleTime — closes the window where a
+        // course flipped live -> draft in Studio stays visible on an
+        // already-cached catalog page. Realtime can't catch that specific
+        // transition itself (Supabase enforces the subscriber's RLS against
+        // the row's NEW version, so a now-hidden draft never reaches an
+        // already-connected anon client) — this is the safety net for
+        // exactly that gap. Cached data still paints instantly first, so
+        // there's no added loading flash; this only changes what happens
+        // silently right after.
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: 'always',
         retry: 1,
       },
     },
