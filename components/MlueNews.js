@@ -24,7 +24,11 @@ const CATEGORY_EMOJI = {
 };
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`;
 }
 
 function NewsCard({ item }) {
