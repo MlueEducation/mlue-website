@@ -1,5 +1,13 @@
 [
   {
+    "id": "studio-kurs-sekli-silme",
+    "title": "Kurs şəklini artıq silmək mümkündür 🖼️",
+    "description": "MLUE Studio-da kurs üz qabığı şəklinin yanına 'Sil' düyməsi əlavə olundu — artıq yeni şəkil yükləmədən köhnəni silmək mümkündür.",
+    "platform": "MLUE Studio",
+    "category": "Təkmilləşdirmə",
+    "created_at": "2026-07-28T13:20:00.000Z"
+  },
+  {
     "id": "studio-platforma-analitikasi",
     "title": "Admin üçün platforma analitikası əlavə olundu 📊",
     "description": "Admin komandası indi bütün platformanın istifadəçi sayını, qeydiyyat qrafikini və müəllim ödəniş tələblərini bir yerdə görə, təsdiqləyə və CSV/PDF formatında ixrac edə bilər.",
