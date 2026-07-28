@@ -6,9 +6,9 @@ import { useAuth } from '@/components/AuthProvider';
 import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
-import { Flame, Award, Rocket, MessageCircle, Briefcase, Gift } from 'lucide-react';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
+import AchievementsPanel from '@/components/panels/AchievementsPanel';
 import DimCalculatorPanel from '@/components/panels/DimCalculatorPanel';
 import ExamAnalysisPanel from '@/components/panels/ExamAnalysisPanel';
 import RoadmapPanel from '@/components/panels/RoadmapPanel';
@@ -79,26 +79,6 @@ const MOCK = {
   ],
   gpa: 87,
   learningHours: 142,
-  leaderboardByRange: {
-    week: [
-      { name: 'Aysel M.', xp: 640 },
-      { name: 'Tural H.', xp: 510 },
-      { name: '__ME__', xp: 480, isMe: true },
-      { name: 'Günel S.', xp: 390 },
-    ],
-    month: [
-      { name: 'Aysel M.', xp: 2150 },
-      { name: 'Tural H.', xp: 1890 },
-      { name: '__ME__', xp: 1720, isMe: true },
-      { name: 'Günel S.', xp: 1340 },
-    ],
-    all: [
-      { name: 'Aysel M.', xp: 3820 },
-      { name: 'Tural H.', xp: 3210 },
-      { name: '__ME__', xp: 2450, isMe: true },
-      { name: 'Günel S.', xp: 2100 },
-    ],
-  },
 };
 
 /* ---------------- Onboarding-based scenario content ---------------- */
@@ -816,166 +796,6 @@ function WalletPanel({ user }) {
   );
 }
 
-const LEADERBOARD_TABS = [
-  { id: 'week', label: 'Bu həftə' },
-  { id: 'month', label: 'Bu ay' },
-  { id: 'all', label: 'Ümumi' },
-];
-
-const LEVEL_XP_STEP = 500;
-const DAILY_QUESTS = [
-  { id: 'q1', label: 'Bir dərsi tamamla', xp: 20 },
-  { id: 'q2', label: 'Forumda bir suala cavab yaz', xp: 15 },
-  { id: 'q3', label: '10 dəqiqə təcrübə et', xp: 25 },
-];
-const EARLY_ADOPTER_CUTOFF = new Date('2027-01-01');
-
-function GamePanel({ user, profile, onXpAwarded }) {
-  const email = user.email;
-  const initial = email.charAt(0).toUpperCase();
-  const myName = resolveDisplayName({ profile, user });
-
-  const [claimedToday, setClaimedToday] = useState([]);
-  const [certCount, setCertCount] = useState(0);
-  const [portfolioCount, setPortfolioCount] = useState(0);
-  const [range, setRange] = useState('all');
-
-  const today = new Date().toISOString().slice(0, 10);
-
-  useEffect(() => {
-    supabase.from('daily_quest_claims').select('quest_key').eq('user_id', user.id).eq('claimed_on', today)
-      .then(({ data }) => setClaimedToday((data || []).map((r) => r.quest_key)));
-    supabase.from('certificates').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-      .then(({ count }) => setCertCount(count || 0));
-    supabase.from('portfolio_projects').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-      .then(({ count }) => setPortfolioCount(count || 0));
-  }, [user.id, today]);
-
-  async function claimQuest(quest) {
-    if (claimedToday.includes(quest.id)) return;
-    const { error } = await supabase.from('daily_quest_claims').insert({ user_id: user.id, quest_key: quest.id, claimed_on: today, xp_awarded: quest.xp });
-    if (!error) {
-      setClaimedToday((k) => [...k, quest.id]);
-      onXpAwarded(quest.xp);
-    }
-  }
-
-  const xp = profile?.xp_points || 0;
-  const level = Math.floor(xp / LEVEL_XP_STEP) + 1;
-  const xpIntoLevel = xp % LEVEL_XP_STEP;
-  const streak = profile?.current_streak || 0;
-
-  const badges = [
-    { key: 'streak-7', label: '7 Günlük Seriya', icon: Flame, earned: streak >= 7, requirement: '7 gün ardıcıl aktivlik lazımdır' },
-    { key: 'first-cert', label: 'İlk Sertifikat', icon: Award, earned: certCount >= 1, requirement: 'Bir sertifikat qazanmalısan' },
-    { key: 'early', label: 'Erkən Qoşulan', icon: Rocket, earned: new Date(user.created_at) < EARLY_ADOPTER_CUTOFF, requirement: 'Erkən qeydiyyat dövründə qoşulmalısan' },
-    { key: 'streak-30', label: '30 Günlük Seriya', icon: Flame, earned: streak >= 30, requirement: '30 gün ardıcıl aktivlik lazımdır' },
-    { key: 'mentor-review', label: 'Mentor Rəyi', icon: MessageCircle, earned: false, requirement: 'Bir mentordan rəy almalısan' },
-    { key: 'portfolio-master', label: 'Portfolio Ustası', icon: Briefcase, earned: portfolioCount >= 5, requirement: '5 portfolio layihəsi əlavə et' },
-  ];
-
-  const leaderboard = MOCK.leaderboardByRange[range].map((row) =>
-    row.isMe ? { ...row, name: myName } : row
-  );
-
-  return (
-    <div>
-      <PageHeader sub="Nişanlar, gündəlik tapşırıqlar, səviyyə və icma sıralaması">Nailiyyətlər</PageHeader>
-      <Panel>
-        <PanelSection first title="Səviyyə və təcrübə xalı" desc="Platformada fəallığına görə qazandığın XP">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-[var(--text-primary)] font-bold">Səviyyə {level}</span>
-            <span className="text-[var(--text-secondary)]">{xpIntoLevel} / {LEVEL_XP_STEP} XP</span>
-          </div>
-          <ProgressBar value={(xpIntoLevel / LEVEL_XP_STEP) * 100} colorClass="bg-[var(--accent-warm)]" />
-          <div className="flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-[var(--accent-warm)]">
-            <Gift className="w-3.5 h-3.5" />
-            Səviyyə {level + 1} mükafatı: +50 MLUE Token
-          </div>
-        </PanelSection>
-
-        <PanelSection title="Gündəlik Tapşırıqlar" desc="Hər gün yenilənən kiçik tapşırıqlarla əlavə XP qazan">
-          <div className="space-y-2">
-            {DAILY_QUESTS.map((q) => {
-              const claimed = claimedToday.includes(q.id);
-              return (
-                <div key={q.id} className="flex items-center justify-between px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)]">
-                  <div>
-                    <div className="text-sm font-semibold text-[var(--text-primary)]">{q.label}</div>
-                    <div className="text-xs text-[var(--accent-warm)] font-bold mt-0.5">+{q.xp} XP</div>
-                  </div>
-                  <button
-                    onClick={() => claimQuest(q)}
-                    disabled={claimed}
-                    className={`text-xs font-bold px-4 py-2 rounded-lg transition-colors flex-shrink-0 ${
-                      claimed
-                        ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-default'
-                        : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
-                    }`}
-                  >
-                    {claimed ? 'Alındı ✓' : 'Al'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </PanelSection>
-
-        <PanelSection title="Nişanlar" desc="Qazandığın və hələ açılmamış nailiyyətlər">
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-            {badges.map((b) => {
-              const BadgeIcon = b.icon;
-              const cell = (
-                <div className={`text-center p-3 rounded-2xl border transition-all ${b.earned ? 'border-[var(--accent-warm)] bg-[var(--warm-soft)]' : 'border-[var(--border)] bg-[var(--bg-surface-2)] opacity-50'}`}>
-                  <div className={`w-9 h-9 mx-auto mb-2 rounded-full flex items-center justify-center ${b.earned ? 'bg-[var(--accent-warm)] text-white' : 'bg-[var(--border)] text-[var(--text-secondary)]'}`}>
-                    <BadgeIcon className="w-4.5 h-4.5" />
-                  </div>
-                  <div className="text-[10px] font-semibold text-[var(--text-primary)] leading-tight">{b.label}</div>
-                </div>
-              );
-              return b.earned ? (
-                <div key={b.key}>{cell}</div>
-              ) : (
-                <Tooltip key={b.key} text={b.requirement}>{cell}</Tooltip>
-              );
-            })}
-          </div>
-        </PanelSection>
-
-        <PanelSection title="Liderlik Cədvəli" desc="İcma daxilində ən yüksək XP-yə sahib istifadəçilər">
-          <div className="inline-flex bg-[var(--bg-surface-2)] rounded-[var(--radius-full)] p-1 mb-4">
-            {LEADERBOARD_TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setRange(t.id)}
-                className={`text-xs font-bold px-4 py-1.5 rounded-[var(--radius-full)] transition-colors ${
-                  range === t.id ? 'bg-[var(--accent)] text-white' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="space-y-2">
-            {leaderboard.map((row, i) => (
-              <div key={row.isMe ? 'me' : row.name} className={`flex items-center justify-between px-4 py-2.5 rounded-xl ${row.isMe ? 'bg-[var(--accent-soft)] border border-[var(--accent)]' : 'bg-[var(--bg-surface-2)]'}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-[var(--text-tertiary)] w-4">{i + 1}</span>
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
-                    {row.isMe ? initial : row.name.charAt(0)}
-                  </div>
-                  <span className={`text-sm ${row.isMe ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'}`}>{row.name}</span>
-                </div>
-                <span className="text-xs font-bold text-[var(--accent-warm)]">{row.xp} XP</span>
-              </div>
-            ))}
-          </div>
-        </PanelSection>
-      </Panel>
-    </div>
-  );
-}
-
 function SettingsPanel({ user, profile, onSaved }) {
   const { t } = useLanguage();
   return (
@@ -1074,7 +894,7 @@ export default function ProfilPage() {
     myNotes: <MyNotesPanel user={user} />,
     career: <CareerPanel user={user} profile={profile} onNavigate={setActive} />,
     wallet: <WalletPanel user={user} />,
-    game: <GamePanel user={user} profile={profile} onXpAwarded={awardXp} />,
+    game: <AchievementsPanel user={user} profile={profile} onXpAwarded={awardXp} />,
     settings: <SettingsPanel user={user} profile={profile} onSaved={setProfile} />,
     dimCalculator: <DimCalculatorPanel profile={profile} user={user} onXpAwarded={awardXp} />,
     examAnalysis: <ExamAnalysisPanel user={user} />,
