@@ -1,15 +1,18 @@
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Haqqımızda — Mlue' };
+export const revalidate = 300;
 
-export default function HaqqimizdaPage() {
+export default async function HaqqimizdaPage() {
+  const content = await getSiteContentMap();
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>Rəqəmsal təhsili hər kəs üçün əlçatan etmək istəyirik</h1></Reveal>
-          <Reveal><p>Mlue, Azərbaycan bazarı üçün tam lokallaşdırılmış onlayn təhsil, peşə hazırlığı və karyera inkişafı platformasıdır.</p></Reveal>
+          <Reveal><h1>{content['haqqimizda.hero.title'] || 'Rəqəmsal təhsili hər kəs üçün əlçatan etmək istəyirik'}</h1></Reveal>
+          <Reveal><p>{content['haqqimizda.hero.subtitle'] || 'Mlue, Azərbaycan bazarı üçün tam lokallaşdırılmış onlayn təhsil, peşə hazırlığı və karyera inkişafı platformasıdır.'}</p></Reveal>
         </div>
       </section>
 

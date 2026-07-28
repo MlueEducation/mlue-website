@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { getAllNews } from '@/lib/news';
+import { useNewsList } from '@/hooks/useNews';
 
 const PLATFORM_TABS = [
   { id: 'all', label: 'Hamısı' },
@@ -49,7 +49,7 @@ function NewsCard({ item }) {
 
 export default function MlueNews() {
   const [platform, setPlatform] = useState('all');
-  const allNews = useMemo(() => getAllNews(), []);
+  const { data: allNews = [] } = useNewsList();
 
   const filtered = useMemo(() => {
     if (platform === 'all') return allNews;

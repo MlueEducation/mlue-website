@@ -1,12 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import Reveal from '@/components/Reveal';
 import AppMockup from '@/components/AppMockup';
 import HomeSearch from '@/components/HomeSearch';
 import CoursesHome from '@/components/CoursesHome';
 import MlueNews from '@/components/MlueNews';
+import SponsorsStrip from '@/components/SponsorsStrip';
 import { useAuth } from '@/components/AuthProvider';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 const COURSES = [
   { tag: 'Backend', title: 'Node.js və Express.js ilə Backend Arxitekturası', desc: 'Server tərəfi inkişafın əsaslarından production-ready API-lərə qədər.' },
@@ -40,6 +43,7 @@ const FEATURES = [
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const { data: content = {} } = useQuery({ queryKey: ['site-content'], queryFn: getSiteContentMap });
 
   if (loading) return null;
   if (user) return <CoursesHome user={user} />;
@@ -51,15 +55,15 @@ export default function HomePage() {
         <div className="hero-inner">
           <div className="badge"><span className="dot"></span>Tezliklə açılır — Azərbaycan üçün yeni nəsil təhsil</div>
           <h1 className="hero-title">Bacarığını qur,<br /><span className="accent">karyeranı</span> Mlue ilə inşa et</h1>
-          <p>Video dərslər, praktiki tapşırıqlar, mentor dəstəyi və süni intellekt əsaslı fərdiləşdirmə — hamısı Azərbaycan, Türk və Rus dillərində, bir platformada. Öyrən, sınaqdan keç, sertifikat al və işə qəbula hazır ol.</p>
+          <p>{content['home.hero.subtitle'] || 'Video dərslər, praktiki tapşırıqlar, mentor dəstəyi və süni intellekt əsaslı fərdiləşdirmə — hamısı Azərbaycan, Türk və Rus dillərində, bir platformada. Öyrən, sınaqdan keç, sertifikat al və işə qəbula hazır ol.'}</p>
           <div className="cta-row">
             <Link href="/qeydiyyat" className="btn-primary">Qeydiyyatdan keç</Link>
             <Link href="/haqqimizda" className="btn-secondary">Missiyamızı oxu →</Link>
           </div>
           <div className="stats">
-            <div className="stat"><b>3 dil</b><span>AZ · TR · RU</span></div>
-            <div className="stat"><b>9.99 ₼-dən</b><span>kurs başına qiymət</span></div>
-            <div className="stat"><b>1.8M+</b><span>hədəf gənc auditoriya</span></div>
+            <div className="stat"><b>{content['home.stats.stat1Value'] || '3 dil'}</b><span>{content['home.stats.stat1Label'] || 'AZ · TR · RU'}</span></div>
+            <div className="stat"><b>{content['home.stats.stat2Value'] || '9.99 ₼-dən'}</b><span>{content['home.stats.stat2Label'] || 'kurs başına qiymət'}</span></div>
+            <div className="stat"><b>{content['home.stats.stat3Value'] || '1.8M+'}</b><span>{content['home.stats.stat3Label'] || 'hədəf gənc auditoriya'}</span></div>
           </div>
         </div>
         <Reveal className="hero-visual" delay={200}>
@@ -76,6 +80,7 @@ export default function HomePage() {
               <span>PASHA Bank</span><span>Kapital Bank</span><span>Azercell</span>
             </div>
           </Reveal>
+          <SponsorsStrip />
         </div>
       </section>
 

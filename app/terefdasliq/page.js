@@ -1,14 +1,17 @@
 import Reveal from '@/components/Reveal';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Tərəfdaşlıq — Mlue' };
+export const revalidate = 300;
 
-export default function TerefdasliqPage() {
+export default async function TerefdasliqPage() {
+  const content = await getSiteContentMap();
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>Yerli ehtiyacdan regional imkana</h1></Reveal>
-          <Reveal><p>Tam lokallaşdırılmış məzmun xarici platformalardan asılılığı azaltmağı, növbəti mərhələdə isə regional bazarlara çıxışı hədəfləyir.</p></Reveal>
+          <Reveal><h1>{content['terefdasliq.hero.title'] || 'Yerli ehtiyacdan regional imkana'}</h1></Reveal>
+          <Reveal><p>{content['terefdasliq.hero.subtitle'] || 'Tam lokallaşdırılmış məzmun xarici platformalardan asılılığı azaltmağı, növbəti mərhələdə isə regional bazarlara çıxışı hədəfləyir.'}</p></Reveal>
         </div>
       </section>
 

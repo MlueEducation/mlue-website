@@ -1,5 +1,29 @@
 [
   {
+    "id": "studio-terefdas-loqolari-idaresi",
+    "title": "Tərəfdaş loqoları artıq ana səhifədə 🤝",
+    "description": "Admin komandası MLUE Studio-dan birbaşa tərəfdaş universitet və şirkətlərin loqolarını əlavə edə, sıralaya və silə bilər — yeni loqolar ana səhifədə dərhal görünür.",
+    "platform": "Hamısı",
+    "category": "Yenilik",
+    "created_at": "2026-07-28T12:20:00.000Z"
+  },
+  {
+    "id": "studio-sayt-mezmunu-redaktoru",
+    "title": "Sayt mətnləri artıq Studio-dan redaktə olunur ✍️",
+    "description": "Ana səhifə və digər əsas səhifələrin başlıqları indi admin komandası tərəfindən kod yazmadan, canlı önizləmə ilə dəyişdirilə bilər.",
+    "platform": "Hamısı",
+    "category": "Yenilik",
+    "created_at": "2026-07-28T12:10:00.000Z"
+  },
+  {
+    "id": "studio-xeberler-idareetme-paneli",
+    "title": "MLUE NEWS artıq Studio-dan idarə olunur 📰",
+    "description": "Admin komandası indi yeni xəbərləri MLUE Studio-dan birbaşa əlavə edə, redaktə edə və silə bilər — kod yazmağa ehtiyac qalmadan.",
+    "platform": "Hamısı",
+    "category": "Yenilik",
+    "created_at": "2026-07-28T12:00:00.000Z"
+  },
+  {
     "id": "mustaqil-nailiyyetler-sehifesi",
     "title": "Nailiyyətlərin üçün ayrıca səhifə açıldı 🏆",
     "description": "Səviyyən, nişanların, gündəlik tapşırıqların və liderlik cədvəlin artıq öz xüsusi 'Nailiyyətlər' səhifəsində — profil menyusundan bir kliklə çatırsan. Üstəlik, tamamladığın kursların və qazandığın Tokenlərin sayı da indi burada görünür.",

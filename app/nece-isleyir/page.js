@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Necə işləyir — Mlue' };
+export const revalidate = 300;
 
 const STEPS = [
   { title: 'Qeydiyyat və pulsuz sınaq', desc: '7 günlük risk-free giriş ilə platformanı sınaqdan keçir, kart məlumatı tələb olunmur.' },
@@ -10,13 +12,14 @@ const STEPS = [
   { title: 'Sertifikat və işə qəbul', desc: 'Kursu bitirdikdən sonra sertifikatını al, CV-ni hazırla və işə qəbul dəstəyindən yararlan.' },
 ];
 
-export default function NeceIsleyirPage() {
+export default async function NeceIsleyirPage() {
+  const content = await getSiteContentMap();
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>Dörd addım. Bir istiqamət.</h1></Reveal>
-          <Reveal><p>Qeydiyyatdan sertifikat və karyera dəstəyinə qədər hər addım aydın və izlənəbilir.</p></Reveal>
+          <Reveal><h1>{content['neceIsleyir.hero.title'] || 'Dörd addım. Bir istiqamət.'}</h1></Reveal>
+          <Reveal><p>{content['neceIsleyir.hero.subtitle'] || 'Qeydiyyatdan sertifikat və karyera dəstəyinə qədər hər addım aydın və izlənəbilir.'}</p></Reveal>
         </div>
       </section>
       <section style={{ paddingTop: 24 }}>

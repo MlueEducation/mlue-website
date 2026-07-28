@@ -1,6 +1,8 @@
 import Reveal from '@/components/Reveal';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Platforma — Mlue' };
+export const revalidate = 300;
 
 const FEATURES = [
   { title: 'Studio keyfiyyətində dərslər', desc: 'Peşəkar çəkiliş və dublyaj ilə hazırlanmış, standartlaşdırılmış istehsal keyfiyyətinə malik video kurslar.', icon: <><circle cx="12" cy="12" r="9" /><path d="M10 8.5 16 12 10 15.5Z" fill="currentColor" stroke="none" /></> },
@@ -13,14 +15,15 @@ const FEATURES = [
   { title: '3 dildə məzmun', desc: 'Azərbaycan, Türk və Rus dillərində tam lokallaşdırılmış kurslar.', icon: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></> },
 ];
 
-export default function PlatformaPage() {
+export default async function PlatformaPage() {
+  const content = await getSiteContentMap();
   const [spotlight, ...rest] = FEATURES;
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>Öyrənmədən işə qəbula qədər hər mərhələ bir yerdə</h1></Reveal>
-          <Reveal><p>Mlue sənə yalnız dərs deyil, irəliləmək üçün lazım olan tam sistemi təqdim edir — video dərslərdən mentorluğa, praktikadan işə qəbul dəstəyinə qədər.</p></Reveal>
+          <Reveal><h1>{content['platforma.hero.title'] || 'Öyrənmədən işə qəbula qədər hər mərhələ bir yerdə'}</h1></Reveal>
+          <Reveal><p>{content['platforma.hero.subtitle'] || 'Mlue sənə yalnız dərs deyil, irəliləmək üçün lazım olan tam sistemi təqdim edir — video dərslərdən mentorluğa, praktikadan işə qəbul dəstəyinə qədər.'}</p></Reveal>
         </div>
       </section>
       <section style={{ paddingTop: 24 }}>

@@ -1,15 +1,18 @@
 import Link from 'next/link';
 import Reveal from '@/components/Reveal';
+import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Qiymətlər — Mlue' };
+export const revalidate = 300;
 
-export default function QiymetlerPage() {
+export default async function QiymetlerPage() {
+  const content = await getSiteContentMap();
   return (
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>Sadə. Əlçatan. Şəffaf.</h1></Reveal>
-          <Reveal><p>Abunə deyil, kurs əsaslı model — yalnız öyrəndiyin üçün ödə. Qiymət kursdan kursa dəyişə bilər.</p></Reveal>
+          <Reveal><h1>{content['qiymetler.hero.title'] || 'Sadə. Əlçatan. Şəffaf.'}</h1></Reveal>
+          <Reveal><p>{content['qiymetler.hero.subtitle'] || 'Abunə deyil, kurs əsaslı model — yalnız öyrəndiyin üçün ödə. Qiymət kursdan kursa dəyişə bilər.'}</p></Reveal>
         </div>
       </section>
       <section style={{ paddingTop: 24 }}>

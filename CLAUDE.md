@@ -10,7 +10,9 @@ Every time you (Claude Code) successfully complete a feature implementation, cod
 
 ### How this is implemented in this repo (confirmed with the user)
 
-There is no live database write access available in this environment — the backing store is the git-tracked file **`data/mlue-news.json`** in this repo, not a Supabase table. "Add a new entry to the database" therefore means: append an object to that JSON array, then commit and push (per the standing auto-push convention already established for this repo) — no separate action from the user.
+There is no live database write access available in this environment. As of the MLUE Studio News panel shipping, `mlue_news` is a real Supabase table (public read, admin-only write) — `lib/news.js`'s `getAllNews()` reads it live, falling back to the git-tracked `data/mlue-news.json` whenever the table is empty or hasn't been migrated yet. Since Claude still has no live DB write access, "add a new entry to the database" means one of two things:
+1. Append an object to `data/mlue-news.json` and commit/push (the JSON file remains the safe, always-available fallback and is what Claude should keep using by default — no separate action needed from the user).
+2. If you'd rather the entry live in the real table (e.g. you're already in Studio), Claude will hand you a ready-to-run `insert into public.mlue_news (...) values (...)` statement for the Supabase SQL Editor, or you can add it yourself via Studio's "Xəbərlər" admin panel.
 
 **Entry shape** (see `data/mlue-news.json` for the live examples):
 ```json
