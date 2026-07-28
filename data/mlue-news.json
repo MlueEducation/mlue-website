@@ -1,5 +1,13 @@
 [
   {
+    "id": "studio-ders-video-yuklemesi",
+    "title": "Dərs videolarını artıq kompüterdən birbaşa yükləmək olar 🎬",
+    "description": "MLUE Studio-da dərs redaktə panelinə 'Kompüterdən video seç' düyməsi əlavə olundu — artıq video linki axtarmağa ehtiyac yoxdur, faylı seç, avtomatik yüklənsin.",
+    "platform": "MLUE Studio",
+    "category": "Yenilik",
+    "created_at": "2026-07-28T14:00:00.000Z"
+  },
+  {
     "id": "studio-kurs-sekli-silme",
     "title": "Kurs şəklini artıq silmək mümkündür 🖼️",
     "description": "MLUE Studio-da kurs üz qabığı şəklinin yanına 'Sil' düyməsi əlavə olundu — artıq yeni şəkil yükləmədən köhnəni silmək mümkündür.",
