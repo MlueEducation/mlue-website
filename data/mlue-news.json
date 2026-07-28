@@ -1,5 +1,13 @@
 [
   {
+    "id": "istifadeci-vezifeleri-ve-studio-tehlukesizligi",
+    "title": "İstifadəçi vəzifələri artıq rəngli etiketlərlə görünür 🛡️",
+    "description": "İstifadəçilərin seçdiyi vəzifələrin (Tələbə, Şagird, Müəllim) bazaya ötürülməsi, paneldə rəngli etiketlərlə göstərilməsi və Studio-ya giriş təhlükəsizliyi tam təmin edildi! 🛡️",
+    "platform": "Hamısı",
+    "category": "Təkmilləşdirmə",
+    "created_at": "2026-07-27T14:00:00.000Z"
+  },
+  {
     "id": "qaralama-kurslar-ana-sehifede-gizledildi",
     "title": "Qaralama statusuna keçirilmiş kurslar artıq ana səhifədə görünmür 🔒",
     "description": "Qaralama (Draft) statusuna keçirilmiş kursların ana səhifədə yanlışlıqla görünməsi xətası tamamilə aradan qaldırıldı və məxfilik təmin edildi! 🔒",

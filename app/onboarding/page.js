@@ -9,9 +9,9 @@ import { COMMON_SUBJECTS, DIM_GROUPS } from '@/lib/dimGroups';
 /* ---------------- Data ---------------- */
 const STATUS_OPTIONS = [
   { id: 'student', icon: '🎓', title: 'Tələbə', desc: 'Hazırda universitetdə təhsil alıram' },
-  { id: 'applicant', icon: '📝', title: 'Abituriyent', desc: 'Universitetə qəbul üçün hazırlaşıram' },
-  { id: 'professional', icon: '💼', title: 'Gənc Peşəkar', desc: 'İş həyatına artıq başlamışam' },
-  { id: 'teacher', icon: '👨‍🏫', title: 'Müəllim', desc: 'Tədris sahəsində çalışıram' },
+  { id: 'applicant', icon: '📝', title: 'Şagird', desc: 'Orta məktəbdə oxuyuram və qəbul imtahanına hazırlaşıram' },
+  { id: 'professional', icon: '💼', title: 'Mütəxəssis / Digər', desc: 'İş həyatına artıq başlamışam və ya başqa bir sahədəyəm' },
+  { id: 'teacher', icon: '👨‍🏫', title: 'Müəllim / Təlimçi', desc: 'Tədris və ya təlim sahəsində çalışıram' },
 ];
 
 const UNIVERSITIES = [
@@ -99,8 +99,8 @@ const TEACHER_SUBJECTS = [
 const STEP2_META = {
   student: { title: 'Təhsil məlumatların', desc: 'Universitetini və ixtisasını seç ki, sənə uyğun tövsiyələr hazırlayaq.' },
   applicant: { title: 'DİM ixtisas qrupun', desc: 'Qəbul imtahanında iştirak edəcəyin qrupu seç.' },
-  professional: { title: 'Maraq sahən', desc: 'Karyerada hansı istiqamətdə inkişaf etmək istəyirsən?' },
-  teacher: { title: 'Tədris etdiyin fənn', desc: 'Hansı fənni tədris etdiyini seç ki, sənə uyğun materiallar tövsiyə edək.' },
+  professional: { title: 'Maraq sahən', desc: 'Hansı istiqamətdə inkişaf etmək istəyirsən?' },
+  teacher: { title: 'Tədris etdiyin fənn', desc: 'Hansı fənni tədris/təlim etdiyini seç ki, sənə uyğun materiallar tövsiyə edək.' },
 };
 
 function ChoiceCard({ active, onClick, icon, title, desc }) {
