@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { resolveDisplayName } from '@/lib/displayName';
 import ThemeToggle from './ThemeToggle';
 import BrandLogo from './BrandLogo';
 import NewsPulseDot from './NewsPulseDot';
+import NotificationBell from './NotificationBell';
 
 function markNewsRead() {
   window.localStorage.setItem('mlue-last-read-news', new Date().toISOString());
@@ -23,30 +25,73 @@ const NAV_LINKS = [
 
 function AuthArea({ onNavigate }) {
   const { user } = useAuth();
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const router = useRouter();
+  const [profile, setProfile] = useState(null);
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
 
   useEffect(() => {
-    if (!user) { setAvatarUrl(null); return; }
+    if (!user) { setProfile(null); return; }
     supabase
       .from('profiles')
-      .select('avatar_url')
+      .select('avatar_url, full_name')
       .eq('id', user.id)
       .maybeSingle()
-      .then(({ data }) => setAvatarUrl(data?.avatar_url || null));
+      .then(({ data }) => setProfile(data || null));
   }, [user]);
 
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  async function handleSignOut() {
+    setOpen(false);
+    onNavigate?.();
+    await supabase.auth.signOut();
+    router.push('/');
+  }
+
   if (user) {
-    const initial = user.email.charAt(0).toUpperCase();
-    const pictureUrl = avatarUrl || user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
+    const displayName = resolveDisplayName({ profile, user });
+    const initial = displayName.charAt(0).toUpperCase();
+    const pictureUrl = profile?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
     return (
-      <Link href="/profil" className="profile-pill" onClick={onNavigate}>
-        {pictureUrl ? (
-          <img src={pictureUrl} alt="" className="profile-avatar-img" />
-        ) : (
-          <span className="profile-avatar">{initial}</span>
+      <div className="relative" ref={ref}>
+        <button
+          type="button"
+          className="profile-pill"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {pictureUrl ? (
+            <img src={pictureUrl} alt="" className="profile-avatar-img" />
+          ) : (
+            <span className="profile-avatar">{initial}</span>
+          )}
+          <span className="profile-email">{displayName}</span>
+        </button>
+        {open && (
+          <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] shadow-[var(--shadow-lg)] overflow-hidden z-50 py-1.5">
+            <Link href="/profil" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+              👤 Profil
+            </Link>
+            <Link href="/achievements" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+              🏆 Nailiyyətlər
+            </Link>
+            <Link href="/profil?tab=settings" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+              ⚙️ Tənzimləmələr
+            </Link>
+            <div className="my-1.5 border-t border-[var(--border)]" />
+            <button type="button" onClick={handleSignOut} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm font-semibold text-[var(--danger)] hover:bg-[var(--bg-surface-2)] transition-colors">
+              🚪 Çıxış
+            </button>
+          </div>
         )}
-        <span className="profile-email">{user.email}</span>
-      </Link>
+      </div>
     );
   }
   return (
@@ -96,6 +141,7 @@ export default function Header() {
         </div>
         <div className="nav-right">
           <ThemeToggle />
+          <NotificationBell />
           <div className="nav-auth-desktop"><AuthArea /></div>
           <button className={`burger ${open ? 'open' : ''}`} aria-label="Menyu" aria-expanded={open} onClick={() => setOpen(!open)}>
             <span></span><span></span><span></span>

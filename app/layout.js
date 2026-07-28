@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { LanguageProvider } from '@/components/LanguageProvider';
 import QueryProvider from '@/components/QueryProvider';
 import CourseRealtimeSync from '@/components/CourseRealtimeSync';
+import NotificationRealtimeSync from '@/components/NotificationRealtimeSync';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -33,6 +34,7 @@ export default function RootLayout({ children }) {
             <QueryProvider>
               <AuthProvider>
                 <CourseRealtimeSync />
+                <NotificationRealtimeSync />
                 <Header />
                 <main>{children}</main>
                 <Footer />

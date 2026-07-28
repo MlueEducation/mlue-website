@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { resolveDisplayName } from '@/lib/displayName';
 import { Flame, Award, Rocket, MessageCircle, Briefcase, Gift } from 'lucide-react';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
@@ -281,7 +282,7 @@ function LinkInput({ field, value, onChange, error }) {
 function IdentityPanel({ user, profile, onNavigate }) {
   const email = user.email;
   const initial = email.charAt(0).toUpperCase();
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
+  const displayName = resolveDisplayName({ profile, user });
   const pictureUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   const p = profile || {};
   const onboarded = !!profile?.role;
@@ -832,7 +833,7 @@ const EARLY_ADOPTER_CUTOFF = new Date('2027-01-01');
 function GamePanel({ user, profile, onXpAwarded }) {
   const email = user.email;
   const initial = email.charAt(0).toUpperCase();
-  const myName = profile?.full_name || user?.user_metadata?.full_name || email.split('@')[0];
+  const myName = resolveDisplayName({ profile, user });
 
   const [claimedToday, setClaimedToday] = useState([]);
   const [certCount, setCertCount] = useState(0);
@@ -1003,6 +1004,11 @@ export default function ProfilPage() {
   const [active, setActive] = useState('identity');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && NAV_ITEMS.some((i) => i.id === tab)) setActive(tab);
+  }, []);
 
   useEffect(() => {
     if (!user) { setProfileLoading(false); return; }

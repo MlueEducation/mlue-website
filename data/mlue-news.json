@@ -1,5 +1,21 @@
 [
   {
+    "id": "profil-menyusu-ve-bildiris-zengi",
+    "title": "Yeni profil menyusu və bildiriş zəngi 🔔",
+    "description": "Adının üstünə klikləyəndə indi bir menyu açılır — Profil, Nailiyyətlər və Tənzimləmələrə birbaşa keçid! Üstəlik, yeni bildiriş zəngi ilə səni maraqlandıran hər şeydən dərhal xəbərdar olacaqsan.",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-28T11:00:00.000Z"
+  },
+  {
+    "id": "adin-artiq-duzgun-gorunur",
+    "title": "Adın artıq düzgün görünür 🐛",
+    "description": "Yuxarı naviqasiyada bəzi istifadəçilərin adı əvəzinə e-poçt ünvanının bir hissəsi görünürdü. Bu düzəldildi — indi hər kəsin öz adı görünür.",
+    "platform": "MLUE",
+    "category": "Xəta Həlli",
+    "created_at": "2026-07-28T10:55:00.000Z"
+  },
+  {
     "id": "xeberler-sehifesi-istifadeye-verildi",
     "title": "Xəbərlər üçün xüsusi səhifə açıldı 📰",
     "description": "Platformadakı bütün yenilikləri və xəbərləri izləyə biləcəyiniz xüsusi 'Xəbərlər' səhifəsi istifadəyə verildi! 📰",
