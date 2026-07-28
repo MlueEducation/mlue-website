@@ -1,5 +1,13 @@
 [
   {
+    "id": "xeberler-sehifesi-istifadeye-verildi",
+    "title": "Xəbərlər üçün xüsusi səhifə açıldı 📰",
+    "description": "Platformadakı bütün yenilikləri və xəbərləri izləyə biləcəyiniz xüsusi 'Xəbərlər' səhifəsi istifadəyə verildi! 📰",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-27T15:00:00.000Z"
+  },
+  {
     "id": "istifadeci-vezifeleri-ve-studio-tehlukesizligi",
     "title": "İstifadəçi vəzifələri artıq rəngli etiketlərlə görünür 🛡️",
     "description": "İstifadəçilərin seçdiyi vəzifələrin (Tələbə, Şagird, Müəllim) bazaya ötürülməsi, paneldə rəngli etiketlərlə göstərilməsi və Studio-ya giriş təhlükəsizliyi tam təmin edildi! 🛡️",

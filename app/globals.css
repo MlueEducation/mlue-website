@@ -241,6 +241,7 @@ header nav {
 .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--text-secondary); flex: 1; justify-content: center; }
 .nav-links a { transition: color .2s var(--ease); }
 .nav-links a:hover { color: var(--text-primary); }
+.nav-links a.nav-link-active, .nav-overlay-links a.nav-link-active { color: var(--accent); font-weight: 700; }
 .nav-right { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
 .nav-auth-links { display: flex; align-items: center; gap: 20px; }
 .nav-login { font-size: 14px; color: var(--text-secondary); font-weight: 600; transition: color .2s var(--ease); }

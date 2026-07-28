@@ -81,7 +81,9 @@ export default function MlueNews() {
 
       {filtered.length === 0 ? (
         <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border)] p-10 text-center">
-          <p className="text-sm text-[var(--text-secondary)]">Bu platforma üçün hələ xəbər yoxdur.</p>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {allNews.length === 0 ? 'Hələlik heç bir xəbər yoxdur.' : 'Bu platforma üçün hələ xəbər yoxdur.'}
+          </p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

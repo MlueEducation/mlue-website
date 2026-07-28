@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
@@ -57,6 +58,8 @@ function AuthArea({ onNavigate }) {
 }
 
 export default function Header() {
+  const pathname = usePathname();
+  const isNewsActive = pathname === '/xeberler';
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -82,7 +85,11 @@ export default function Header() {
           {NAV_LINKS.map((l) => (
             <Link key={l.href} href={l.href}>{l.label}</Link>
           ))}
-          <Link href="/#mlue-news" className="relative" onClick={markNewsRead}>
+          <Link
+            href="/xeberler"
+            className={`relative${isNewsActive ? ' nav-link-active' : ''}`}
+            onClick={markNewsRead}
+          >
             Xəbərlər
             <NewsPulseDot />
           </Link>
@@ -101,8 +108,8 @@ export default function Header() {
             <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
           ))}
           <Link
-            href="/#mlue-news"
-            className="relative"
+            href="/xeberler"
+            className={`relative${isNewsActive ? ' nav-link-active' : ''}`}
             onClick={() => { markNewsRead(); setOpen(false); }}
           >
             Xəbərlər
