@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Plus, Trash2, Download } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
@@ -631,6 +632,12 @@ function computeCvCompletion(profile) {
 function CareerPanel({ user, profile, onNavigate }) {
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newTags, setNewTags] = useState('');
+  const [newLink, setNewLink] = useState('');
+  const [saving, setSaving] = useState(false);
   const cvCompletion = computeCvCompletion(profile);
   const interviewDone = profile?.interview_sessions_done || 0;
 
@@ -646,6 +653,31 @@ function CareerPanel({ user, profile, onNavigate }) {
       });
   }, [user.id]);
 
+  async function handleAddProject(e) {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+    setSaving(true);
+    const tags = newTags.split(',').map((t) => t.trim()).filter(Boolean);
+    const { data, error } = await supabase
+      .from('portfolio_projects')
+      .insert({ user_id: user.id, title: newTitle.trim(), description: newDesc.trim() || null, link_url: newLink.trim() || null, tags })
+      .select()
+      .single();
+    setSaving(false);
+    if (!error && data) {
+      setPortfolio((p) => [data, ...p]);
+      setNewTitle(''); setNewDesc(''); setNewTags(''); setNewLink('');
+      setShowAddForm(false);
+    }
+  }
+
+  async function handleDeleteProject(id) {
+    const prev = portfolio;
+    setPortfolio((p) => p.filter((x) => x.id !== id));
+    const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
+    if (error) setPortfolio(prev);
+  }
+
   return (
     <div>
       <PageHeader sub="CV, portfolio və iş imkanları">Karyera Mərkəzi</PageHeader>
@@ -656,24 +688,65 @@ function CareerPanel({ user, profile, onNavigate }) {
             <span className="text-[var(--accent-warm)] font-bold">{cvCompletion}%</span>
           </div>
           <ProgressBar value={cvCompletion} colorClass="bg-[var(--accent-warm)]" />
-          <button onClick={() => onNavigate('bio')} className="mt-4 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">CV-ni redaktə et →</button>
+          <div className="flex items-center gap-5 mt-4">
+            <button onClick={() => onNavigate('bio')} className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">CV-ni redaktə et →</button>
+            <Link href="/cv" className="flex items-center gap-1.5 text-sm font-bold text-[var(--accent-warm)] hover:opacity-80">
+              <Download className="w-4 h-4" /> CV-ni PDF kimi yüklə
+            </Link>
+          </div>
         </PanelSection>
         <PanelSection title="Portfolio Layihələri" desc="İşəgötürənlərə göstərmək üçün seçilmiş işlərin">
           {loading ? (
             <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
-          ) : portfolio.length === 0 ? (
-            <p className="text-sm text-[var(--text-secondary)]">Hələ portfolio layihən yoxdur.</p>
           ) : (
-            <div className="grid sm:grid-cols-3 gap-4">
-              {portfolio.map((p) => (
-                <div key={p.id} className="bg-[var(--bg-surface-2)] rounded-xl p-4">
-                  <div className="text-sm font-bold text-[var(--text-primary)] mb-2">{p.title}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(p.tags || []).map((t) => <span key={t} className="text-[10px] bg-[var(--bg-surface)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{t}</span>)}
-                  </div>
+            <>
+              {portfolio.length === 0 ? (
+                <p className="text-sm text-[var(--text-secondary)] mb-4">Hələ portfolio layihən yoxdur.</p>
+              ) : (
+                <div className="grid sm:grid-cols-3 gap-4 mb-4">
+                  {portfolio.map((p) => (
+                    <div key={p.id} className="bg-[var(--bg-surface-2)] rounded-xl p-4 relative group">
+                      <button
+                        onClick={() => handleDeleteProject(p.id)}
+                        className="absolute top-3 right-3 text-[var(--text-tertiary)] hover:text-[var(--danger)] opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Layihəni sil"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <div className="text-sm font-bold text-[var(--text-primary)] mb-1.5 pr-5">{p.title}</div>
+                      {p.description && <p className="text-xs text-[var(--text-secondary)] mb-2">{p.description}</p>}
+                      <div className="flex flex-wrap gap-1.5">
+                        {(p.tags || []).map((t) => <span key={t} className="text-[10px] bg-[var(--bg-surface)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{t}</span>)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+              {showAddForm ? (
+                <form onSubmit={handleAddProject} className="bg-[var(--bg-surface-2)] rounded-xl p-4 space-y-3">
+                  <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Layihənin adı" required
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
+                  <textarea value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Qısa təsvir (istəyə bağlı)" rows={2}
+                    className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input value={newTags} onChange={(e) => setNewTags(e.target.value)} placeholder="Bacarıqlar (vergüllə ayır)"
+                      className="flex-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
+                    <input value={newLink} onChange={(e) => setNewLink(e.target.value)} placeholder="Layihə linki (istəyə bağlı)"
+                      className="flex-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button type="submit" disabled={saving} className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors">
+                      {saving ? 'Saxlanılır...' : 'Əlavə et'}
+                    </button>
+                    <button type="button" onClick={() => setShowAddForm(false)} className="text-sm font-semibold text-[var(--text-secondary)]">Ləğv et</button>
+                  </div>
+                </form>
+              ) : (
+                <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1.5 text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                  <Plus className="w-4 h-4" /> Layihə əlavə et
+                </button>
+              )}
+            </>
           )}
         </PanelSection>
         <PanelSection title="Sənə Uyğun İş Elanları" desc="Bacarıqlarına uyğun mikro-təcrübə tapşırıqları">

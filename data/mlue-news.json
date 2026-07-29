@@ -1,5 +1,13 @@
 [
   {
+    "id": "avtomatik-cv-yaradici",
+    "title": "İndi bir kliklə CV-ni yükləyə bilərsən 📄",
+    "description": "Karyera Mərkəzinə yeni 'CV-ni PDF kimi yüklə' düyməsi əlavə olundu — kurslarını, sertifikatlarını, nişanlarını və portfolio layihələrini toplayan hazır CV avtomatik yaranır. Üstəlik, indi portfolio bölməsinə öz layihələrini əlavə edə və silə bilərsən.",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-29T15:00:00.000Z"
+  },
+  {
     "id": "studio-ders-video-yuklemesi",
     "title": "Dərs videolarını artıq kompüterdən birbaşa yükləmək olar 🎬",
     "description": "MLUE Studio-da dərs redaktə panelinə 'Kompüterdən video seç' düyməsi əlavə olundu — artıq video linki axtarmağa ehtiyac yoxdur, faylı seç, avtomatik yüklənsin.",

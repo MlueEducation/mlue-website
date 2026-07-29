@@ -650,3 +650,30 @@ footer { border-top: 1px solid var(--border); padding: 56px 0 32px; }
   .big-search { padding: 44px 22px; }
   .big-search-form { flex-direction: column; }
 }
+
+/* CV/resume printing (Auto CV Builder): hides site chrome and forces a
+   clean, light, ink-friendly palette inside the printed document
+   regardless of the viewer's light/dark theme — scoping the override to
+   custom properties inside .cv-document means every existing component
+   (Panel/StatTile/etc.) automatically renders correctly for print with no
+   per-element !important rules needed. */
+@media print {
+  header, footer, .no-print { display: none !important; }
+  body { background: #ffffff !important; }
+  .cv-document {
+    --bg-page: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-surface-2: #f3f4f6;
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-tertiary: #6b7280;
+    --border: #e5e7eb;
+    --accent: #0056d2;
+    --accent-soft: #e6edfb;
+    --accent-warm: #00822b;
+    --warm-soft: #e3f3e8;
+    --success: #00822b;
+    --success-soft: #e3f3e8;
+    box-shadow: none !important;
+  }
+}
