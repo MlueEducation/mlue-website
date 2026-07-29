@@ -3,7 +3,7 @@
 Status legend: ⬜ Not started · 🟨 Partially exists · 🟩 Schema approved/in progress · ✅ Shipped
 
 ## EPIC 1 — Career & B2B Integration
-1. 🟩 **Auto CV Builder** — 1-click PDF generation of a student's resume from completed courses, XP, and medals. Schema support approved (see migration below); PDF-generation UI not yet built.
+1. ✅ **Auto CV Builder** — 1-click PDF generation of a student's resume from completed courses, XP, and medals. Shipped: `/cv` page + portfolio project add/delete in the Karyera Mərkəzi tab.
 2. 🟩 **Micro-Internships Board** — job-board style section for companies to post real tasks students complete for portfolio credit. Schema support approved (real `companies`/`internship_postings`/`internship_applications` tables); UI still reads the old hardcoded mock list until the board is rebuilt.
 3. 🟩 **B2B Corporate Portal** — Studio sub-panel with RBAC for company managers to track their employees' course progress. Schema/RBAC approved (`company_manager` staff role, company-scoped RLS); Studio UI not yet built.
 4. ⬜ **Digital Marketplace** — e-commerce for students to sell digital assets (templates, design tokens, code snippets). *Deferred — needs its own payment-processing design pass; no schema designed yet.*
