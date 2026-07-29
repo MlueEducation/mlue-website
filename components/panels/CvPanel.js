@@ -170,14 +170,14 @@ export default function CvPanel({ user }) {
         {/* MLUE stats + badges */}
         <div className="pt-6">
           <h3 className="text-xs font-bold uppercase tracking-wide text-[var(--text-tertiary)] mb-2">MLUE Nailiyyətləri</h3>
-          <div className="flex items-center gap-4 text-sm text-[var(--text-primary)] mb-3">
-            <span className="font-bold">Səviyyə {level}</span>
-            <span className="text-[var(--text-tertiary)]">·</span>
-            <span>{xp} XP</span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-[var(--text-primary)] mb-3">
+            <span className="font-bold whitespace-nowrap">Səviyyə {level}</span>
+            <span className="text-[var(--text-tertiary)] hidden sm:inline">·</span>
+            <span className="whitespace-nowrap">{xp} XP</span>
             {streak > 0 && (
               <>
-                <span className="text-[var(--text-tertiary)]">·</span>
-                <span>{streak} günlük seriya</span>
+                <span className="text-[var(--text-tertiary)] hidden sm:inline">·</span>
+                <span className="whitespace-nowrap">{streak} günlük seriya</span>
               </>
             )}
           </div>

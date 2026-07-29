@@ -1,5 +1,13 @@
 [
   {
+    "id": "mobil-goruntu-duzelisleri",
+    "title": "Mobil telefonlarda görüntü xətaları düzəldildi 📱",
+    "description": "Giriş və Qeydiyyat səhifələrində telefon ekranında yan tərəfə sürüşmə xətası aradan qaldırıldı, CV səhifəndəki statistikanın qırıq görünməsi düzəldildi və Profil bölməsindəki menyunun sürüşdürülə bildiyi indi daha aydın görünür.",
+    "platform": "MLUE",
+    "category": "Xəta Həlli",
+    "created_at": "2026-07-29T16:00:00.000Z"
+  },
+  {
     "id": "avtomatik-cv-yaradici",
     "title": "İndi bir kliklə CV-ni yükləyə bilərsən 📄",
     "description": "Karyera Mərkəzinə yeni 'CV-ni PDF kimi yüklə' düyməsi əlavə olundu — kurslarını, sertifikatlarını, nişanlarını və portfolio layihələrini toplayan hazır CV avtomatik yaranır. Üstəlik, indi portfolio bölməsinə öz layihələrini əlavə edə və silə bilərsən.",

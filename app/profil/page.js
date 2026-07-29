@@ -981,7 +981,10 @@ export default function ProfilPage() {
   return (
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex flex-col md:flex-row">
       {/* Sidebar */}
-      <aside className="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] flex flex-col md:h-[calc(100vh-var(--header-h))] md:sticky md:top-[var(--header-h)]">
+      <aside className="relative md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] flex flex-col md:h-[calc(100vh-var(--header-h))] md:sticky md:top-[var(--header-h)]">
+        {/* Hints that the mobile tab row scrolls further right — the row has
+            12 items but only ~4 fit on a phone screen at once. */}
+        <div className="md:hidden pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--bg-page)] to-transparent z-10" />
         <nav className="flex flex-row md:flex-col gap-1 p-3 overflow-x-auto md:overflow-x-visible md:overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = active === item.id;

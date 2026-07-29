@@ -147,6 +147,10 @@
 }
 html { scroll-behavior: smooth; }
 #mlue-news { scroll-margin-top: var(--header-h); }
+/* Safety net against horizontal scroll on mobile: any future decorative
+   element (like .orb's absolute-positioned bleed) that isn't clipped by its
+   own container can no longer widen the page itself. */
+html, body { overflow-x: hidden; max-width: 100%; }
 body {
   background: var(--bg-page);
   color: var(--text-primary);
@@ -583,7 +587,7 @@ h1.hero-title .accent { background: linear-gradient(90deg, var(--accent), var(--
 .form-msg.error { color: var(--danger); }
 
 /* ---------- auth pages (giriş / qeydiyyat) ---------- */
-.auth-page { min-height: calc(100vh - var(--header-h)); display: flex; align-items: center; justify-content: center; padding: 48px 24px; position: relative; }
+.auth-page { min-height: calc(100vh - var(--header-h)); display: flex; align-items: center; justify-content: center; padding: 48px 24px; position: relative; overflow: hidden; }
 .auth-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 44px; width: 100%; max-width: 400px; position: relative; z-index: 1; }
 .auth-card h1 { font-size: 22px; font-weight: 650; margin-bottom: 7px; }
 .auth-card .auth-sub { color: var(--text-secondary); font-size: 13.5px; margin-bottom: 30px; }
