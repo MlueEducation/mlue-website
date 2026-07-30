@@ -8,6 +8,7 @@ import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
 import { fetchMyCompanyMembership, joinCompanyWithCode } from '@/lib/companyMembership';
+import { getCoursesByIds } from '@/lib/courses';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -61,29 +62,74 @@ const NAV_ITEMS = [
 ];
 
 /* ---------------- Mock data ----------------
-   Most of what used to live here now comes from real, per-user Supabase
-   tables (see the panels below). What's left has no real source of truth
-   yet: there's no course-enrollment system anywhere in the app to derive
-   gpa/courses/learningHours from, and a real multi-user leaderboard needs
-   a Supabase view/RPC exposing other users' data (a privacy decision left
-   for a future pass, same tradeoff already made once for this exact
-   leaderboard's "name" field). */
+   What's left here has no real source of truth yet: there's no
+   assessment/grading system anywhere in the app to derive gpa from, and no
+   time-tracking to derive learningHours from. Everything else that used to
+   live in this object (member-since, plan badge, overview stat tiles,
+   recent-activity feed) now comes from real per-user Supabase tables — see
+   useIdentityOverview() below. A real multi-user leaderboard still needs a
+   Supabase view/RPC exposing other users' data (a privacy decision left for
+   a future pass, same tradeoff already made once for that leaderboard's
+   "name" field). */
 const MOCK = {
-  memberSince: 'Yanvar 2026',
-  plan: 'Pro Plan',
-  stats: [
-    { label: 'Aktiv kurslar', value: '3', icon: '📚', tone: 'accent' },
-    { label: 'Tamamlanma', value: '68%', icon: '✅', tone: 'success' },
-  ],
-  activity: [
-    'React ilə Frontend İnkişafı — 4-cü modul tamamlandı',
-    'Yeni nişan qazanıldı: "7 Günlük Seriya"',
-    'CV redaktə edildi və yeniləndi',
-    '"UI/UX Dizayn Əsasları" sertifikatı alındı',
-  ],
   gpa: 87,
   learningHours: 142,
 };
+
+/* Real per-user "Ümumi baxış" data: active/completed course counts, an
+   average-progress completion rate, and a recent-activity feed built by
+   merging course enrollment/completion events, certificates, and token
+   transactions (which already carry a human-readable `description`) into
+   one timeline sorted newest-first. */
+function useIdentityOverview(userId) {
+  const [overview, setOverview] = useState({ activeCourses: 0, completionRate: 0, activity: [], loading: true });
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      supabase.from('user_courses').select('course_id, enrolled_at, completed_at, progress_percentage').eq('user_id', userId).order('enrolled_at', { ascending: false }),
+      supabase.from('certificates').select('course_name, issue_date').eq('user_id', userId).order('issue_date', { ascending: false }).limit(5),
+      supabase.from('token_transactions').select('description, amount, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
+    ]).then(async ([{ data: enrollmentData }, { data: certData }, { data: tokenData }]) => {
+      const enrollments = enrollmentData || [];
+      const certificates = certData || [];
+      const tokenTx = tokenData || [];
+
+      let courseMap = new Map();
+      try {
+        courseMap = await getCoursesByIds(enrollments.map((e) => e.course_id));
+      } catch (err) {
+        console.error('Course lookup for overview failed:', err);
+      }
+      if (cancelled) return;
+
+      const activeCourses = enrollments.filter((e) => !e.completed_at).length;
+      const completionRate = enrollments.length === 0
+        ? 0
+        : Math.round(enrollments.reduce((sum, e) => sum + (e.completed_at ? 100 : (e.progress_percentage || 0)), 0) / enrollments.length);
+
+      const events = [];
+      enrollments.forEach((e) => {
+        const title = courseMap.get(e.course_id)?.title || e.course_id;
+        if (e.completed_at) events.push({ ts: e.completed_at, text: `"${title}" kursunu tamamladın 🎉` });
+        else events.push({ ts: e.enrolled_at, text: `"${title}" kursuna qeydiyyatdan keçdin` });
+      });
+      certificates.forEach((c) => events.push({ ts: c.issue_date, text: `"${c.course_name}" sertifikatı qazandın 🎓` }));
+      tokenTx.forEach((t) => events.push({ ts: t.created_at, text: `+${t.amount} MLUE Token: ${t.description}` }));
+      events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+
+      setOverview({ activeCourses, completionRate, activity: events.slice(0, 5), loading: false });
+    });
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  return overview;
+}
+
+function formatMemberSince(createdAt) {
+  if (!createdAt) return '—';
+  return new Date(createdAt).toLocaleDateString('az-AZ', { month: 'long', year: 'numeric' });
+}
 
 /* ---------------- Onboarding-based scenario content ---------------- */
 const SCENARIO_A = {
@@ -271,6 +317,7 @@ function IdentityPanel({ user, profile, onNavigate }) {
   const p = profile || {};
   const onboarded = !!profile?.role;
   const isEcommerceStudent = onboarded && p.role === 'student' && p.interests?.includes('ecommerce');
+  const overview = useIdentityOverview(user.id);
 
   return (
     <div>
@@ -290,8 +337,8 @@ function IdentityPanel({ user, profile, onNavigate }) {
               <div className="text-base font-bold text-[var(--text-primary)] truncate">{displayName}</div>
               <div className="text-sm text-[var(--text-secondary)] truncate">{email}</div>
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--accent-warm)] text-white px-2 py-0.5 rounded-full">{MOCK.plan}</span>
-                <span className="text-xs text-[var(--text-tertiary)]">Üzv: {MOCK.memberSince}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--accent-warm)] text-white px-2 py-0.5 rounded-full">Pulsuz Plan</span>
+                <span className="text-xs text-[var(--text-tertiary)]">Üzv: {formatMemberSince(user.created_at)}</span>
               </div>
             </div>
           </div>
@@ -311,8 +358,8 @@ function IdentityPanel({ user, profile, onNavigate }) {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            MOCK.stats[0],
-            MOCK.stats[1],
+            { label: 'Aktiv kurslar', value: overview.loading ? '—' : String(overview.activeCourses), icon: '📚', tone: 'accent' },
+            { label: 'Tamamlanma', value: overview.loading ? '—' : `${overview.completionRate}%`, icon: '✅', tone: 'success' },
             { label: 'Seriya (streak)', value: `${profile?.current_streak ?? 0} gün`, icon: '🔥', tone: 'streak' },
             { label: 'Ümumi bal (XP)', value: (profile?.xp_points ?? 0).toLocaleString('az-AZ'), icon: '⚡', tone: 'warm' },
           ].map((s) => <StatTile key={s.label} {...s} />)}
@@ -382,14 +429,20 @@ function IdentityPanel({ user, profile, onNavigate }) {
 
         <Panel>
           <PanelSection first title="Son fəaliyyət" desc="Hesabında son baş verən dəyişikliklər">
-            <ul className="space-y-3">
-              {MOCK.activity.map((a, i) => (
-                <li key={i} className="flex gap-3 text-sm text-[var(--text-secondary)]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-1.5 flex-shrink-0" />
-                  {a}
-                </li>
-              ))}
-            </ul>
+            {overview.loading ? (
+              <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : overview.activity.length === 0 ? (
+              <p className="text-sm text-[var(--text-secondary)]">Hələ heç bir fəaliyyət yoxdur — bir kursa qeydiyyatdan keçərək başla.</p>
+            ) : (
+              <ul className="space-y-3">
+                {overview.activity.map((a, i) => (
+                  <li key={i} className="flex gap-3 text-sm text-[var(--text-secondary)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-1.5 flex-shrink-0" />
+                    {a.text}
+                  </li>
+                ))}
+              </ul>
+            )}
           </PanelSection>
         </Panel>
       </div>
