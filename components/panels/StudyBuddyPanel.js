@@ -24,21 +24,30 @@ export default function StudyBuddyPanel({ user }) {
   const [loading, setLoading] = useState(true);
   const [togglingVisible, setTogglingVisible] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetchMyProfile(user.id).then(async (profile) => {
-      if (cancelled) return;
-      setMyProfile(profile);
-      const conns = await fetchMyConnections(user.id);
-      if (cancelled) return;
-      setConnectedIds(conns);
-      if (profile?.study_buddy_visible) {
-        const list = await fetchVisibleBuddies(user.id);
-        if (!cancelled) setBuddies(list);
+    async function load() {
+      try {
+        const profile = await fetchMyProfile(user.id);
+        if (cancelled) return;
+        setMyProfile(profile);
+        const conns = await fetchMyConnections(user.id);
+        if (cancelled) return;
+        setConnectedIds(conns);
+        if (profile?.study_buddy_visible) {
+          const list = await fetchVisibleBuddies(user.id);
+          if (!cancelled) setBuddies(list);
+        }
+      } catch (err) {
+        console.error('StudyBuddyPanel load failed:', err);
+        if (!cancelled) setLoadError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      if (!cancelled) setLoading(false);
-    });
+    }
+    load();
     return () => { cancelled = true; };
   }, [user.id]);
 
@@ -73,6 +82,15 @@ export default function StudyBuddyPanel({ user }) {
     return <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>;
   }
 
+  if (loadError) {
+    return (
+      <div>
+        <PageHeader sub="Oxşar maraqlara və ixtisas qrupuna sahib istifadəçilərlə tanış ol">Tədris Yoldaşı</PageHeader>
+        <p className="text-sm text-[var(--text-secondary)]">Hələlik uyğun yoldaş yoxdur — istifadəçilərin sayı artdıqca uyğunlaşmalar başlayacaq.</p>
+      </div>
+    );
+  }
+
   const isVisible = !!myProfile?.study_buddy_visible;
   const matches = buddies
     .map((b) => ({ buddy: b, ...computeMatch(myProfile || {}, b) }))
@@ -96,7 +114,7 @@ export default function StudyBuddyPanel({ user }) {
       {!isVisible ? (
         <p className="text-sm text-[var(--text-secondary)] mt-5">Başqa tələbələri görmək üçün əvvəlcə özün görünən olmalısan.</p>
       ) : matches.length === 0 ? (
-        <p className="text-sm text-[var(--text-secondary)] mt-5">Hələ uyğun tədris yoldaşı yoxdur — daha çox istifadəçi qoşulduqca burda görünəcək.</p>
+        <p className="text-sm text-[var(--text-secondary)] mt-5">Hələlik uyğun yoldaş yoxdur — istifadəçilərin sayı artdıqca uyğunlaşmalar başlayacaq.</p>
       ) : (
         <div className="grid sm:grid-cols-2 gap-4 mt-5">
           {matches.map(({ buddy, score, shared }) => {
