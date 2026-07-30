@@ -1,4 +1,5 @@
 import Reveal from '@/components/Reveal';
+import PublicCourseCatalog from '@/components/PublicCourseCatalog';
 import { getSiteContentMap } from '@/lib/siteContent';
 
 export const metadata = { title: 'Platforma — Mlue' };
@@ -50,6 +51,7 @@ export default async function PlatformaPage() {
           </div>
         </div>
       </section>
+      <PublicCourseCatalog />
     </>
   );
 }

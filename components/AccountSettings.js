@@ -13,7 +13,6 @@ import { Camera, ShieldCheck, Laptop, Smartphone } from 'lucide-react';
 const SETTINGS_TABS = [
   { id: 'general', label: 'Ümumi' },
   { id: 'security', label: 'Təhlükəsizlik' },
-  { id: 'privacy', label: 'Məxfilik' },
   { id: 'notifications', label: 'Bildirişlər' },
   { id: 'connections', label: 'Bağlantılar' },
 ];
@@ -56,7 +55,6 @@ export default function AccountSettings({ user, profile, onSaved }) {
 
       {tab === 'general' && <GeneralTab user={user} profile={profile} onSaved={onSaved} />}
       {tab === 'security' && <SecurityTab user={user} />}
-      {tab === 'privacy' && <PrivacyTab user={user} profile={profile} onSaved={onSaved} />}
       {tab === 'notifications' && <NotificationsTab user={user} profile={profile} onSaved={onSaved} />}
       {tab === 'connections' && <ConnectionsTab user={user} />}
 
@@ -526,29 +524,6 @@ function persistField(user, onSaved, field, value) {
     .then(({ error }) => {
       if (error) onSaved((p) => ({ ...(p || {}), [field]: !value }));
     });
-}
-
-function PrivacyTab({ user, profile, onSaved }) {
-  return (
-    <Panel>
-      <PanelSection first title="Məxfilik" desc="Profilinin digər istifadəçilərə görünürlüyünü idarə et">
-        <div className="divide-y divide-[var(--border)]">
-          <Toggle
-            label="İctimai profilimi hər kəs görə bilsin"
-            desc="Bacarıqların, təhsilin və layihələrin digər istifadəçilərə açıq olsun"
-            checked={profile?.show_public_profile !== false}
-            onChange={(val) => persistField(user, onSaved, 'show_public_profile', val)}
-          />
-          <Toggle
-            label="Sertifikatlarımı profilimdə göstər"
-            desc="Qazandığın sertifikatlar ictimai profilində görünsün"
-            checked={profile?.show_certificates !== false}
-            onChange={(val) => persistField(user, onSaved, 'show_certificates', val)}
-          />
-        </div>
-      </PanelSection>
-    </Panel>
-  );
 }
 
 function NotificationsTab({ user, profile, onSaved }) {

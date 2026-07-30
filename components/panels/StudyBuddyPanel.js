@@ -1,73 +1,148 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PageHeader } from '@/components/ProfileUI';
-import { supabase } from '@/lib/supabaseClient';
+import { PageHeader, Panel, PanelSection, Toggle } from '@/components/ProfileUI';
+import { fetchMyProfile, setStudyBuddyVisible, fetchVisibleBuddies, fetchMyConnections, connectWithBuddy } from '@/lib/studyBuddy';
 
-const MOCK_BUDDIES = [
-  { id: 1, name: 'Nərmin Əliyeva', group: 'II qrup — İqtisadiyyat', sharedCourses: ['Data Analitikası Əsasları', 'İngilis Dili — Biznes Kommunikasiyası'], matchPercent: 92 },
-  { id: 2, name: 'Kamran Rzayev', group: 'I qrup (Rİ) — Kompüter Elmləri', sharedCourses: ['React ilə Frontend İnkişafı'], matchPercent: 81 },
-  { id: 3, name: 'Aygün Səfərova', group: 'IV qrup — Tibb', sharedCourses: ['UI/UX Dizayn Əsasları'], matchPercent: 76 },
-  { id: 4, name: 'Tural Hüseynov', group: 'I qrup (Rİ) — Kompüter mühəndisliyi', sharedCourses: ['React ilə Frontend İnkişafı', 'Data Analitikası Əsasları'], matchPercent: 88 },
-  { id: 5, name: 'Günel Sadıqova', group: 'III qrup (DT) — Jurnalistika', sharedCourses: ['İngilis Dili — Biznes Kommunikasiyası'], matchPercent: 68 },
-  { id: 6, name: 'Elvin Quliyev', group: 'II qrup — Marketinq', sharedCourses: ['UI/UX Dizayn Əsasları', 'Data Analitikası Əsasları'], matchPercent: 84 },
-];
+/* Simple, transparent heuristic — not a black-box score. Shared interests
+   matter most, same major/university are smaller bonuses. Clamped to 98 so
+   it never claims a false 100% (no two people are a "perfect" match). */
+function computeMatch(mine, theirs) {
+  const myInterests = mine.interests || [];
+  const theirInterests = theirs.interests || [];
+  const shared = myInterests.filter((i) => theirInterests.includes(i));
+  let score = 30 + shared.length * 15;
+  if (mine.major && mine.major === theirs.major) score += 20;
+  if (mine.university && mine.university === theirs.university) score += 10;
+  return { score: Math.min(98, score), shared };
+}
 
 export default function StudyBuddyPanel({ user }) {
+  const [myProfile, setMyProfile] = useState(null);
+  const [buddies, setBuddies] = useState([]);
   const [connectedIds, setConnectedIds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [togglingVisible, setTogglingVisible] = useState(false);
+  const [connectingId, setConnectingId] = useState(null);
 
   useEffect(() => {
-    supabase
-      .from('study_buddy_connections')
-      .select('buddy_id')
-      .eq('user_id', user.id)
-      .then(({ data }) => setConnectedIds((data || []).map((r) => r.buddy_id)));
+    let cancelled = false;
+    fetchMyProfile(user.id).then(async (profile) => {
+      if (cancelled) return;
+      setMyProfile(profile);
+      const conns = await fetchMyConnections(user.id);
+      if (cancelled) return;
+      setConnectedIds(conns);
+      if (profile?.study_buddy_visible) {
+        const list = await fetchVisibleBuddies(user.id);
+        if (!cancelled) setBuddies(list);
+      }
+      if (!cancelled) setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [user.id]);
 
-  async function connect(buddyId) {
-    setConnectedIds((ids) => [...ids, buddyId]);
-    await supabase.from('study_buddy_connections').insert({ user_id: user.id, buddy_id: buddyId });
+  async function handleToggleVisible(next) {
+    if (togglingVisible) return;
+    setTogglingVisible(true);
+    try {
+      await setStudyBuddyVisible(user.id, next);
+      setMyProfile((p) => (p ? { ...p, study_buddy_visible: next } : p));
+      if (next) {
+        const list = await fetchVisibleBuddies(user.id);
+        setBuddies(list);
+      } else {
+        setBuddies([]);
+      }
+    } finally {
+      setTogglingVisible(false);
+    }
   }
+
+  async function handleConnect(buddyId) {
+    setConnectingId(buddyId);
+    try {
+      await connectWithBuddy(user.id, buddyId);
+      setConnectedIds((ids) => [...ids, buddyId]);
+    } finally {
+      setConnectingId(null);
+    }
+  }
+
+  if (loading) {
+    return <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>;
+  }
+
+  const isVisible = !!myProfile?.study_buddy_visible;
+  const matches = buddies
+    .map((b) => ({ buddy: b, ...computeMatch(myProfile || {}, b) }))
+    .sort((a, b) => b.score - a.score);
 
   return (
     <div>
       <PageHeader sub="Oxşar maraqlara və ixtisas qrupuna sahib istifadəçilərlə tanış ol">Tədris Yoldaşı</PageHeader>
-      <div className="grid sm:grid-cols-2 gap-4">
-        {MOCK_BUDDIES.map((b) => {
-          const connected = connectedIds.includes(b.id);
-          return (
-            <div key={b.id} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-xl font-extrabold text-white flex-shrink-0">
-                  {b.name.charAt(0)}
+
+      <Panel>
+        <PanelSection first title="Görünürlük" desc="Görünən olmadan başqa istifadəçiləri görə bilməzsən — bu qarşılıqlı işləyir">
+          <Toggle
+            label="Tədris Yoldaşı siyahısında görünən ol"
+            desc="Ad, avatar, təhsil məlumatların və maraqların digər istifadəçilərə göstərilir"
+            checked={isVisible}
+            onChange={handleToggleVisible}
+          />
+        </PanelSection>
+      </Panel>
+
+      {!isVisible ? (
+        <p className="text-sm text-[var(--text-secondary)] mt-5">Başqa tələbələri görmək üçün əvvəlcə özün görünən olmalısan.</p>
+      ) : matches.length === 0 ? (
+        <p className="text-sm text-[var(--text-secondary)] mt-5">Hələ uyğun tədris yoldaşı yoxdur — daha çox istifadəçi qoşulduqca burda görünəcək.</p>
+      ) : (
+        <div className="grid sm:grid-cols-2 gap-4 mt-5">
+          {matches.map(({ buddy, score, shared }) => {
+            const connected = connectedIds.includes(buddy.id);
+            const subtitle = [buddy.major, buddy.university].filter(Boolean).join(' · ') || 'MLUE istifadəçisi';
+            return (
+              <div key={buddy.id} className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl shadow-sm p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  {buddy.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={buddy.avatar_url} alt="" className="w-14 h-14 rounded-full object-cover flex-shrink-0" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-xl font-extrabold text-white flex-shrink-0">
+                      {(buddy.full_name || '?').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-[var(--text-primary)] truncate">{buddy.full_name || 'Adsız istifadəçi'}</div>
+                    <div className="text-xs text-[var(--text-secondary)] truncate">{subtitle}</div>
+                    <span className="text-xs font-bold text-[var(--success)]">{score}% uyğunluq</span>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-[var(--text-primary)] truncate">{b.name}</div>
-                  <div className="text-xs text-[var(--text-secondary)] truncate">{b.group}</div>
-                  <span className="text-xs font-bold text-[var(--success)]">{b.matchPercent}% uyğunluq</span>
-                </div>
+                {shared.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {shared.map((tag) => (
+                      <span key={tag} className="text-[10px] bg-[var(--bg-surface-2)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{tag}</span>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={connected || connectingId === buddy.id}
+                  onClick={() => handleConnect(buddy.id)}
+                  className={`w-full text-sm font-bold px-5 py-2 rounded-lg transition-colors ${
+                    connected
+                      ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed'
+                      : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white disabled:opacity-60'
+                  }`}
+                >
+                  {connected ? 'Göndərildi ✓' : 'Bağlantı qur'}
+                </button>
               </div>
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {b.sharedCourses.map((c) => (
-                  <span key={c} className="text-[10px] bg-[var(--bg-surface-2)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">{c}</span>
-                ))}
-              </div>
-              <button
-                type="button"
-                disabled={connected}
-                onClick={() => connect(b.id)}
-                className={`w-full text-sm font-bold px-5 py-2 rounded-lg transition-colors ${
-                  connected
-                    ? 'bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed'
-                    : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
-                }`}
-              >
-                {connected ? 'Göndərildi ✓' : 'Bağlantı qur'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
