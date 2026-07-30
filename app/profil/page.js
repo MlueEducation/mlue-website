@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
+import { fetchMyCompanyMembership, joinCompanyWithCode } from '@/lib/companyMembership';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -631,6 +632,67 @@ function computeCvCompletion(profile) {
   return Math.round((filled / fields.length) * 100);
 }
 
+function CompanyMembershipCard({ user }) {
+  const [membership, setMembership] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [code, setCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchMyCompanyMembership(user.id)
+      .then(setMembership)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [user.id]);
+
+  async function handleJoin() {
+    if (!code.trim()) return;
+    setJoining(true);
+    setError(null);
+    try {
+      await joinCompanyWithCode(code.trim());
+      const updated = await fetchMyCompanyMembership(user.id);
+      setMembership(updated);
+      setCode('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  if (loading) return <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>;
+
+  if (membership?.company) {
+    return (
+      <p className="text-sm text-[var(--text-primary)]">
+        <b>{membership.company.name}</b> şirkətinin işçisisən.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-3">
+      <input
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
+        placeholder="Şirkət kodu"
+        className="flex-1 bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+      />
+      <button
+        type="button"
+        onClick={handleJoin}
+        disabled={joining}
+        className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white font-bold text-sm px-4 py-2 rounded-lg transition-colors flex-shrink-0"
+      >
+        {joining ? 'Qoşulur...' : 'Qoşul'}
+      </button>
+      {error && <p className="text-xs text-[var(--danger)] sm:basis-full">{error}</p>}
+    </div>
+  );
+}
+
 function CareerPanel({ user, profile, onNavigate }) {
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -755,6 +817,9 @@ function CareerPanel({ user, profile, onNavigate }) {
           <button onClick={() => onNavigate('internships')} className="text-sm font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
             Mikro-Təcrübələr bölməsinə bax →
           </button>
+        </PanelSection>
+        <PanelSection title="Şirkətim" desc="İş yerinin MLUE-də irəliləyişini izləməsi üçün şirkət kodunu daxil et">
+          <CompanyMembershipCard user={user} />
         </PanelSection>
         <PanelSection title="Müsahibəyə hazırlıq" desc="Simulyasiya olunmuş müsahibə seansların">
           <div className="flex justify-between text-sm mb-2">
