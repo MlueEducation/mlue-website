@@ -1,5 +1,21 @@
 [
   {
+    "id": "b2b-sirket-portali",
+    "title": "Şirkətlər üçün MLUE Studio-da yeni bölmə açıldı 🏢",
+    "description": "Tərəfdaş şirkətlər artıq öz meneceriləri vasitəsilə işçilərinin kurs irəliləyişini izləyə, mikro-təcrübə elanları yerləşdirə bilər. İşçilər isə şirkət kodu ilə qoşularaq bu sistemə daxil olurlar.",
+    "platform": "Hamısı",
+    "category": "Yenilik",
+    "created_at": "2026-07-30T14:00:00.000Z"
+  },
+  {
+    "id": "mikro-tecrubeler-real-oldu",
+    "title": "Mikro-Təcrübələr bölməsi artıq real elanlarla işləyir 💼",
+    "description": "Əvvəllər nümunə olaraq göstərilən tapşırıqların yerini indi real şirkətlərin yerləşdirdiyi mikro-təcrübə elanları tutub — müraciət et, tapşırığı tamamla, MLUE Token qazan.",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-30T13:50:00.000Z"
+  },
+  {
     "id": "melumatlarin-qorunmasi-sehifeleri",
     "title": "Məxfilik Siyasəti və İstifadə Şərtləri səhifələri əlavə olundu 📜",
     "description": "Kart məlumatlarının necə qorunduğunu, geri ödəniş şərtlərini və müəllim gəlir bölgüsünü izah edən yeni səhifələr artıq saytın alt hissəsindən əlçatandır.",
