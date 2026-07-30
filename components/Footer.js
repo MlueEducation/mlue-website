@@ -26,6 +26,10 @@ export default function Footer() {
             <Link href="/giris">Giriş</Link>
             <Link href="/erken-giris">Erkən çıxış</Link>
           </div>
+          <div className="footer-links">
+            <Link href="/privacy">Məxfilik Siyasəti</Link>
+            <Link href="/terms">İstifadə Şərtləri</Link>
+          </div>
         </div>
         <div className="footer-bottom">© 2026 Mlue. Bütün hüquqlar qorunur. · Bakı, Azərbaycan</div>
       </div>

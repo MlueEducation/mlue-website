@@ -25,8 +25,8 @@ export default function NewsReleaseModal({ group, visibleItems, onClose }) {
 
   return (
     <>
-      <div className={`news-modal-backdrop ${open ? 'open' : ''}`} onClick={onClose} />
-      <div className={`news-modal-panel ${open ? 'open' : ''}`} role="dialog" aria-modal="true" aria-hidden={!open}>
+      <div className={`mlue-modal-backdrop ${open ? 'open' : ''}`} onClick={onClose} />
+      <div className={`mlue-modal-panel wide ${open ? 'open' : ''}`} role="dialog" aria-modal="true" aria-hidden={!open}>
         {group && (
           <>
             <div className="flex items-center justify-between gap-3 mb-6">

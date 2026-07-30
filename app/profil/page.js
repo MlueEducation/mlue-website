@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
+import CheckoutModal from '@/components/CheckoutModal';
+import AccountRecoveryModal from '@/components/AccountRecoveryModal';
 import AchievementsPanel from '@/components/panels/AchievementsPanel';
 import DimCalculatorPanel from '@/components/panels/DimCalculatorPanel';
 import ExamAnalysisPanel from '@/components/panels/ExamAnalysisPanel';
@@ -819,31 +821,100 @@ function TokensPanel({ user }) {
 
 function WalletPanel({ user }) {
   const [transactions, setTransactions] = useState([]);
+  const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  function refetch() {
+    return Promise.all([
+      supabase.from('wallet_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('user_payment_methods').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+    ]).then(([txRes, methodsRes]) => {
+      setTransactions(txRes.data || []);
+      setMethods(methodsRes.data || []);
+      setLoading(false);
+    });
+  }
 
   useEffect(() => {
-    supabase
-      .from('wallet_transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setTransactions(data || []);
-        setLoading(false);
-      });
+    refetch();
   }, [user.id]);
+
+  async function handleSetDefault(id) {
+    await supabase.from('user_payment_methods').update({ is_default: false }).eq('user_id', user.id);
+    await supabase.from('user_payment_methods').update({ is_default: true }).eq('id', id);
+    refetch();
+  }
+
+  async function handleDeleteMethod(id) {
+    await supabase.from('user_payment_methods').delete().eq('id', id);
+    refetch();
+  }
+
+  const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
+  const defaultMethod = methods.find((m) => m.is_default) || methods[0] || null;
 
   return (
     <div>
-      <PageHeader sub="Ödəniş üsulu və əməliyyat tarixçəsi">Pul Kisəsi</PageHeader>
+      <PageHeader sub="Balans, ödəniş üsulu və əməliyyat tarixçəsi">Pul Kisəsi</PageHeader>
       <div className="space-y-5">
         <Panel>
-          <PanelSection first title="Ödəniş üsulu" desc="Kurs alışları üçün istifadə olunan kart">
-            <div className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5 w-fit">
-              <span className="text-lg">💳</span>
-              <span className="text-sm text-[var(--text-primary)]">•••• •••• •••• 4242</span>
-            </div>
+          <PanelSection first title="Cari balans">
+            <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : `${balance.toFixed(2)} ₼`}</div>
           </PanelSection>
+          <PanelSection title="Ödəniş üsulu" desc="Kurs alışları üçün istifadə olunan kart">
+            {methods.length === 0 ? (
+              <div>
+                <p className="text-sm text-[var(--text-secondary)] mb-3">Hələ saxlanılan kartın yoxdur.</p>
+                <button
+                  type="button"
+                  onClick={() => setCheckoutOpen(true)}
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  Balansı artır
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-3 bg-[var(--bg-surface-2)] rounded-xl p-3.5 w-fit">
+                  <span className="text-lg">💳</span>
+                  <span className="text-sm text-[var(--text-primary)]">{defaultMethod.card_brand} •••• {defaultMethod.card_last_four}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCheckoutOpen(true)}
+                  className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors"
+                >
+                  Balansı artır
+                </button>
+              </div>
+            )}
+          </PanelSection>
+          {methods.length > 0 && (
+            <PanelSection title="Ödəniş üsulları" desc="Saxlanılan kartlarını idarə et">
+              <div className="divide-y divide-[var(--border)]">
+                {methods.map((m) => (
+                  <div key={m.id} className="flex items-center justify-between py-3 text-sm gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-base">💳</span>
+                      <span className="text-[var(--text-primary)]">{m.card_brand} •••• {m.card_last_four}</span>
+                      {m.is_default && <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--accent-soft)] text-[var(--accent)] px-2 py-0.5 rounded-full">Defolt</span>}
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      {!m.is_default && (
+                        <button type="button" onClick={() => handleSetDefault(m.id)} className="text-xs font-bold text-[var(--accent)] hover:text-[var(--accent-hover)]">
+                          Defolt et
+                        </button>
+                      )}
+                      <button type="button" onClick={() => handleDeleteMethod(m.id)} className="text-xs font-bold text-[var(--danger)] hover:opacity-80">
+                        Sil
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PanelSection>
+          )}
           <PanelSection title="Əməliyyatlar" desc="Son ödəniş və balans hərəkətlərin">
             {loading ? (
               <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
@@ -865,6 +936,13 @@ function WalletPanel({ user }) {
           </PanelSection>
         </Panel>
       </div>
+      <CheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        user={user}
+        savedMethod={defaultMethod}
+        onSuccess={refetch}
+      />
     </div>
   );
 }
@@ -897,6 +975,7 @@ export default function ProfilPage() {
   const [active, setActive] = useState('identity');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [pendingRecovery, setPendingRecovery] = useState(null);
 
   useEffect(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
@@ -912,6 +991,7 @@ export default function ProfilPage() {
       .maybeSingle()
       .then(({ data }) => {
         if (!data) { setProfile(data); setProfileLoading(false); return; }
+        if (data.deleted_at) { setPendingRecovery(data); setProfileLoading(false); return; }
         const updated = applyDailyStreak(data);
         setProfile(updated);
         setProfileLoading(false);
@@ -944,6 +1024,18 @@ export default function ProfilPage() {
           <Link href="/giris" className="block bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold py-3 rounded-lg transition-colors">Giriş et</Link>
           <div className="text-xs text-[var(--text-secondary)] mt-4">Hesabın yoxdur? <Link href="/qeydiyyat" className="text-[var(--accent)] font-semibold">Qeydiyyatdan keç</Link></div>
         </div>
+      </div>
+    );
+  }
+
+  if (pendingRecovery) {
+    return (
+      <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex items-center justify-center">
+        <AccountRecoveryModal
+          open
+          profile={pendingRecovery}
+          onResolved={() => { setPendingRecovery(null); window.location.reload(); }}
+        />
       </div>
     );
   }

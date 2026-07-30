@@ -1,5 +1,37 @@
 [
   {
+    "id": "melumatlarin-qorunmasi-sehifeleri",
+    "title": "Məxfilik Siyasəti və İstifadə Şərtləri səhifələri əlavə olundu 📜",
+    "description": "Kart məlumatlarının necə qorunduğunu, geri ödəniş şərtlərini və müəllim gəlir bölgüsünü izah edən yeni səhifələr artıq saytın alt hissəsindən əlçatandır.",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-30T13:00:00.000Z"
+  },
+  {
+    "id": "pul-kisesi-kart-saxlama",
+    "title": "Pul Kisəsinə kart saxlama və sürətli balans artırma gəldi 💳",
+    "description": "Artıq Pul Kisəsi bölməsindən balansını artıra, kartını gələcək ödənişlər üçün yadda saxlaya və saxlanılan kartla bir kliklə ödəniş edə bilərsən (hazırda demo rejimdə).",
+    "platform": "MLUE",
+    "category": "Yenilik",
+    "created_at": "2026-07-30T12:30:00.000Z"
+  },
+  {
+    "id": "hesab-silme-30-gun-berpa",
+    "title": "Hesabını silsən belə, 30 gün ərzində geri qaytara bilərsən 🛡️",
+    "description": "Tənzimləmələrdəki hesab silmə addımı artıq daha təhlükəsizdir — hesabını sildikdən sonra 30 gün ərzində yenidən daxil olsan, bütün nailiyyətlərin və sertifikatlarınla birlikdə hesabını bərpa edə bilərsən.",
+    "platform": "MLUE",
+    "category": "Təkmilləşdirmə",
+    "created_at": "2026-07-30T12:00:00.000Z"
+  },
+  {
+    "id": "menyu-ve-pencerelerin-animasiyasi",
+    "title": "Bildiriş və profil menyuları artıq daha yumşaq açılır ✨",
+    "description": "Bildiriş zəngi, profil menyusu və bütün pəncərələr saytın hər yerində eyni yumşaq animasiya ilə açılıb bağlanır — istifadə daha axıcı hiss olunur.",
+    "platform": "MLUE",
+    "category": "Təkmilləşdirmə",
+    "created_at": "2026-07-30T11:30:00.000Z"
+  },
+  {
     "id": "mobil-goruntu-duzelisleri",
     "title": "Mobil telefonlarda görüntü xətaları düzəldildi 📱",
     "description": "Giriş və Qeydiyyat səhifələrində telefon ekranında yan tərəfə sürüşmə xətası aradan qaldırıldı, CV səhifəndəki statistikanın qırıq görünməsi düzəldildi və Profil bölməsindəki menyunun sürüşdürülə bildiyi indi daha aydın görünür.",

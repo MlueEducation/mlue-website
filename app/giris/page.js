@@ -6,12 +6,14 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
 import GoogleIcon from '@/components/GoogleIcon';
+import AccountRecoveryModal from '@/components/AccountRecoveryModal';
 
 export default function GirisPage() {
   const router = useRouter();
   const [msg, setMsg] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [pendingRecovery, setPendingRecovery] = useState(null);
 
   async function handleGoogle() {
     setGoogleLoading(true);
@@ -39,10 +41,16 @@ export default function GirisPage() {
     }
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, deleted_at')
       .eq('id', data.user.id)
       .maybeSingle();
     setLoading(false);
+
+    if (profile?.deleted_at) {
+      setPendingRecovery(profile);
+      return;
+    }
+
     setMsg({ text: 'Daxil oldun! Yönləndirilirsən...', type: 'success' });
     const destination = profile ? '/profil' : '/onboarding';
     setTimeout(() => router.push(destination), 600);
@@ -69,6 +77,11 @@ export default function GirisPage() {
         {msg.text && <div className={`form-msg show ${msg.type}`}>{msg.text}</div>}
         <div className="auth-switch">Hesabın yoxdur? <Link href="/qeydiyyat">Qeydiyyatdan keç</Link></div>
       </div>
+      <AccountRecoveryModal
+        open={!!pendingRecovery}
+        profile={pendingRecovery}
+        onResolved={() => router.push('/profil')}
+      />
     </section>
   );
 }

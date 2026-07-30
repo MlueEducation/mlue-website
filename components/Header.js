@@ -74,23 +74,21 @@ function AuthArea({ onNavigate }) {
           )}
           <span className="profile-email">{displayName}</span>
         </button>
-        {open && (
-          <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] shadow-[var(--shadow-lg)] overflow-hidden z-50 py-1.5">
-            <Link href="/profil" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
-              👤 Profil
-            </Link>
-            <Link href="/achievements" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
-              🏆 Nailiyyətlər
-            </Link>
-            <Link href="/profil?tab=settings" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
-              ⚙️ Tənzimləmələr
-            </Link>
-            <div className="my-1.5 border-t border-[var(--border)]" />
-            <button type="button" onClick={handleSignOut} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm font-semibold text-[var(--danger)] hover:bg-[var(--bg-surface-2)] transition-colors">
-              🚪 Çıxış
-            </button>
-          </div>
-        )}
+        <div className={`absolute right-0 mt-2 w-56 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border)] shadow-[var(--shadow-lg)] overflow-hidden z-50 py-1.5 dropdown-panel ${open ? 'open' : ''}`}>
+          <Link href="/profil" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+            👤 Profil
+          </Link>
+          <Link href="/achievements" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+            🏆 Nailiyyətlər
+          </Link>
+          <Link href="/profil?tab=settings" onClick={() => { setOpen(false); onNavigate?.(); }} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors">
+            ⚙️ Tənzimləmələr
+          </Link>
+          <div className="my-1.5 border-t border-[var(--border)]" />
+          <button type="button" onClick={handleSignOut} className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 text-sm font-semibold text-[var(--danger)] hover:bg-[var(--bg-surface-2)] transition-colors">
+            🚪 Çıxış
+          </button>
+        </div>
       </div>
     );
   }

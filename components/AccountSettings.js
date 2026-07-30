@@ -689,29 +689,15 @@ function ConnectionsTab({ user }) {
 
 /* ---------------- Təhlükəli zona ---------------- */
 function DangerZone({ user }) {
-  const [deactivating, setDeactivating] = useState(false);
-  const [deactivateMessage, setDeactivateMessage] = useState(null);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState(null);
-
-  async function handleDeactivate() {
-    setDeactivating(true);
-    setDeactivateMessage(null);
-    const { error } = await supabase.from('profiles').upsert({ id: user.id, deactivated_at: new Date().toISOString() });
-    if (error) {
-      setDeactivating(false);
-      setDeactivateMessage({ type: 'error', text: error.message });
-      return;
-    }
-    await supabase.auth.signOut();
-  }
 
   async function handleDelete() {
     if (confirmText.trim() !== 'SİL') return;
     setDeleting(true);
     setDeleteMessage(null);
-    const { error } = await supabase.from('profiles').upsert({ id: user.id, deletion_requested_at: new Date().toISOString() });
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, deleted_at: new Date().toISOString() });
     if (error) {
       setDeleting(false);
       setDeleteMessage({ type: 'error', text: error.message });
@@ -723,27 +709,14 @@ function DangerZone({ user }) {
   return (
     <div className="rounded-2xl border border-[var(--danger-30)] bg-[var(--danger-10)] p-6">
       <div className="text-sm font-bold text-[var(--danger)] mb-1">Təhlükəli zona</div>
-      <div className="text-sm text-[var(--text-secondary)] mb-5">Bu bölmədəki addımlar hesabına ciddi təsir edir. Diqqətlə davam et.</div>
+      <div className="text-sm text-[var(--text-secondary)] mb-5">Bu addım hesabına ciddi təsir edir. Diqqətlə davam et.</div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4 border-t border-[var(--danger-30)]">
-        <div>
-          <div className="text-sm font-semibold text-[var(--text-primary)]">Hesabı müvəqqəti dondur</div>
-          <div className="text-xs text-[var(--text-secondary)] mt-0.5">Hesabın gizlədilir, istənilən vaxt yenidən daxil olub aktivləşdirə bilərsən.</div>
-        </div>
-        <button
-          onClick={handleDeactivate}
-          disabled={deactivating}
-          className="flex-shrink-0 bg-transparent border border-[var(--danger-50)] text-[var(--danger)] hover:bg-[var(--danger-10)] disabled:opacity-50 text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
-        >
-          {deactivating ? 'Dondurulur...' : 'Hesabı müvəqqəti dondur'}
-        </button>
-      </div>
-      {deactivateMessage && <p className="text-xs text-[var(--danger)] mb-2">{deactivateMessage.text}</p>}
-
-      <div className="pt-4 border-t border-[var(--danger-30)]">
-        <div className="text-sm font-semibold text-[var(--text-primary)]">Hesabı həmişəlik sil</div>
+      <div>
+        <div className="text-sm font-semibold text-[var(--text-primary)]">Hesabı sil</div>
         <div className="text-xs text-[var(--text-secondary)] mt-0.5 mb-3">
-          Bütün məlumatların silinmə üçün qeydə alınır. Bu addım geri qaytarıla bilməz. Təsdiqləmək üçün aşağıya <b>SİL</b> yaz.
+          Hesabın 30 gün ərzində bərpa oluna bilər — bu müddətdə yenidən daxil olsan, hesabını geri qaytarmaq seçimi görəcəksən.
+          XP-n, sertifikatların və kurs qeydiyyatların bu müddətdə silinmir. 30 gündən sonra hesabın daimi olaraq deaktiv qalır.
+          Təsdiqləmək üçün aşağıya <b>SİL</b> yaz.
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -757,7 +730,7 @@ function DangerZone({ user }) {
             disabled={confirmText.trim() !== 'SİL' || deleting}
             className="flex-shrink-0 bg-[var(--danger)] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded-lg transition-colors"
           >
-            {deleting ? 'Göndərilir...' : 'Hesabı həmişəlik sil'}
+            {deleting ? 'Göndərilir...' : 'Hesabı sil'}
           </button>
         </div>
         {deleteMessage && <p className="text-xs text-[var(--danger)] mt-2">{deleteMessage.text}</p>}
