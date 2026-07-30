@@ -1,7 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useNewsList } from '@/hooks/useNews';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useReleaseGroups } from '@/hooks/useNews';
+import { RELEASE_SECTIONS, formatReleaseDate } from '@/lib/news';
+import NewsReleaseModal from './NewsReleaseModal';
 
 const PLATFORM_TABS = [
   { id: 'all', label: 'Hamısı' },
@@ -9,52 +13,77 @@ const PLATFORM_TABS = [
   { id: 'MLUE Studio', label: 'MLUE Studio' },
 ];
 
-const CATEGORY_STYLES = {
-  'Yenilik': 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent)]/20',
-  'Təkmilləşdirmə': 'bg-[var(--success-soft)] text-[var(--success)] border-[var(--success)]/20',
-  'Xəta Həlli': 'bg-[var(--danger-10)] text-[var(--danger)] border-[var(--danger)]/20',
-  'Performans': 'bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning)]/20',
-};
-
-const CATEGORY_EMOJI = {
-  'Yenilik': '✨',
-  'Təkmilləşdirmə': '🛠️',
-  'Xəta Həlli': '🐛',
-  'Performans': '⚡',
-};
-
-function formatDate(iso) {
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
+function visibleItemsOf(group, platform) {
+  if (platform === 'all') return group.items;
+  return group.items.filter((i) => i.platform === platform || i.platform === 'Hamısı');
 }
 
-function NewsCard({ item }) {
+function ReleaseCard({ group, visibleItems, onOpen }) {
+  const summary = RELEASE_SECTIONS
+    .map((section) => ({ section, count: visibleItems.filter((i) => section.categories.includes(i.category)).length }))
+    .filter((s) => s.count > 0)
+    .map((s) => `${s.count} ${s.section.shortLabel}`)
+    .join(' · ');
+
+  const headline = group.isLatest
+    ? (visibleItems.find((i) => i.category === 'Yenilik') || visibleItems[0])?.title
+    : null;
+
   return (
-    <div className="rounded-3xl bg-[var(--bg-surface)]/70 backdrop-blur-xl border border-[var(--border)] p-6 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] transition-all duration-300">
-      <div className="flex items-center justify-between gap-3 mb-4">
-        <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${CATEGORY_STYLES[item.category] || CATEGORY_STYLES['Yenilik']}`}>
-          {CATEGORY_EMOJI[item.category]} {item.category}
-        </span>
-        <span className="text-xs font-semibold text-[var(--text-tertiary)] flex-shrink-0">{item.platform}</span>
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`news-release-card relative text-left rounded-3xl border border-[var(--border)] p-6 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-md)] ${
+        group.isLatest ? 'md:col-span-2 min-h-[240px] sm:min-h-[280px] news-card-latest' : 'min-h-[170px]'
+      }`}
+    >
+      {group.isLatest && <span className="news-badge-new">Yeni</span>}
+      <div>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-sm font-extrabold bg-[var(--accent-soft)] text-[var(--accent)] px-3 py-1 rounded-full">{group.versionTag}</span>
+          <span className="text-xs text-[var(--text-tertiary)]">{formatReleaseDate(group.releaseDate)}</span>
+        </div>
+        {headline && <h3 className="text-xl font-extrabold text-[var(--text-primary)] mb-2">{headline}</h3>}
       </div>
-      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">{item.title}</h3>
-      <p className="text-sm text-[var(--text-secondary)] mb-4">{item.description}</p>
-      <div className="text-xs text-[var(--text-tertiary)]">{formatDate(item.created_at)}</div>
-    </div>
+      <div className="text-sm font-semibold text-[var(--text-secondary)]">{summary}</div>
+    </button>
   );
 }
 
-export default function MlueNews() {
+export default function MlueNews({ limit }) {
   const [platform, setPlatform] = useState('all');
-  const { data: allNews = [] } = useNewsList();
+  const [selectedGroupKey, setSelectedGroupKey] = useState(null);
+  const { data: groups = [], allNews } = useReleaseGroups();
+  const pathname = usePathname();
 
-  const filtered = useMemo(() => {
-    if (platform === 'all') return allNews;
-    return allNews.filter((n) => n.platform === platform || n.platform === 'Hamısı');
-  }, [allNews, platform]);
+  const visibleGroups = useMemo(() => {
+    return groups
+      .map((group) => ({ group, visibleItems: visibleItemsOf(group, platform) }))
+      .filter(({ visibleItems }) => visibleItems.length > 0);
+  }, [groups, platform]);
+
+  const shown = limit ? visibleGroups.slice(0, limit) : visibleGroups;
+  const truncated = limit && visibleGroups.length > limit;
+
+  // Deep link: /xeberler?release=<groupKey> auto-opens that release's modal.
+  useEffect(() => {
+    if (groups.length === 0) return;
+    const releaseParam = new URLSearchParams(window.location.search).get('release');
+    if (releaseParam && groups.some((g) => g.groupKey === releaseParam)) {
+      setSelectedGroupKey(releaseParam);
+    }
+  }, [groups]);
+
+  function openGroup(groupKey) {
+    setSelectedGroupKey(groupKey);
+    window.history.replaceState(null, '', `${pathname}?release=${encodeURIComponent(groupKey)}`);
+  }
+  function closeModal() {
+    setSelectedGroupKey(null);
+    window.history.replaceState(null, '', pathname);
+  }
+
+  const selected = visibleGroups.find(({ group }) => group.groupKey === selectedGroupKey);
 
   return (
     <div>
@@ -79,19 +108,27 @@ export default function MlueNews() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {shown.length === 0 ? (
         <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border)] p-10 text-center">
           <p className="text-sm text-[var(--text-secondary)]">
             {allNews.length === 0 ? 'Hələlik heç bir xəbər yoxdur.' : 'Bu platforma üçün hələ xəbər yoxdur.'}
           </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((item) => (
-            <NewsCard key={item.id} item={item} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {shown.map(({ group, visibleItems }) => (
+            <ReleaseCard key={group.groupKey} group={group} visibleItems={visibleItems} onOpen={() => openGroup(group.groupKey)} />
           ))}
         </div>
       )}
+
+      {truncated && (
+        <div className="text-center mt-8">
+          <Link href="/xeberler" className="btn-secondary">Bütün xəbərlərə bax →</Link>
+        </div>
+      )}
+
+      <NewsReleaseModal group={selected?.group} visibleItems={selected?.visibleItems} onClose={closeModal} />
     </div>
   );
 }

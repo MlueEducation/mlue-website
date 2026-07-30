@@ -259,7 +259,7 @@ export default function HomePage() {
 
       <section id="mlue-news">
         <div className="container">
-          <MlueNews />
+          <MlueNews limit={3} />
         </div>
       </section>
 

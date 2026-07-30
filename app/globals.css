@@ -534,6 +534,51 @@ h1.hero-title .accent { background: linear-gradient(90deg, var(--accent), var(--
   }
   .ai-chat-drawer.open { transform: translateY(0); }
 }
+
+/* =========================================================
+   MLUE News — release cards + patch-notes modal
+   ========================================================= */
+.news-release-card {
+  background-color: var(--bg-surface);
+  background-image:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 85% 80%, color-mix(in srgb, var(--accent-warm) 14%, transparent) 0%, transparent 50%),
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--accent) 6%, transparent) 0 2px, transparent 2px 14px);
+}
+@keyframes newsCardGlow {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent), var(--shadow-lg); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 45%, transparent), var(--shadow-lg); }
+}
+.news-card-latest { animation: newsCardGlow 2.4s var(--ease) infinite; }
+@keyframes newsBadgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.news-badge-new {
+  position: absolute; top: 16px; right: 16px;
+  animation: newsBadgePulse 1.6s var(--ease) infinite;
+  background: var(--accent); color: #fff; font-weight: 800; font-size: 11px;
+  letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-full);
+}
+.news-platform-badge {
+  display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .02em;
+  padding: 2px 6px; border-radius: var(--radius-sm);
+  background: var(--bg-surface-2); border: 1px solid var(--border); color: var(--text-tertiary);
+}
+.news-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, .5); z-index: 300;
+  opacity: 0; pointer-events: none; transition: opacity .25s var(--ease);
+}
+.news-modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.news-modal-panel {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -48%) scale(.96);
+  width: min(640px, 92vw); max-height: 86dvh; overflow-y: auto;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg); z-index: 301; padding: 28px;
+  opacity: 0; pointer-events: none; transition: opacity .25s var(--ease), transform .25s var(--ease);
+}
+.news-modal-panel.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
 .category-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 44px; }
 .cat-pill {
   display: inline-flex; align-items: center; gap: 7px; background: var(--bg-surface); border: 1px solid var(--border);
