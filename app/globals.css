@@ -288,7 +288,6 @@ header nav {
 .nav-overlay .nav-auth-links { flex-direction: column; align-items: stretch; gap: 12px; }
 .nav-overlay .nav-cta { width: 100%; text-align: center; padding: 16px; font-size: 15.5px; }
 .nav-overlay .nav-login { width: 100%; text-align: center; padding: 12px; font-size: 15.5px; }
-.nav-overlay .profile-pill { width: 100%; justify-content: center; padding: 12px 16px; }
 @media (min-width: 861px) { .nav-overlay { display: none; } }
 
 /* ---------- profile pill ---------- */
@@ -630,8 +629,12 @@ footer { border-top: 1px solid var(--border); padding: 56px 0 32px; }
    ========================================================= */
 @media (max-width: 860px) {
   .nav-links { display: none; }
-  .nav-auth-desktop { display: none; }
   .burger { display: flex; }
+  /* Header profile pill collapses to an avatar-only circle on mobile,
+     matching the theme-toggle/notification-bell button size, since there's
+     no room for the full name text next to those two icons + the burger. */
+  .profile-email { display: none; }
+  .profile-pill { padding: 5px; }
   .compare { grid-template-columns: 1fr; }
   .feat-grid { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: repeat(2, 1fr); }

@@ -104,6 +104,7 @@ function AuthArea({ onNavigate }) {
 
 export default function Header() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const isNewsActive = pathname === '/xeberler';
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -142,7 +143,7 @@ export default function Header() {
         <div className="nav-right">
           <ThemeToggle />
           <NotificationBell />
-          <div className="nav-auth-desktop"><AuthArea /></div>
+          <AuthArea />
           <button className={`burger ${open ? 'open' : ''}`} aria-label="Menyu" aria-expanded={open} onClick={() => setOpen(!open)}>
             <span></span><span></span><span></span>
           </button>
@@ -162,7 +163,13 @@ export default function Header() {
             <NewsPulseDot />
           </Link>
         </div>
-        <div className="nav-overlay-auth"><AuthArea onNavigate={() => setOpen(false)} /></div>
+        {/* Logged-in users already have the avatar + dropdown visible in the
+            header itself (see nav-right above) — showing it again here would
+            be a redundant, clipped-looking duplicate. Only unauthenticated
+            visitors need Giriş/Qeydiyyat surfaced in this menu. */}
+        {!user && (
+          <div className="nav-overlay-auth"><AuthArea onNavigate={() => setOpen(false)} /></div>
+        )}
       </div>
     </header>
   );
