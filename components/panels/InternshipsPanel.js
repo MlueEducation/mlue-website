@@ -20,6 +20,7 @@ export default function InternshipsPanel({ user }) {
   const [applications, setApplications] = useState([]); // real internship_applications rows
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+  const [errorId, setErrorId] = useState(null);
 
   useEffect(() => {
     Promise.all([fetchOpenPostings(), fetchMyApplications(user.id)])
@@ -35,18 +36,32 @@ export default function InternshipsPanel({ user }) {
 
   async function handleApply(posting) {
     setBusyId(posting.id);
-    await applyToPosting(user.id, posting.id);
-    setApplications((prev) => [{ user_id: user.id, posting_id: posting.id, status: 'applied', applied_at: new Date().toISOString() }, ...prev]);
-    setBusyId(null);
+    setErrorId(null);
+    try {
+      await applyToPosting(user.id, posting.id);
+      setApplications((prev) => [{ user_id: user.id, posting_id: posting.id, status: 'applied', applied_at: new Date().toISOString() }, ...prev]);
+    } catch (err) {
+      console.error('applyToPosting failed:', err);
+      setErrorId(posting.id);
+    } finally {
+      setBusyId(null);
+    }
   }
 
   async function handleComplete(posting) {
     setBusyId(posting.id);
-    const result = await completeApplication(user.id, posting.id, posting.reward_tokens, posting.title);
-    if (result) {
-      setApplications((prev) => prev.map((a) => (a.posting_id === posting.id ? { ...a, ...result } : a)));
+    setErrorId(null);
+    try {
+      const result = await completeApplication(user.id, posting.id, posting.reward_tokens, posting.title);
+      if (result) {
+        setApplications((prev) => prev.map((a) => (a.posting_id === posting.id ? { ...a, ...result } : a)));
+      }
+    } catch (err) {
+      console.error('completeApplication failed:', err);
+      setErrorId(posting.id);
+    } finally {
+      setBusyId(null);
     }
-    setBusyId(null);
   }
 
   return (
@@ -127,6 +142,9 @@ export default function InternshipsPanel({ user }) {
                     >
                       Müraciət et
                     </button>
+                  )}
+                  {errorId === job.id && (
+                    <p className="text-[11px] text-[var(--danger)] mt-2">Xəta baş verdi, bir az sonra yenidən cəhd et.</p>
                   )}
                 </div>
               );
