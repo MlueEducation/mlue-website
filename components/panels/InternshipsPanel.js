@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ProfileUI';
-import { fetchOpenPostings, fetchCompaniesByIds, fetchMyApplications, applyToPosting, completeApplication } from '@/lib/internships';
+import { fetchOpenPostings, fetchCompaniesByIds, fetchMyApplications, applyToPosting, submitForReview } from '@/lib/internships';
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -48,16 +48,16 @@ export default function InternshipsPanel({ user }) {
     }
   }
 
-  async function handleComplete(posting) {
+  async function handleSubmitForReview(posting) {
     setBusyId(posting.id);
     setErrorId(null);
     try {
-      const result = await completeApplication(user.id, posting.id, posting.reward_tokens, posting.title);
+      const result = await submitForReview(user.id, posting.id);
       if (result) {
         setApplications((prev) => prev.map((a) => (a.posting_id === posting.id ? { ...a, ...result } : a)));
       }
     } catch (err) {
-      console.error('completeApplication failed:', err);
+      console.error('submitForReview failed:', err);
       setErrorId(posting.id);
     } finally {
       setBusyId(null);
@@ -124,14 +124,18 @@ export default function InternshipsPanel({ user }) {
                     <button type="button" disabled className="w-full text-sm font-bold px-5 py-2 rounded-lg bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed">
                       Tamamlanıb ✔️
                     </button>
+                  ) : status === 'submitted' ? (
+                    <button type="button" disabled className="w-full text-sm font-bold px-5 py-2 rounded-lg bg-[var(--bg-surface-2)] text-[var(--text-tertiary)] cursor-not-allowed">
+                      Təsdiq gözlənilir ⏳
+                    </button>
                   ) : status === 'applied' ? (
                     <button
                       type="button"
                       disabled={busyId === job.id}
-                      onClick={() => handleComplete(job)}
+                      onClick={() => handleSubmitForReview(job)}
                       className="w-full text-sm font-bold px-5 py-2 rounded-lg bg-[var(--accent-warm)] hover:opacity-90 text-white disabled:opacity-60 transition-opacity"
                     >
-                      Tamamla
+                      Tamamladım, göndər
                     </button>
                   ) : (
                     <button
@@ -167,7 +171,7 @@ export default function InternshipsPanel({ user }) {
                   </div>
                 </div>
                 <span className={`text-sm font-bold flex-shrink-0 ${a.status === 'completed' ? 'text-[var(--accent-warm)]' : 'text-[var(--text-tertiary)]'}`}>
-                  {a.status === 'completed' ? `+${a.tokens_awarded} Token` : 'Gözləyir'}
+                  {a.status === 'completed' ? `+${a.tokens_awarded} Token` : a.status === 'submitted' ? 'Təsdiq gözlənilir' : 'Davam edir'}
                 </span>
               </div>
             );
