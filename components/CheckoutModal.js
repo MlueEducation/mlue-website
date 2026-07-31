@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { savePaymentMethod } from '@/lib/wallet';
 import { Toggle } from '@/components/ProfileUI';
 
 const PRESET_AMOUNTS = [10, 25, 50, 100];
@@ -64,16 +65,12 @@ export default function CheckoutModal({ open, onClose, user, savedMethod, onSucc
       if (mode === 'form' && saveCard) {
         const tokenId = 'demo_tok_' + crypto.randomUUID();
         const digits = cardNumber.replace(/\D/g, '');
-        await supabase.from('user_payment_methods').update({ is_default: false }).eq('user_id', user.id);
-        const { error: insertErr } = await supabase.from('user_payment_methods').insert({
-          user_id: user.id,
+        await savePaymentMethod({
           provider: 'demo',
-          card_last_four: digits.slice(-4),
-          card_brand: detectBrand(cardNumber),
-          token_id: tokenId,
-          is_default: true,
+          cardLastFour: digits.slice(-4),
+          cardBrand: detectBrand(cardNumber),
+          tokenId,
         });
-        if (insertErr) throw insertErr;
       }
       const { error: txErr } = await supabase.from('wallet_transactions').insert({
         user_id: user.id,

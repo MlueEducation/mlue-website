@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
 import { fetchMyCompanyMembership, joinCompanyWithCode } from '@/lib/companyMembership';
 import { recordQuestAction } from '@/lib/gamification';
+import { setDefaultPaymentMethod } from '@/lib/wallet';
 import { getCoursesByIds } from '@/lib/courses';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
@@ -984,6 +985,7 @@ function WalletPanel({ user }) {
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [methodError, setMethodError] = useState(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   function refetch() {
@@ -1010,9 +1012,13 @@ function WalletPanel({ user }) {
   }, [user.id]);
 
   async function handleSetDefault(id) {
-    await supabase.from('user_payment_methods').update({ is_default: false }).eq('user_id', user.id);
-    await supabase.from('user_payment_methods').update({ is_default: true }).eq('id', id);
-    refetch();
+    setMethodError(null);
+    try {
+      await setDefaultPaymentMethod(id);
+      refetch();
+    } catch (err) {
+      setMethodError(err.message);
+    }
   }
 
   async function handleDeleteMethod(id) {
@@ -1071,6 +1077,9 @@ function WalletPanel({ user }) {
           </PanelSection>
           {methods.length > 0 && (
             <PanelSection title="Ödəniş üsulları" desc="Saxlanılan kartlarını idarə et">
+              {methodError && (
+                <p className="text-xs text-[var(--danger)] mb-3">Əməliyyat uğursuz oldu: {methodError}</p>
+              )}
               <div className="divide-y divide-[var(--border)]">
                 {methods.map((m) => (
                   <div key={m.id} className="flex items-center justify-between py-3 text-sm gap-3">
