@@ -44,24 +44,32 @@ export default function MyCoursesPanel({ user }) {
   const [enrollments, setEnrollments] = useState([]);
   const [courseMap, setCourseMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setLoading(true);
     supabase
       .from('user_courses')
       .select('*')
       .eq('user_id', user.id)
       .order('enrolled_at', { ascending: false })
-      .then(async ({ data }) => {
+      .then(async ({ data, error }) => {
+        if (error) throw error;
         const rows = data || [];
         setEnrollments(rows);
-        try {
-          setCourseMap(await getCoursesByIds(rows.map((e) => e.course_id)));
-        } catch (err) {
-          console.error('Course lookup failed:', err);
-        } finally {
-          setLoading(false);
-        }
+        setCourseMap(await getCoursesByIds(rows.map((e) => e.course_id)));
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err.message);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   function handleContinue(courseId) {
@@ -79,6 +87,11 @@ export default function MyCoursesPanel({ user }) {
           <PanelSection first title="Davam edən kurslar" desc="Hələ tamamlanmamış kurslar">
             {loading ? (
               <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : loadError ? (
+              <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+                <p className="text-sm text-[var(--danger)]">Kurslar yüklənərkən xəta baş verdi: {loadError}</p>
+                <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+              </div>
             ) : active.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)]">Hazırda davam edən kursun yoxdur — kataloqdan bir kurs seç və başla.</p>
             ) : (

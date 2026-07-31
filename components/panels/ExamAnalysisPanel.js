@@ -36,8 +36,11 @@ function parseTopics(result) {
 
 export default function ExamAnalysisPanel({ user }) {
   const [result, setResult] = useState(undefined); // undefined = loading, null = no result yet
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setResult(undefined);
     supabase
       .from('exam_results')
       .select('*')
@@ -45,7 +48,16 @@ export default function ExamAnalysisPanel({ user }) {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => setResult(data || null));
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setResult(data || null);
+      })
+      .catch((err) => setLoadError(err.message));
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   const topics = useMemo(() => (result ? parseTopics(result) : []), [result]);
@@ -71,6 +83,18 @@ export default function ExamAnalysisPanel({ user }) {
     weakTopics.length > 0
       ? `Sən ${weakTopics.map((t) => t.name).join(' və ')} fənnində çətinlik çəkmisən — bu materialları nəzərdən keçirməyini tövsiyə edirəm:`
       : 'Təbriklər — bütün fənlərdə güclü nəticə göstərmisən! Səviyyəni saxlamaq üçün bu kursları da nəzərdən keçirə bilərsən:';
+
+  if (loadError) {
+    return (
+      <div>
+        <PageHeader sub="Son sınaq imtahanının təhlili və Meagle-in tövsiyələri">Sınaq Nəticələri</PageHeader>
+        <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+          <p className="text-sm text-[var(--danger)]">Nəticə yüklənərkən xəta baş verdi: {loadError}</p>
+          <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+        </div>
+      </div>
+    );
+  }
 
   if (result === undefined) {
     return (

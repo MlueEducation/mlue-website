@@ -79,10 +79,12 @@ function NotesTab({ user, courseId, activeLessonId }) {
   const [mode, setMode] = useState('list'); // list | create
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
     setLoading(true);
     supabase
       .from('notes')
@@ -90,10 +92,21 @@ function NotesTab({ user, courseId, activeLessonId }) {
       .eq('user_id', user.id)
       .eq('course_id', courseId)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .limit(200)
+      .then(({ data, error }) => {
+        if (error) throw error;
         setNotes(data || []);
         setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err.message);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id, courseId]);
 
   async function saveNote() {
@@ -154,6 +167,11 @@ function NotesTab({ user, courseId, activeLessonId }) {
 
       {loading ? (
         <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+      ) : loadError ? (
+        <div className="bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-lg px-3.5 py-3">
+          <p className="text-xs text-[var(--danger)] mb-2">Qeydlər yüklənərkən xəta baş verdi.</p>
+          <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline">Yenidən cəhd et</button>
+        </div>
       ) : notes.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)]">Bu kursla bağlı hələ qeydin yoxdur.</p>
       ) : (

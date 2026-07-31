@@ -42,25 +42,34 @@ export default function MyNotesPanel({ user }) {
   const [notes, setNotes] = useState([]);
   const [courseMap, setCourseMap] = useState(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [expandedIds, setExpandedIds] = useState(new Set());
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setLoading(true);
     supabase
       .from('notes')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .then(async ({ data }) => {
+      .limit(200)
+      .then(async ({ data, error }) => {
+        if (error) throw error;
         const rows = data || [];
         setNotes(rows);
-        try {
-          setCourseMap(await getCoursesByIds(rows.map((n) => n.course_id)));
-        } catch (err) {
-          console.error('Course lookup failed:', err);
-        } finally {
-          setLoading(false);
-        }
+        setCourseMap(await getCoursesByIds(rows.map((n) => n.course_id)));
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err.message);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   function toggleExpand(id) {
@@ -81,6 +90,13 @@ export default function MyNotesPanel({ user }) {
         {loading ? (
           <Panel className="p-6">
             <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+          </Panel>
+        ) : loadError ? (
+          <Panel className="p-6">
+            <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+              <p className="text-sm text-[var(--danger)]">Qeydlər yüklənərkən xəta baş verdi: {loadError}</p>
+              <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+            </div>
           </Panel>
         ) : groups.length === 0 ? (
           <Panel className="p-6">

@@ -630,17 +630,30 @@ function AcademicPanel({ onNavigate }) {
 function CertificatesPanel({ user }) {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setLoading(true);
     supabase
       .from('certificates')
       .select('*')
       .eq('user_id', user.id)
       .order('issue_date', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) throw error;
         setCertificates(data || []);
         setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err.message);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   return (
@@ -654,6 +667,11 @@ function CertificatesPanel({ user }) {
           <PanelSection first title="Sertifikatlar" desc="Uğurla tamamlanmış kurslardan qazanılan sertifikatlar">
             {loading ? (
               <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
+            ) : loadError ? (
+              <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+                <p className="text-sm text-[var(--danger)]">Sertifikatlar yüklənərkən xəta baş verdi: {loadError}</p>
+                <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+              </div>
             ) : certificates.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)]">Hələ sertifikatın yoxdur — bir kurs tamamlayaraq ilk sertifikatını qazan.</p>
             ) : (
@@ -892,17 +910,31 @@ function CareerPanel({ user, profile, onNavigate }) {
 function TokensPanel({ user }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setLoading(true);
     supabase
       .from('token_transactions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .limit(200)
+      .then(({ data, error }) => {
+        if (error) throw error;
         setTransactions(data || []);
         setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err.message);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
@@ -915,10 +947,17 @@ function TokensPanel({ user }) {
           <div className="p-6 flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wide mb-1">Cari balans</div>
-              <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : `${balance} MLUE Token`}</div>
+              <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : loadError ? '—' : `${balance} MLUE Token`}</div>
             </div>
           </div>
-          {!loading && (
+          {loadError ? (
+            <PanelSection title="Əməliyyatlar" desc="Token qazandığın və istifadə etdiyin hallar">
+              <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+                <p className="text-sm text-[var(--danger)]">Əməliyyatlar yüklənərkən xəta baş verdi: {loadError}</p>
+                <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+              </div>
+            </PanelSection>
+          ) : !loading && (
             <PanelSection title="Əməliyyatlar" desc="Token qazandığın və istifadə etdiyin hallar">
               {transactions.length === 0 ? (
                 <p className="text-sm text-[var(--text-secondary)]">Hələ token əməliyyatın yoxdur — nailiyyət qazanaraq token qazanmağa başla.</p>
@@ -944,21 +983,30 @@ function WalletPanel({ user }) {
   const [transactions, setTransactions] = useState([]);
   const [methods, setMethods] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   function refetch() {
+    setLoadError(null);
+    setLoading(true);
     return Promise.all([
-      supabase.from('wallet_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('wallet_transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(200),
       supabase.from('user_payment_methods').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     ]).then(([txRes, methodsRes]) => {
+      if (txRes.error) throw txRes.error;
+      if (methodsRes.error) throw methodsRes.error;
       setTransactions(txRes.data || []);
       setMethods(methodsRes.data || []);
+      setLoading(false);
+    }).catch((err) => {
+      setLoadError(err.message);
       setLoading(false);
     });
   }
 
   useEffect(() => {
     refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   async function handleSetDefault(id) {
@@ -981,8 +1029,18 @@ function WalletPanel({ user }) {
       <div className="space-y-5">
         <Panel>
           <PanelSection first title="Cari balans">
-            <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : `${balance.toFixed(2)} ₼`}</div>
+            <div className="text-2xl font-extrabold text-[var(--text-primary)]">{loading ? '...' : loadError ? '—' : `${balance.toFixed(2)} ₼`}</div>
           </PanelSection>
+          {loadError && (
+            <PanelSection title="Xəta">
+              <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+                <p className="text-sm text-[var(--danger)]">Pul kisəsi yüklənərkən xəta baş verdi: {loadError}</p>
+                <button type="button" onClick={refetch} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+              </div>
+            </PanelSection>
+          )}
+          {!loadError && (
+          <>
           <PanelSection title="Ödəniş üsulu" desc="Kurs alışları üçün istifadə olunan kart">
             {methods.length === 0 ? (
               <div>
@@ -1036,6 +1094,9 @@ function WalletPanel({ user }) {
               </div>
             </PanelSection>
           )}
+          </>
+          )}
+          {!loadError && (
           <PanelSection title="Əməliyyatlar" desc="Son ödəniş və balans hərəkətlərin">
             {loading ? (
               <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
@@ -1055,6 +1116,7 @@ function WalletPanel({ user }) {
               </div>
             )}
           </PanelSection>
+          )}
         </Panel>
       </div>
       <CheckoutModal

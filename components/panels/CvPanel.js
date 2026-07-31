@@ -28,8 +28,11 @@ export default function CvPanel({ user }) {
   const [certificates, setCertificates] = useState([]);
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
-  useEffect(() => {
+  function refresh() {
+    setLoadError(null);
+    setLoading(true);
     Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       supabase.from('certificates').select('*').eq('user_id', user.id).order('issue_date', { ascending: false }),
@@ -39,11 +42,28 @@ export default function CvPanel({ user }) {
       setCertificates(certData || []);
       setPortfolio(portfolioData || []);
       setLoading(false);
+    }).catch((err) => {
+      setLoadError(err.message);
+      setLoading(false);
     });
+  }
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   if (loading) {
     return <p className="text-sm text-[var(--text-secondary)] text-center py-16">CV hazırlanır...</p>;
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+        <p className="text-sm text-[var(--danger)]">CV hazırlanarkən xəta baş verdi: {loadError}</p>
+        <button type="button" onClick={refresh} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+      </div>
+    );
   }
 
   const name = resolveDisplayName({ profile, user, fallback: 'MLUE İstifadəçisi' });

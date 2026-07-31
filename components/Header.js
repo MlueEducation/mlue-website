@@ -37,7 +37,11 @@ function AuthArea({ onNavigate }) {
       .select('avatar_url, full_name')
       .eq('id', user.id)
       .maybeSingle()
-      .then(({ data }) => setProfile(data || null));
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setProfile(data || null);
+      })
+      .catch((err) => console.error('Profil məlumatı yüklənmədi:', err.message));
   }, [user]);
 
   useEffect(() => {
