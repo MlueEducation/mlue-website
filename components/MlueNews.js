@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useReleaseGroups } from '@/hooks/useNews';
-import { RELEASE_SECTIONS, formatReleaseDate, versionTagOf } from '@/lib/news';
+import { RELEASE_SECTIONS, formatReleaseDate, versionTagOf, compareVersionsDesc } from '@/lib/news';
 import NewsReleaseModal from './NewsReleaseModal';
 
 const PLATFORM_TABS = [
@@ -19,7 +19,7 @@ function visibleItemsOf(group, platform) {
 }
 
 function ReleaseCard({ group, visibleItems, onOpen }) {
-  const versionTags = Array.from(new Set(visibleItems.map(versionTagOf))).sort();
+  const versionTags = Array.from(new Set(visibleItems.map(versionTagOf))).sort(compareVersionsDesc);
   const summary = RELEASE_SECTIONS
     .map((section) => ({ section, count: visibleItems.filter((i) => section.categories.includes(i.category)).length }))
     .filter((s) => s.count > 0)
