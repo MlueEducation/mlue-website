@@ -4,12 +4,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/lib/dimGroups';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
+import { claimBadge, recordQuestAction } from '@/lib/gamification';
 
+/* The one-time XP reward and the badges_earned insert both now happen
+   server-side inside the claim_badge() RPC (SECURITY DEFINER, re-validates
+   the badge key is real and not already earned before writing anything) —
+   this replaces the old client-side raw `badges_earned` insert + local XP
+   bump, closing the same "browser console can self-award XP" hole every
+   other reward path in this app already closed. The amount here is for the
+   optimistic local UI bump only; the actual server-side reward is fixed at
+   30 XP inside claim_badge()'s SQL body. */
 const SAVE_XP_REWARD = 30;
-/* The one-time XP reward is gated through the existing `badges_earned`
-   table's (user_id, badge_key) unique constraint rather than a client-side
-   "have I saved before?" check — inserting this row is atomic in Postgres,
-   so even two racing tabs/requests can't both win and double-award XP. */
 const DIM_XP_BADGE_KEY = 'dim-first-save';
 
 function formatHistoryDate(iso) {
@@ -195,12 +200,18 @@ export default function DimCalculatorPanel({ profile, user, onXpAwarded }) {
       return;
     }
     setHistory((h) => [data, ...h]);
+    recordQuestAction('dim_calculator_save').catch((err) => console.error('Tapşırıq qeydə alınmadı:', err.message));
 
-    const { error: badgeError } = await supabase.from('badges_earned').insert({ user_id: user.id, badge_key: DIM_XP_BADGE_KEY });
-    if (!badgeError) {
-      onXpAwarded(SAVE_XP_REWARD);
-      setLastSaveAwardedXp(true);
-    } else {
+    try {
+      const awarded = await claimBadge(DIM_XP_BADGE_KEY);
+      if (awarded) {
+        onXpAwarded(SAVE_XP_REWARD);
+        setLastSaveAwardedXp(true);
+      } else {
+        setLastSaveAwardedXp(false);
+      }
+    } catch (err) {
+      console.error('Nişan təsdiqlənmədi:', err.message);
       setLastSaveAwardedXp(false);
     }
     setSaveState('saved');

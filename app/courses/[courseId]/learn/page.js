@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { useCourse } from '@/hooks/useCoursesData';
 import { completeCourse as completeCourseRpc } from '@/lib/courses';
+import { recordQuestAction } from '@/lib/gamification';
 import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
@@ -110,6 +111,7 @@ export default function CoursePlayerPage() {
     const idx = lessons.findIndex((l) => l.id === lessonId);
     const next = lessons[idx + 1];
     if (next) setActiveLessonId(next.id);
+    recordQuestAction('lesson_complete').catch((err) => console.error('Tapşırıq qeydə alınmadı:', err.message));
   }
 
   async function handleCompleteCourse() {
@@ -118,6 +120,11 @@ export default function CoursePlayerPage() {
     try {
       await completeCourseRpc(course.id);
       setCourseCompleted(true);
+      // complete_course() lives as an opaque Supabase-side RPC (no SQL in
+      // this repo) — counting it toward the weekly "complete a course" quest
+      // client-side, fire-and-forget, rather than risking a blind rewrite of
+      // that already-live, working function.
+      recordQuestAction('course_complete').catch((err) => console.error('Tapşırıq qeydə alınmadı:', err.message));
     } catch (err) {
       // A second tab/click racing this one hits the RPC's `completed_at is
       // null` guard and gets this same "already completed" message back —

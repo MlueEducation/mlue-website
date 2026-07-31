@@ -8,11 +8,13 @@ import { useLanguage } from '@/components/LanguageProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
 import { fetchMyCompanyMembership, joinCompanyWithCode } from '@/lib/companyMembership';
+import { recordQuestAction } from '@/lib/gamification';
 import { getCoursesByIds } from '@/lib/courses';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import CheckoutModal from '@/components/CheckoutModal';
 import AccountRecoveryModal from '@/components/AccountRecoveryModal';
+import StreakActivitySync from '@/components/StreakActivitySync';
 import AchievementsPanel from '@/components/panels/AchievementsPanel';
 import DimCalculatorPanel from '@/components/panels/DimCalculatorPanel';
 import ExamAnalysisPanel from '@/components/panels/ExamAnalysisPanel';
@@ -785,6 +787,7 @@ function CareerPanel({ user, profile, onNavigate }) {
       setPortfolio((p) => [data, ...p]);
       setNewTitle(''); setNewDesc(''); setNewTags(''); setNewLink('');
       setShowAddForm(false);
+      recordQuestAction('portfolio_add').catch((err) => console.error('Tapşırıq qeydə alınmadı:', err.message));
     }
   }
 
@@ -1075,17 +1078,6 @@ function SettingsPanel({ user, profile, onSaved }) {
   );
 }
 
-/* Once-per-day streak bump: same day as last visit -> unchanged, exactly
-   yesterday -> +1, any bigger gap (or first ever visit) -> resets to 1. */
-function applyDailyStreak(profile) {
-  const today = new Date().toISOString().slice(0, 10);
-  const last = profile.last_activity_at ? profile.last_activity_at.slice(0, 10) : null;
-  if (last === today) return profile;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const newStreak = last === yesterday ? (profile.current_streak || 0) + 1 : 1;
-  return { ...profile, current_streak: newStreak, last_activity_at: new Date().toISOString() };
-}
-
 /* ---------------- Main dashboard ---------------- */
 export default function ProfilPage() {
   const { user, loading } = useAuth();
@@ -1110,17 +1102,10 @@ export default function ProfilPage() {
       .then(({ data }) => {
         if (!data) { setProfile(data); setProfileLoading(false); return; }
         if (data.deleted_at) { setPendingRecovery(data); setProfileLoading(false); return; }
-        const updated = applyDailyStreak(data);
-        setProfile(updated);
+        setProfile(data);
         setProfileLoading(false);
-        if (updated.preferred_language && updated.preferred_language !== lang) {
-          setLang(updated.preferred_language);
-        }
-        if (updated !== data) {
-          supabase.from('profiles').update({
-            current_streak: updated.current_streak,
-            last_activity_at: updated.last_activity_at,
-          }).eq('id', user.id);
+        if (data.preferred_language && data.preferred_language !== lang) {
+          setLang(data.preferred_language);
         }
       });
   }, [user]);
@@ -1158,15 +1143,17 @@ export default function ProfilPage() {
     );
   }
 
-  async function awardXp(amount) {
-    const prevXp = profile?.xp_points || 0;
-    const nextXp = prevXp + amount;
-    setProfile((p) => (p ? { ...p, xp_points: nextXp } : p));
-    const { error } = await supabase.from('profiles').update({ xp_points: nextXp }).eq('id', user.id);
-    if (error) {
-      console.error('XP saxlanılmadı, geri qaytarılır:', error.message);
-      setProfile((p) => (p ? { ...p, xp_points: prevXp } : p));
-    }
+  /* The real XP write now happens server-side (award_xp_internal(), only
+     reachable from inside claim_badge()/other gamification RPCs — never
+     grantable directly from the browser). This is a local-only optimistic
+     bump so profile.xp_points reflects an RPC-awarded amount immediately,
+     without a second round-trip; no DB write happens here. */
+  function bumpXpLocal(amount) {
+    setProfile((p) => (p ? { ...p, xp_points: (p.xp_points || 0) + amount } : p));
+  }
+
+  function bumpStreakLocal(newStreak) {
+    setProfile((p) => (p ? { ...p, current_streak: newStreak } : p));
   }
 
   const PANELS = {
@@ -1177,9 +1164,9 @@ export default function ProfilPage() {
     myNotes: <MyNotesPanel user={user} />,
     career: <CareerPanel user={user} profile={profile} onNavigate={setActive} />,
     wallet: <WalletPanel user={user} />,
-    game: <AchievementsPanel user={user} profile={profile} onXpAwarded={awardXp} />,
+    game: <AchievementsPanel user={user} profile={profile} />,
     settings: <SettingsPanel user={user} profile={profile} onSaved={setProfile} />,
-    dimCalculator: <DimCalculatorPanel profile={profile} user={user} onXpAwarded={awardXp} />,
+    dimCalculator: <DimCalculatorPanel profile={profile} user={user} onXpAwarded={bumpXpLocal} />,
     examAnalysis: <ExamAnalysisPanel user={user} />,
     roadmap: <RoadmapPanel user={user} />,
     studyBuddy: <StudyBuddyPanel user={user} profile={profile} />,
@@ -1190,6 +1177,7 @@ export default function ProfilPage() {
 
   return (
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)] flex flex-col md:flex-row">
+      <StreakActivitySync onStreakUpdated={bumpStreakLocal} onMysteryBoxGranted={() => {}} />
       {/* Sidebar */}
       <aside className="relative md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] flex flex-col md:h-[calc(100vh-var(--header-h))] md:sticky md:top-[var(--header-h)]">
         {/* Hints that the mobile tab row scrolls further right — the row has
