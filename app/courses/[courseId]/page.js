@@ -5,16 +5,19 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { useCourse } from '@/hooks/useCoursesData';
+import { startAudit } from '@/lib/purchases';
+import { useCart } from '@/components/CartProvider';
 import CourseDetailsView from '@/components/course/CourseDetailsView';
 
 export default function CourseDetailsPage() {
   const { courseId } = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const cart = useCart();
 
   const { data: course, isLoading: courseLoading, isError: courseError } = useCourse(courseId);
 
-  const [enrolled, setEnrolled] = useState(false);
+  const [accessLevel, setAccessLevel] = useState('none');
   const [checking, setChecking] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState(null);
@@ -23,13 +26,13 @@ export default function CourseDetailsPage() {
     if (!user || !course) { setChecking(false); return; }
     supabase
       .from('user_courses')
-      .select('id')
+      .select('access_level')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) console.error('Enrollment check failed:', error.message);
-        setEnrolled(!!data);
+        setAccessLevel(data?.access_level || 'none');
         setChecking(false);
       })
       .catch((err) => {
@@ -64,13 +67,33 @@ export default function CourseDetailsPage() {
         { onConflict: 'user_id,course_id' }
       );
       if (error) throw error;
-      setEnrolled(true);
+      setAccessLevel('full');
     } catch (err) {
       console.error('Enrollment failed:', err);
       setEnrollError('Qeydiyyat alınmadı. Zəhmət olmasa yenidən cəhd et.');
     } finally {
       setEnrolling(false);
     }
+  }
+
+  async function handleStartAudit() {
+    if (!user) { router.push('/giris'); return; }
+    setEnrolling(true);
+    setEnrollError(null);
+    try {
+      await startAudit(user.id, course.id);
+      setAccessLevel('audit');
+    } catch (err) {
+      console.error('Audit start failed:', err);
+      setEnrollError('Alınmadı. Zəhmət olmasa yenidən cəhd et.');
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
+  function handleAddToCart() {
+    if (!user) { router.push('/giris'); return; }
+    cart.addCourse(course);
   }
 
   function handleStart() {
@@ -80,12 +103,15 @@ export default function CourseDetailsPage() {
   return (
     <CourseDetailsView
       course={course}
-      enrolled={enrolled}
+      accessLevel={accessLevel}
       checking={checking}
       enrolling={enrolling}
       enrollError={enrollError}
       onEnroll={handleEnroll}
       onStart={handleStart}
+      onAddToCart={handleAddToCart}
+      onStartAudit={handleStartAudit}
+      onUpgrade={handleAddToCart}
     />
   );
 }

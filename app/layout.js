@@ -9,6 +9,8 @@ import QueryProvider from '@/components/QueryProvider';
 import CourseRealtimeSync from '@/components/CourseRealtimeSync';
 import NotificationRealtimeSync from '@/components/NotificationRealtimeSync';
 import NewsRealtimeSync from '@/components/NewsRealtimeSync';
+import { CartProvider } from '@/components/CartProvider';
+import CartDrawer from '@/components/CartDrawer';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -37,9 +39,12 @@ export default function RootLayout({ children }) {
                 <CourseRealtimeSync />
                 <NotificationRealtimeSync />
                 <NewsRealtimeSync />
-                <Header />
-                <main>{children}</main>
-                <Footer />
+                <CartProvider>
+                  <Header />
+                  <main>{children}</main>
+                  <Footer />
+                  <CartDrawer />
+                </CartProvider>
               </AuthProvider>
             </QueryProvider>
           </LanguageProvider>

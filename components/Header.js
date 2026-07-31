@@ -3,13 +3,29 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
+import { useCart } from './CartProvider';
 import ThemeToggle from './ThemeToggle';
 import BrandLogo from './BrandLogo';
 import NewsPulseDot from './NewsPulseDot';
 import NotificationBell from './NotificationBell';
+
+function CartButton() {
+  const { items, setDrawerOpen } = useCart();
+  return (
+    <button type="button" onClick={() => setDrawerOpen(true)} className="relative" aria-label="Səbət">
+      <ShoppingCart className="w-[18px] h-[18px] text-[var(--text-secondary)]" />
+      {items.length > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[var(--accent)] text-white text-[10px] font-bold flex items-center justify-center">
+          {items.length}
+        </span>
+      )}
+    </button>
+  );
+}
 
 function markNewsRead() {
   window.localStorage.setItem('mlue-last-read-news', new Date().toISOString());
@@ -144,6 +160,7 @@ export default function Header() {
         </div>
         <div className="nav-right">
           <ThemeToggle />
+          <CartButton />
           <NotificationBell />
           <AuthArea />
           <button className={`burger ${open ? 'open' : ''}`} aria-label="Menyu" aria-expanded={open} onClick={() => setOpen(!open)}>

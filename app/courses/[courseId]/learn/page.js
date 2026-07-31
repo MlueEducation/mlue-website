@@ -11,6 +11,7 @@ import { recordQuestAction } from '@/lib/gamification';
 import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
+import PaywallModal from '@/components/PaywallModal';
 
 function allLessons(course) {
   return course.curriculum.flatMap((m) => m.lessons);
@@ -25,12 +26,14 @@ export default function CoursePlayerPage() {
 
   const [enrollmentChecked, setEnrollmentChecked] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
+  const [accessLevel, setAccessLevel] = useState('full');
   const [enrollmentError, setEnrollmentError] = useState(null);
   const [progressMap, setProgressMap] = useState({});
   const [activeLessonId, setActiveLessonId] = useState(() => lessons[0]?.id);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completionError, setCompletionError] = useState(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Kept above every early return (Rules of Hooks) and narrowed to
   // lessons+activeLessonId only, so VideoPlayer's memo comparator (see
@@ -51,7 +54,7 @@ export default function CoursePlayerPage() {
 
     supabase
       .from('user_courses')
-      .select('completed_at')
+      .select('completed_at, access_level')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .maybeSingle()
@@ -63,6 +66,7 @@ export default function CoursePlayerPage() {
           return;
         }
         setEnrolled(!!data);
+        setAccessLevel(data?.access_level || 'full');
         setCourseCompleted(!!data?.completed_at);
         setEnrollmentChecked(true);
       })
@@ -114,7 +118,20 @@ export default function CoursePlayerPage() {
     recordQuestAction('lesson_complete').catch((err) => console.error('Tapşırıq qeydə alınmadı:', err.message));
   }
 
-  async function handleCompleteCourse() {
+  function handleCompleteCourse() {
+    if (accessLevel === 'audit') {
+      setPaywallOpen(true);
+      return;
+    }
+    return doCompleteCourse();
+  }
+
+  // Split out so PaywallModal's onUnlocked can call this directly, right
+  // after purchasing — calling handleCompleteCourse() there instead would
+  // read a stale (still 'audit') `accessLevel` from the closure, since
+  // setAccessLevel('full') hasn't re-rendered yet, and would just reopen
+  // the paywall it was meant to dismiss.
+  async function doCompleteCourse() {
     setCompleting(true);
     setCompletionError(null);
     try {
@@ -248,6 +265,17 @@ export default function CoursePlayerPage() {
           onSelectLesson={setActiveLessonId}
         />
       </aside>
+
+      <PaywallModal
+        open={paywallOpen}
+        course={course}
+        onClose={() => setPaywallOpen(false)}
+        onUnlocked={() => {
+          setAccessLevel('full');
+          setPaywallOpen(false);
+          doCompleteCourse();
+        }}
+      />
     </div>
   );
 }

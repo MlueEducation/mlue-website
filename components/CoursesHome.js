@@ -1,12 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import MeagleAvatar from './MeagleAvatar';
 import MeagleChatDrawer from './MeagleChatDrawer';
 import CourseCatalogGrid from './CourseCatalogGrid';
+import BundleCard from './BundleCard';
+import { fetchLiveBundles } from '@/lib/bundles';
 
 export default function CoursesHome({ user }) {
   const [chatOpen, setChatOpen] = useState(false);
+  const [bundles, setBundles] = useState([]);
+
+  useEffect(() => {
+    fetchLiveBundles().then(setBundles).catch((err) => console.error('Paketlər yüklənmədi:', err.message));
+  }, []);
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;
@@ -24,6 +31,15 @@ export default function CoursesHome({ user }) {
           <p className="section-sub">Kateqoriyalara görə göz gəzdir və növbəti kursunu seç.</p>
           <div className="badge courses-badge"><span className="dot"></span>Kataloq mərhələli açılır — aşağıdakılar ilk baxışdır</div>
         </div>
+
+        {bundles.length > 0 && (
+          <div className="category-section">
+            <h2 className="category-heading">Paketlər</h2>
+            <div className="course-grid">
+              {bundles.map((b) => <BundleCard key={b.id} bundle={b} />)}
+            </div>
+          </div>
+        )}
 
         <CourseCatalogGrid
           toolbarExtra={

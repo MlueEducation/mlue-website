@@ -49,7 +49,15 @@ function InstructorCard({ instructor }) {
   );
 }
 
-export default function CourseDetailsView({ course, enrolled, checking, enrolling, enrollError, onEnroll, onStart }) {
+/* accessLevel: 'none' | 'audit' | 'full' — replaces the old boolean
+   `enrolled` (which only ever meant "does a user_courses row exist") now
+   that a paid course has a real free-audit-vs-purchased distinction. A free
+   course only ever reaches 'none' or 'full' — the audit tier only applies
+   to paid courses. */
+export default function CourseDetailsView({
+  course, accessLevel = 'none', checking, enrolling, enrollError,
+  onEnroll, onStart, onAddToCart, onStartAudit, onUpgrade,
+}) {
   const hasContent = course.curriculum.length > 0 && course.curriculum.some((m) => m.lessons.length > 0);
   const mentorInitials = course.mentor ? course.mentor.split(' ').map((n) => n[0]).join('') : '?';
 
@@ -122,7 +130,7 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
           <div className="bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-lg px-5 py-4 text-sm text-[var(--text-secondary)]">
             Bu kursun məzmunu hazırda hazırlanır — tezliklə əlavə olunacaq. Qeydiyyat funksiyası məzmun əlavə olunandan sonra aktivləşəcək.
           </div>
-        ) : enrolled ? (
+        ) : accessLevel === 'full' ? (
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <button
               type="button"
@@ -139,7 +147,24 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
               ▶️ Kursa Başla
             </button>
           </div>
-        ) : (
+        ) : accessLevel === 'audit' ? (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <button
+              type="button"
+              onClick={onStart}
+              className="w-full sm:w-auto bg-[var(--bg-surface-2)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[var(--text-primary)] font-bold px-6 py-3.5 rounded-lg transition-colors"
+            >
+              ▶️ Dinləyici kimi davam et
+            </button>
+            <button
+              type="button"
+              onClick={onUpgrade}
+              className="w-full sm:w-auto bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-bold px-8 py-3.5 rounded-lg transition-colors"
+            >
+              Kursu tam əldə et — ₼{Number(course.price).toFixed(2)}
+            </button>
+          </div>
+        ) : course.isFree ? (
           <div>
             <button
               type="button"
@@ -149,6 +174,29 @@ export default function CourseDetailsView({ course, enrolled, checking, enrollin
             >
               {enrolling ? 'Qeydiyyat edilir...' : 'Kursu Al'}
             </button>
+            {enrollError && <p className="text-sm text-[var(--danger)] mt-3">{enrollError}</p>}
+          </div>
+        ) : (
+          <div>
+            <div className="text-2xl font-extrabold text-[var(--text-primary)] mb-4">₼{Number(course.price).toFixed(2)}</div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <button
+                type="button"
+                onClick={onAddToCart}
+                disabled={checking}
+                className="w-full sm:w-auto bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-60 text-white font-bold px-8 py-3.5 rounded-lg transition-colors"
+              >
+                Kursu Al
+              </button>
+              <button
+                type="button"
+                onClick={onStartAudit}
+                disabled={enrolling || checking}
+                className="w-full sm:w-auto bg-[var(--bg-surface-2)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[var(--text-primary)] font-bold px-6 py-3.5 rounded-lg transition-colors"
+              >
+                {enrolling ? '...' : 'Dinləyici kimi başla'}
+              </button>
+            </div>
             {enrollError && <p className="text-sm text-[var(--danger)] mt-3">{enrollError}</p>}
           </div>
         )}

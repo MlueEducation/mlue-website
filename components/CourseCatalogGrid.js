@@ -97,6 +97,12 @@ export default function CourseCatalogGrid({ initialQuery = '', toolbarExtra = nu
                   <span>{c.level}</span>
                   <span className="course-meta-dot">·</span>
                   <span>{c.duration}</span>
+                  {!c.isFree && c.price > 0 && (
+                    <>
+                      <span className="course-meta-dot">·</span>
+                      <span className="font-bold text-[var(--text-primary)]">₼{Number(c.price).toFixed(2)}</span>
+                    </>
+                  )}
                 </div>
               </Link>
             ))}
