@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { RELEASE_SECTIONS, formatReleaseDate } from '@/lib/news';
+import { RELEASE_SECTIONS, formatReleaseDate, versionTagOf } from '@/lib/news';
 
 export default function NewsReleaseModal({ group, visibleItems, onClose }) {
   const open = !!group;
@@ -22,6 +22,7 @@ export default function NewsReleaseModal({ group, visibleItems, onClose }) {
   }, [open, onClose]);
 
   const items = visibleItems || group?.items || [];
+  const versionTags = Array.from(new Set(items.map(versionTagOf))).sort();
 
   return (
     <>
@@ -30,8 +31,10 @@ export default function NewsReleaseModal({ group, visibleItems, onClose }) {
         {group && (
           <>
             <div className="flex items-center justify-between gap-3 mb-6">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-extrabold bg-[var(--accent-soft)] text-[var(--accent)] px-3 py-1 rounded-full">{group.versionTag}</span>
+              <div className="flex items-center gap-2 flex-wrap">
+                {versionTags.map((tag) => (
+                  <span key={tag} className="text-sm font-extrabold bg-[var(--accent-soft)] text-[var(--accent)] px-3 py-1 rounded-full">{tag}</span>
+                ))}
                 <span className="text-sm text-[var(--text-tertiary)]">{formatReleaseDate(group.releaseDate)}</span>
               </div>
               <button type="button" onClick={onClose} className="ai-chat-close" aria-label="Bağla">
@@ -51,9 +54,12 @@ export default function NewsReleaseModal({ group, visibleItems, onClose }) {
                     <div className="space-y-5">
                       {sectionItems.map((item) => (
                         <div key={item.id}>
-                          <div className="flex items-center gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                             <h4 className="text-sm font-bold text-[var(--text-primary)]">{item.title}</h4>
                             <span className="news-platform-badge">[{item.platform}]</span>
+                            {versionTags.length > 1 && (
+                              <span className="news-version-badge">{versionTagOf(item)}</span>
+                            )}
                           </div>
                           <p className="text-sm text-[var(--text-secondary)]">{item.description}</p>
                           {item.image_url && (

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useReleaseGroups } from '@/hooks/useNews';
-import { RELEASE_SECTIONS, formatReleaseDate } from '@/lib/news';
+import { RELEASE_SECTIONS, formatReleaseDate, versionTagOf } from '@/lib/news';
 import NewsReleaseModal from './NewsReleaseModal';
 
 const PLATFORM_TABS = [
@@ -19,6 +19,7 @@ function visibleItemsOf(group, platform) {
 }
 
 function ReleaseCard({ group, visibleItems, onOpen }) {
+  const versionTags = Array.from(new Set(visibleItems.map(versionTagOf))).sort();
   const summary = RELEASE_SECTIONS
     .map((section) => ({ section, count: visibleItems.filter((i) => section.categories.includes(i.category)).length }))
     .filter((s) => s.count > 0)
@@ -39,8 +40,10 @@ function ReleaseCard({ group, visibleItems, onOpen }) {
     >
       {group.isLatest && <span className="news-badge-new">Yeni</span>}
       <div>
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-sm font-extrabold bg-[var(--accent-soft)] text-[var(--accent)] px-3 py-1 rounded-full">{group.versionTag}</span>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {versionTags.map((tag) => (
+            <span key={tag} className="text-sm font-extrabold bg-[var(--accent-soft)] text-[var(--accent)] px-3 py-1 rounded-full">{tag}</span>
+          ))}
           <span className="text-xs text-[var(--text-tertiary)]">{formatReleaseDate(group.releaseDate)}</span>
         </div>
         {headline && <h3 className="text-xl font-extrabold text-[var(--text-primary)] mb-2">{headline}</h3>}
