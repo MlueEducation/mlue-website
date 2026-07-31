@@ -24,6 +24,7 @@ import StudyBuddyPanel from '@/components/panels/StudyBuddyPanel';
 import InternshipsPanel from '@/components/panels/InternshipsPanel';
 import MyCoursesPanel from '@/components/panels/MyCoursesPanel';
 import MyNotesPanel from '@/components/panels/MyNotesPanel';
+import ProPanel from '@/components/panels/ProPanel';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -43,6 +44,7 @@ const Icon = {
   briefcaseTask: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M9 13l2 2 4-4" /></svg>,
   myCourses: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18" /><path d="M8 13h5" /></svg>,
   myNotes: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M14 3v5h5" /><path d="M8 13h8M8 17h5" /></svg>,
+  pro: (c) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={c}><path d="M3 8l4 3 5-6 5 6 4-3-2 11H5L3 8Z" /></svg>,
 };
 
 const NAV_ITEMS = [
@@ -62,6 +64,7 @@ const NAV_ITEMS = [
   { id: 'internships', label: 'Mikro-Təcrübələr', icon: Icon.briefcaseTask },
   { id: 'tokens', label: 'Token / Balansım', icon: Icon.tokens },
   { id: 'certificates', label: 'Sertifikatlar', icon: Icon.certificate },
+  { id: 'pro', label: 'MLUE Pro', icon: Icon.pro },
 ];
 
 /* ---------------- Mock data ----------------
@@ -1244,6 +1247,7 @@ export default function ProfilPage() {
     internships: <InternshipsPanel user={user} />,
     tokens: <TokensPanel user={user} />,
     certificates: <CertificatesPanel user={user} />,
+    pro: <ProPanel user={user} profile={profile} onProUpdated={setProfile} />,
   };
 
   return (

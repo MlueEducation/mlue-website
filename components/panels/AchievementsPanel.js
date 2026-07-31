@@ -14,6 +14,7 @@ import {
   setLeaderboardVisible,
 } from '@/lib/gamification';
 import MysteryBoxModal from '@/components/MysteryBoxModal';
+import { isProActive } from '@/lib/proSubscription';
 
 const LEVEL_XP_STEP = 500;
 const EARLY_ADOPTER_CUTOFF = new Date('2027-01-01');
@@ -172,6 +173,7 @@ export default function AchievementsPanel({ user, profile: profileProp }) {
       name: row.id === user.id ? myName : (row.full_name || 'İstifadəçi'),
       isMe: row.id === user.id,
       xp: range === 'all' ? row.xp_points : (row.id === user.id ? (rangeXp[range] ?? 0) : row.xp_points),
+      isPro: isProActive({ is_pro: row.is_pro, pro_expires_at: row.pro_expires_at }),
     }))
     .sort((a, b) => b.xp - a.xp);
 
@@ -293,10 +295,16 @@ export default function AchievementsPanel({ user, profile: profileProp }) {
                       <div key={row.id} className={`flex items-center justify-between px-4 py-2.5 rounded-xl ${row.isMe ? 'bg-[var(--accent-soft)] border border-[var(--accent)]' : 'bg-[var(--bg-surface-2)]'}`}>
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-xs font-bold text-[var(--text-tertiary)] w-4 flex-shrink-0">{i + 1}</span>
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
+                          <div
+                            className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-warm)] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                            style={row.isPro ? { boxShadow: `0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent)` } : undefined}
+                          >
                             {row.isMe ? initial : row.name.charAt(0)}
                           </div>
                           <span className={`text-sm truncate ${row.isMe ? 'text-[var(--text-primary)] font-bold' : 'text-[var(--text-secondary)]'}`}>{row.name}</span>
+                          {row.isPro && (
+                            <span className="text-[10px] font-bold uppercase flex-shrink-0 text-[var(--accent)] bg-[var(--accent-soft)] px-1.5 py-0.5 rounded-full">PRO</span>
+                          )}
                           <span className={`text-[10px] font-bold uppercase flex-shrink-0 ${tier.className}`}>{tier.label}</span>
                         </div>
                         <span className="text-xs font-bold text-[var(--accent-warm)] flex-shrink-0">{row.xp} XP</span>
