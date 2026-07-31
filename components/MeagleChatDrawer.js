@@ -5,6 +5,7 @@ import { X, Send } from 'lucide-react';
 import MeagleAvatar from './MeagleAvatar';
 import { useAuth } from './AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { incrementMeagleUsage } from '@/lib/meagleUsage';
 
 const CANNED_REPLIES = [
   {
@@ -98,15 +99,31 @@ export default function MeagleChatDrawer({ open, onClose }) {
     setStatus(e.target.value ? 'typing' : 'idle');
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
     setMessages((m) => [...m, { role: 'user', text }]);
     setInput('');
     setStatus('thinking');
+
+    // Anonymous (logged-out) chat has no user_id to rate-limit against —
+    // stays unlimited, matching today's already-permissive logged-out
+    // behavior rather than newly requiring login just to enforce a cap.
+    let limitError = null;
+    if (user) {
+      try {
+        await incrementMeagleUsage();
+      } catch (err) {
+        limitError = err;
+      }
+    }
+
     timeoutRef.current = setTimeout(() => {
-      setMessages((m) => [...m, { role: 'bot', text: getReply(text, context) }]);
+      const replyText = limitError
+        ? `${limitError.message} 👉 MLUE Pro-ya keçmək üçün profilindəki "MLUE Pro" bölməsinə bax.`
+        : getReply(text, context);
+      setMessages((m) => [...m, { role: 'bot', text: replyText }]);
       setStatus('idle');
     }, 600 + Math.random() * 300);
   }
