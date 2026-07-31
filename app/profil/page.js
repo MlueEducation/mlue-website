@@ -25,6 +25,7 @@ import InternshipsPanel from '@/components/panels/InternshipsPanel';
 import MyCoursesPanel from '@/components/panels/MyCoursesPanel';
 import MyNotesPanel from '@/components/panels/MyNotesPanel';
 import ProPanel from '@/components/panels/ProPanel';
+import { isProActive } from '@/lib/proSubscription';
 
 /* ---------------- Icons (inline, no dependency) ---------------- */
 const Icon = {
@@ -322,6 +323,7 @@ function IdentityPanel({ user, profile, onNavigate }) {
   const pictureUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   const p = profile || {};
   const onboarded = !!profile?.role;
+  const isPro = isProActive(profile);
   const isEcommerceStudent = onboarded && p.role === 'student' && p.interests?.includes('ecommerce');
   const overview = useIdentityOverview(user.id);
 
@@ -343,7 +345,11 @@ function IdentityPanel({ user, profile, onNavigate }) {
               <div className="text-base font-bold text-[var(--text-primary)] truncate">{displayName}</div>
               <div className="text-sm text-[var(--text-secondary)] truncate">{email}</div>
               <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--accent-warm)] text-white px-2 py-0.5 rounded-full">Pulsuz Plan</span>
+                {isPro ? (
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-gradient-to-r from-[var(--accent)] to-[var(--accent-warm)] text-white px-2 py-0.5 rounded-full">👑 Pro Plan</span>
+                ) : (
+                  <span className="text-[10px] font-bold uppercase tracking-wide bg-[var(--bg-surface-2)] text-[var(--text-secondary)] px-2 py-0.5 rounded-full">Pulsuz Plan</span>
+                )}
                 <span className="text-xs text-[var(--text-tertiary)]">Üzv: {formatMemberSince(user.created_at)}</span>
               </div>
             </div>
