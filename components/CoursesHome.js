@@ -5,15 +5,24 @@ import MeagleAvatar from './MeagleAvatar';
 import MeagleChatDrawer from './MeagleChatDrawer';
 import CourseCatalogGrid from './CourseCatalogGrid';
 import BundleCard from './BundleCard';
-import { fetchLiveBundles } from '@/lib/bundles';
+import { fetchLiveBundles, fetchOwnedFullCourseIds } from '@/lib/bundles';
 
 export default function CoursesHome({ user }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [bundles, setBundles] = useState([]);
+  const [ownedCourseIds, setOwnedCourseIds] = useState(new Set());
 
   useEffect(() => {
     fetchLiveBundles().then(setBundles).catch((err) => console.error('Paketlər yüklənmədi:', err.message));
   }, []);
+
+  useEffect(() => {
+    if (!user || bundles.length === 0) return;
+    const allCourseIds = bundles.flatMap((b) => b.courses.map((c) => c.id));
+    fetchOwnedFullCourseIds(user.id, allCourseIds)
+      .then(setOwnedCourseIds)
+      .catch((err) => console.error('Sahiblik yoxlanmadı:', err.message));
+  }, [user, bundles]);
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;
@@ -36,7 +45,7 @@ export default function CoursesHome({ user }) {
           <div className="category-section">
             <h2 className="category-heading">Paketlər</h2>
             <div className="course-grid">
-              {bundles.map((b) => <BundleCard key={b.id} bundle={b} />)}
+              {bundles.map((b) => <BundleCard key={b.id} bundle={b} ownedCourseIds={ownedCourseIds} />)}
             </div>
           </div>
         )}
