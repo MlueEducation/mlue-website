@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { useCourse } from '@/hooks/useCoursesData';
+import { completeCourse as completeCourseRpc } from '@/lib/courses';
 import { ProgressBar } from '@/components/ProfileUI';
 import VideoPlayer from '@/components/course/VideoPlayer';
 import CoursePlayerSidebar from '@/components/course/CoursePlayerSidebar';
@@ -28,6 +29,7 @@ export default function CoursePlayerPage() {
   const [activeLessonId, setActiveLessonId] = useState(() => lessons[0]?.id);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [completionError, setCompletionError] = useState(null);
 
   // Kept above every early return (Rules of Hooks) and narrowed to
   // lessons+activeLessonId only, so VideoPlayer's memo comparator (see
@@ -110,17 +112,25 @@ export default function CoursePlayerPage() {
     if (next) setActiveLessonId(next.id);
   }
 
-  async function completeCourse() {
+  async function handleCompleteCourse() {
     setCompleting(true);
-    await supabase.from('user_courses').update({ completed_at: new Date().toISOString(), progress_percentage: 100 }).eq('user_id', user.id).eq('course_id', course.id);
-    await supabase.from('certificates').insert({ user_id: user.id, course_name: course.title });
-    const { data: profileRow } = await supabase.from('profiles').select('xp_points').eq('id', user.id).maybeSingle();
-    await supabase.from('profiles').update({ xp_points: (profileRow?.xp_points || 0) + course.xpReward }).eq('id', user.id);
-    if (course.tokenReward > 0) {
-      await supabase.from('token_transactions').insert({ user_id: user.id, description: course.title, amount: course.tokenReward });
+    setCompletionError(null);
+    try {
+      await completeCourseRpc(course.id);
+      setCourseCompleted(true);
+    } catch (err) {
+      // A second tab/click racing this one hits the RPC's `completed_at is
+      // null` guard and gets this same "already completed" message back —
+      // safe to treat as success (only one of the two races actually
+      // awarded anything). Any other error is a real failure, surfaced.
+      if (err.message?.includes('artıq tamamlanıb')) {
+        setCourseCompleted(true);
+      } else {
+        setCompletionError(err.message);
+      }
+    } finally {
+      setCompleting(false);
     }
-    setCourseCompleted(true);
-    setCompleting(false);
   }
 
   if (loading || courseLoading) {
@@ -207,7 +217,7 @@ export default function CoursePlayerPage() {
           </div>
           <button
             type="button"
-            onClick={completeCourse}
+            onClick={handleCompleteCourse}
             disabled={!allDone || courseCompleted || completing}
             className={`text-sm font-bold px-5 py-2.5 rounded-lg transition-colors flex-shrink-0 ${
               courseCompleted
@@ -218,6 +228,7 @@ export default function CoursePlayerPage() {
             {courseCompleted ? 'Kurs tamamlandı ✓' : completing ? 'Tamamlanır...' : 'Kurs tamamlandı'}
           </button>
         </div>
+        {completionError && <p className="text-xs text-[var(--danger)] mt-2">{completionError}</p>}
       </div>
 
       <aside className="md:w-80 flex-shrink-0 border-t md:border-t-0 md:border-l border-[var(--border)] md:h-[calc(100vh-var(--header-h))] md:sticky md:top-[var(--header-h)]">
