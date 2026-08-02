@@ -12,8 +12,16 @@ const FEATURES = [
   { icon: '👑', title: 'Pro Nişanı', desc: 'Liderlik lövhəsində parlaq Pro nişanı və çərçivə' },
 ];
 
+// Manual gün.ay.il formatting instead of toLocaleDateString('az-AZ', {month:
+// 'long'}) — that call renders as "M10" instead of a real month name on
+// this runtime's ICU data (az-AZ long-month names aren't implemented), so
+// building the string by hand sidesteps the locale gap entirely.
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}.${month}.${year}`;
 }
 
 export default function ProPanel({ profile, onProUpdated }) {
