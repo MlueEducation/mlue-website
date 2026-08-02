@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ProfileUI';
 import { fetchOpenPostings, fetchCompaniesByIds, fetchMyApplications, applyToPosting, submitForReview } from '@/lib/internships';
-
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
-}
+import { formatDateDMY as formatDate } from '@/lib/formatDate';
 
 const TABS = [
   { id: 'active', label: 'Aktiv tapşırıqlar' },

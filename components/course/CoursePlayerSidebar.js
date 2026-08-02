@@ -5,6 +5,7 @@ import { Lock, FileText, Download, Plus, ArrowLeft } from 'lucide-react';
 import MeagleAvatar from '@/components/MeagleAvatar';
 import MeagleChatDrawer from '@/components/MeagleChatDrawer';
 import { supabase } from '@/lib/supabaseClient';
+import { formatDateDMY } from '@/lib/formatDate';
 
 const TABS = [
   { id: 'curriculum', label: 'Mündəricat' },
@@ -72,7 +73,7 @@ function MaterialsTab({ materials }) {
 }
 
 function formatNoteDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatDateDMY(iso);
 }
 
 function NotesTab({ user, courseId, activeLessonId }) {

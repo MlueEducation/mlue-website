@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Panel, PageHeader } from '@/components/ProfileUI';
 import { subscribeToPro, cancelPro, isProActive, PRO_MONTHLY_PRICE } from '@/lib/proSubscription';
 import { friendlyErrorMessage } from '@/lib/friendlyError';
+import { formatDateDMY as formatDate } from '@/lib/formatDate';
 
 const FEATURES = [
   { icon: '🤖', title: 'Limitsiz Meagle', desc: 'AI köməkçidən gündəlik limit olmadan istifadə et' },
@@ -11,18 +12,6 @@ const FEATURES = [
   { icon: '⚡', title: '1.2x XP', desc: 'Bütün fəaliyyətlərdən qazandığın təcrübə xalı 1.2 dəfə artır' },
   { icon: '👑', title: 'Pro Nişanı', desc: 'Liderlik lövhəsində parlaq Pro nişanı və çərçivə' },
 ];
-
-// Manual gün.ay.il formatting instead of toLocaleDateString('az-AZ', {month:
-// 'long'}) — that call renders as "M10" instead of a real month name on
-// this runtime's ICU data (az-AZ long-month names aren't implemented), so
-// building the string by hand sidesteps the locale gap entirely.
-function formatDate(iso) {
-  const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
-}
 
 export default function ProPanel({ profile, onProUpdated }) {
   const [submitting, setSubmitting] = useState(false);

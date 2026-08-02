@@ -6,6 +6,7 @@ import MeagleAvatar from '@/components/MeagleAvatar';
 import CourseThumb from '@/components/CourseThumb';
 import { supabase } from '@/lib/supabaseClient';
 import { getAdmissionMax } from '@/lib/dimGroups';
+import { formatDateDMY } from '@/lib/formatDate';
 
 const RECOMMENDATIONS_BY_SUBJECT = {
   'Riyaziyyat': { categoryId: 'math', title: 'Kalkulusun Əsasları', level: 'İrəli', duration: '7 həftə' },
@@ -124,7 +125,7 @@ export default function ExamAnalysisPanel({ user }) {
   }
 
   const examTitle = `DİM Kalkulyatoru Nəticəsi — ${result.subgroup || `${result.major_group} qrup`}`;
-  const date = new Date(result.created_at).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
+  const date = formatDateDMY(result.created_at);
 
   return (
     <div>

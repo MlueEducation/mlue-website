@@ -11,6 +11,7 @@ import { fetchMyCompanyMembership, joinCompanyWithCode } from '@/lib/companyMemb
 import { recordQuestAction } from '@/lib/gamification';
 import { setDefaultPaymentMethod } from '@/lib/wallet';
 import { getCoursesByIds } from '@/lib/courses';
+import { formatDateDMY, formatMonthYear } from '@/lib/formatDate';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -147,7 +148,7 @@ function useIdentityOverview(userId) {
 
 function formatMemberSince(createdAt) {
   if (!createdAt) return '—';
-  return new Date(createdAt).toLocaleDateString('az-AZ', { month: 'long', year: 'numeric' });
+  return formatMonthYear(createdAt);
 }
 
 /* ---------------- Onboarding-based scenario content ---------------- */
@@ -1143,7 +1144,7 @@ function WalletPanel({ user }) {
                   <div key={t.id} className="flex items-center justify-between py-3 text-sm">
                     <div>
                       <div className="text-[var(--text-primary)]">{t.description}</div>
-                      <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{new Date(t.created_at).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                      <div className="text-xs text-[var(--text-tertiary)] mt-0.5">{formatDateDMY(t.created_at)}</div>
                     </div>
                     <span className={`font-bold ${t.amount >= 0 ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>{t.amount >= 0 ? '+' : ''}{t.amount.toFixed(2)} ₼</span>
                   </div>

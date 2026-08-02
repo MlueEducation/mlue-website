@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { resolveDisplayName } from '@/lib/displayName';
+import { formatDateDMY } from '@/lib/formatDate';
 import { Download, Flame, Award, Rocket, MessageCircle, Briefcase } from 'lucide-react';
 
 const LEVEL_XP_STEP = 500;
@@ -180,7 +181,7 @@ export default function CvPanel({ user }) {
               {certificates.map((c) => (
                 <li key={c.id} className="text-sm text-[var(--text-primary)] flex items-center justify-between gap-2">
                   <span>🎓 {c.course_name}</span>
-                  <span className="text-xs text-[var(--text-tertiary)] shrink-0">{new Date(c.issue_date).toLocaleDateString('az-AZ')}</span>
+                  <span className="text-xs text-[var(--text-tertiary)] shrink-0">{formatDateDMY(c.issue_date)}</span>
                 </li>
               ))}
             </ul>

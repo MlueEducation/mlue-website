@@ -5,6 +5,7 @@ import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/
 import { Panel, PanelSection, PageHeader, CircularProgress } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
 import { claimBadge, recordQuestAction } from '@/lib/gamification';
+import { formatDateDMY } from '@/lib/formatDate';
 
 /* The one-time XP reward and the badges_earned insert both now happen
    server-side inside the claim_badge() RPC (SECURITY DEFINER, re-validates
@@ -18,7 +19,7 @@ const SAVE_XP_REWARD = 30;
 const DIM_XP_BADGE_KEY = 'dim-first-save';
 
 function formatHistoryDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatDateDMY(iso);
 }
 
 function summarizeScores(result) {

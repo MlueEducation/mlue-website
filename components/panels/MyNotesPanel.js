@@ -4,10 +4,7 @@ import { useEffect, useState } from 'react';
 import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
 import { getCoursesByIds } from '@/lib/courses';
-
-function formatNoteDate(iso) {
-  return new Date(iso).toLocaleDateString('az-AZ', { day: 'numeric', month: 'long', year: 'numeric' });
-}
+import { formatDateDMY as formatNoteDate } from '@/lib/formatDate';
 
 function groupByCourse(notes, courseMap) {
   const groups = new Map();
