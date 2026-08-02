@@ -83,6 +83,12 @@ export default function CartCheckoutModal({ open, onClose, user }) {
       }
       await purchaseCart(courseIds, bundleIds);
       courseIds.forEach((id) => queryClient.invalidateQueries({ queryKey: ['course', id] }));
+      // A bundle purchase grants access to courses beyond what's in
+      // courseIds (the bundle's own member courses), and the catalog/bundle
+      // "already owned" badges both read from these two caches — without
+      // this, they'd only refresh on a hard reload.
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['owned-course-ids'], exact: false });
       clear();
       setSuccess(true);
     } catch (err) {

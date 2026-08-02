@@ -5,24 +5,19 @@ import MeagleAvatar from './MeagleAvatar';
 import MeagleChatDrawer from './MeagleChatDrawer';
 import CourseCatalogGrid from './CourseCatalogGrid';
 import BundleCard from './BundleCard';
-import { fetchLiveBundles, fetchOwnedFullCourseIds } from '@/lib/bundles';
+import { fetchLiveBundles } from '@/lib/bundles';
+import { useOwnedCourseIds } from '@/hooks/useCoursesData';
 
 export default function CoursesHome({ user }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [bundles, setBundles] = useState([]);
-  const [ownedCourseIds, setOwnedCourseIds] = useState(new Set());
 
   useEffect(() => {
     fetchLiveBundles().then(setBundles).catch((err) => console.error('Paketlər yüklənmədi:', err.message));
   }, []);
 
-  useEffect(() => {
-    if (!user || bundles.length === 0) return;
-    const allCourseIds = bundles.flatMap((b) => b.courses.map((c) => c.id));
-    fetchOwnedFullCourseIds(user.id, allCourseIds)
-      .then(setOwnedCourseIds)
-      .catch((err) => console.error('Sahiblik yoxlanmadı:', err.message));
-  }, [user, bundles]);
+  const allBundleCourseIds = useMemo(() => bundles.flatMap((b) => b.courses.map((c) => c.id)), [bundles]);
+  const { data: ownedCourseIds = new Set() } = useOwnedCourseIds(user?.id, allBundleCourseIds);
 
   const displayName = useMemo(() => {
     const meta = user && user.user_metadata;

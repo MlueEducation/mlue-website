@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { getAllCourses, getCourseById } from '@/lib/courses';
+import { fetchOwnedFullCourseIds } from '@/lib/bundles';
 
 export function useCourseList() {
   return useQuery({ queryKey: ['courses'], queryFn: getAllCourses });
@@ -14,6 +15,21 @@ export function useCourse(courseId) {
     queryKey: ['course', courseId],
     queryFn: () => getCourseById(courseId),
     enabled: !!courseId,
+  });
+}
+
+/* Batched "which of these courses does this user already fully own" lookup,
+   React-Query-cached so a purchase invalidating ['courses'] (see
+   CartCheckoutModal.js) also refreshes this — CoursesHome no longer needs
+   its own local useEffect/useState pair that never refetched after a
+   purchase. courseIds is joined into the query key (not just used inside
+   queryFn) so a different bundle set correctly gets its own cache entry. */
+export function useOwnedCourseIds(userId, courseIds) {
+  const idsKey = (courseIds || []).slice().sort().join(',');
+  return useQuery({
+    queryKey: ['owned-course-ids', userId, idsKey],
+    queryFn: () => fetchOwnedFullCourseIds(userId, courseIds),
+    enabled: !!userId && (courseIds || []).length > 0,
   });
 }
 
