@@ -32,7 +32,11 @@ export default function CourseDetailsPage() {
       .maybeSingle()
       .then(({ data, error }) => {
         if (error) console.error('Enrollment check failed:', error.message);
-        setAccessLevel(data?.access_level || 'none');
+        // No row at all means genuinely never enrolled ('none'). A row that
+        // exists but has a null access_level is legacy pre-paywall data —
+        // that enrollment predates 'audit' mode, so it always meant full
+        // access.
+        setAccessLevel(data ? (data.access_level || 'full') : 'none');
         setChecking(false);
       })
       .catch((err) => {
@@ -63,7 +67,7 @@ export default function CourseDetailsPage() {
     setEnrollError(null);
     try {
       const { error } = await supabase.from('user_courses').upsert(
-        { user_id: user.id, course_id: course.id },
+        { user_id: user.id, course_id: course.id, access_level: 'full' },
         { onConflict: 'user_id,course_id' }
       );
       if (error) throw error;
