@@ -13,6 +13,7 @@ export default function StreakActivitySync({ onStreakUpdated, onMysteryBoxGrante
   const [prompt, setPrompt] = useState(null); // null | 'at-risk'
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -47,13 +48,21 @@ export default function StreakActivitySync({ onStreakUpdated, onMysteryBoxGrante
 
   async function handleUseFreeze() {
     setBusy(true);
+    setError(null);
     try {
       await useStreakFreeze();
+      const result = await recordDailyActivity();
+      if (result?.current_streak != null) onStreakUpdated?.(result.current_streak);
+      if (result?.mystery_box_granted) {
+        setToast('Yeni Mystery Box qazandın! Nailiyyətlər bölməsində aç.');
+        onMysteryBoxGranted?.();
+      }
+      setPrompt(null);
     } catch (err) {
       console.error('Dondurma istifadə olunmadı:', err.message);
+      setError('Dondurma istifadə olunmadı. Yenidən cəhd et.');
     } finally {
       setBusy(false);
-      setPrompt(null);
     }
   }
 
@@ -82,6 +91,7 @@ export default function StreakActivitySync({ onStreakUpdated, onMysteryBoxGrante
             <p className="text-sm text-[var(--text-secondary)] mb-6">
               Dünən aktiv olmamısan. Seriya Dondurmandan istifadə edərək seriyanı qorumaq istəyirsən?
             </p>
+            {error && <p className="text-xs text-[var(--danger)] mb-3">{error}</p>}
             <div className="flex flex-col gap-3">
               <button
                 type="button"

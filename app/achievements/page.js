@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import AchievementsPanel from '@/components/panels/AchievementsPanel';
+import StreakActivitySync from '@/components/StreakActivitySync';
 
 export default function AchievementsPage() {
   const { user, loading } = useAuth();
@@ -30,6 +31,7 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)]">
+      <StreakActivitySync onStreakUpdated={() => {}} onMysteryBoxGranted={() => {}} />
       <div className="max-w-3xl mx-auto px-5 md:px-10 py-8 md:py-12">
         <AchievementsPanel user={user} />
       </div>
