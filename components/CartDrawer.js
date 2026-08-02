@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, ShoppingCart, Trash2 } from 'lucide-react';
 import { useAuth } from '@/components/AuthProvider';
 import { useCart } from '@/components/CartProvider';
@@ -10,6 +10,17 @@ export default function CartDrawer() {
   const { user } = useAuth();
   const { items, total, drawerOpen, setDrawerOpen, remove } = useCart();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    if (!drawerOpen) setCheckoutOpen(false);
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    function onKeyDown(e) { if (e.key === 'Escape') setDrawerOpen(false); }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen, setDrawerOpen]);
 
   return (
     <>

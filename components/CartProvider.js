@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '@/components/AuthProvider';
 
 /* In-memory only, no persistence — carts are ephemeral by design (no
    existing cart infra anywhere in this app to persist against, and a
@@ -8,8 +9,23 @@ import { createContext, useContext, useMemo, useState } from 'react';
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
+  const { user } = useAuth();
   const [items, setItems] = useState([]); // { type: 'course'|'bundle', id, title, price }
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const prevUserId = useRef(user ? user.id : null);
+
+  useEffect(() => {
+    const currentId = user ? user.id : null;
+    if (prevUserId.current && currentId !== prevUserId.current) {
+      // Genuine identity change (sign-out, account switch, cross-tab
+      // SIGNED_OUT) — never fires from a TOKEN_REFRESHED, since that keeps
+      // the same user.id. A stale cart must never carry over to the next
+      // account, or the wrong person's balance could get charged.
+      setItems([]);
+      setDrawerOpen(false);
+    }
+    prevUserId.current = currentId;
+  }, [user]);
 
   function addCourse(course) {
     setItems((cur) => (cur.some((i) => i.type === 'course' && i.id === course.id)
