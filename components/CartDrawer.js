@@ -16,11 +16,14 @@ export default function CartDrawer() {
   }, [drawerOpen]);
 
   useEffect(() => {
-    if (!drawerOpen) return;
+    // Skip while the checkout modal is open on top of the drawer — its own
+    // Escape handler closes it first; a second Escape then closes the
+    // drawer, instead of one press collapsing both overlays at once.
+    if (!drawerOpen || checkoutOpen) return;
     function onKeyDown(e) { if (e.key === 'Escape') setDrawerOpen(false); }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [drawerOpen, setDrawerOpen]);
+  }, [drawerOpen, checkoutOpen, setDrawerOpen]);
 
   return (
     <>
