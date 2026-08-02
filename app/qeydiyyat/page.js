@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 import GoogleIcon from '@/components/GoogleIcon';
 
 const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -26,7 +27,7 @@ export default function QeydiyyatPage() {
     });
     if (error) {
       setGoogleLoading(false);
-      setMsg({ text: error.message, type: 'error' });
+      setMsg({ text: friendlyErrorMessage(error, 'Google ilə qeydiyyat alınmadı.'), type: 'error' });
     }
   }
 
@@ -48,7 +49,7 @@ export default function QeydiyyatPage() {
     });
     setLoading(false);
     if (error) {
-      setMsg({ text: error.message, type: 'error' });
+      setMsg({ text: friendlyErrorMessage(error, 'Hesab yaradılmadı.'), type: 'error' });
       return;
     }
     if (data.user && !data.session) {

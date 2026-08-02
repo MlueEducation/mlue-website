@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { openMysteryBox } from '@/lib/gamification';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 
 const REWARD_COPY = {
   xp: (amount) => ({ emoji: '⭐', title: `+${amount} XP qazandın!`, desc: 'Səviyyəni yüksəltmək üçün davam et.' }),
@@ -25,7 +26,7 @@ export default function MysteryBoxModal({ open, onClose, onOpened }) {
       setState('revealed');
       onOpened?.();
     } catch (err) {
-      setError(err.message);
+      setError(friendlyErrorMessage(err, 'Mystery Box açılmadı.'));
       setState('error');
     }
   }

@@ -6,6 +6,7 @@ import { X, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { savePaymentMethod } from '@/lib/wallet';
 import { purchaseCart } from '@/lib/purchases';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 import { useCart } from '@/components/CartProvider';
 import { Toggle } from '@/components/ProfileUI';
 
@@ -93,7 +94,7 @@ export default function CartCheckoutModal({ open, onClose, user }) {
       clear();
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Ödəniş uğursuz oldu.');
+      setError(friendlyErrorMessage(err, 'Ödəniş uğursuz oldu.'));
     } finally {
       setSubmitting(false);
     }

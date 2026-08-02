@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 import GoogleIcon from '@/components/GoogleIcon';
 import AccountRecoveryModal from '@/components/AccountRecoveryModal';
 
@@ -23,7 +24,7 @@ export default function GirisPage() {
     });
     if (error) {
       setGoogleLoading(false);
-      setMsg({ text: error.message, type: 'error' });
+      setMsg({ text: friendlyErrorMessage(error, 'Google ilə giriş alınmadı.'), type: 'error' });
     }
   }
 
@@ -36,15 +37,26 @@ export default function GirisPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setLoading(false);
-      setMsg({ text: error.message, type: 'error' });
+      setMsg({ text: friendlyErrorMessage(error, 'Daxil olmaq alınmadı.'), type: 'error' });
       return;
     }
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, deleted_at')
       .eq('id', data.user.id)
       .maybeSingle();
     setLoading(false);
+
+    if (profileError) {
+      // A transient lookup failure isn't proof this is a brand-new user —
+      // routing to /onboarding here would wrongly restart onboarding for a
+      // returning user. /profil is always safe: it handles a still-missing
+      // profile with its own conditional banner, not a misroute.
+      console.error('Profil sorğusu uğursuz oldu:', profileError.message);
+      setMsg({ text: 'Daxil oldun! Yönləndirilirsən...', type: 'success' });
+      setTimeout(() => router.push('/profil'), 600);
+      return;
+    }
 
     if (profile?.deleted_at) {
       setPendingRecovery(profile);

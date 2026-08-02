@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 import { useTheme } from '@/components/ThemeProvider';
 import { useLanguage, LANGUAGES } from '@/components/LanguageProvider';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip } from '@/components/ProfileUI';
@@ -155,7 +156,7 @@ function GeneralTab({ user, profile, onSaved }) {
       const { error: upErr } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true });
       if (upErr) {
         setSaving(false);
-        setMessage({ type: 'error', text: 'Şəkil yüklənmədi: ' + upErr.message });
+        setMessage({ type: 'error', text: friendlyErrorMessage(upErr, 'Şəkil yüklənmədi.') });
         return;
       }
       const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -170,7 +171,7 @@ function GeneralTab({ user, profile, onSaved }) {
     const { error } = await supabase.from('profiles').upsert(payload);
     if (error) {
       setSaving(false);
-      setMessage({ type: 'error', text: 'Yadda saxlanılmadı: ' + error.message });
+      setMessage({ type: 'error', text: friendlyErrorMessage(error, 'Yadda saxlanılmadı.') });
       return;
     }
     onSaved((p) => ({ ...(p || {}), ...payload }));
@@ -179,7 +180,7 @@ function GeneralTab({ user, profile, onSaved }) {
       const { error: emailErr } = await supabase.auth.updateUser({ email: email.trim() });
       setSaving(false);
       if (emailErr) {
-        setMessage({ type: 'error', text: 'Email dəyişdirilmədi: ' + emailErr.message });
+        setMessage({ type: 'error', text: friendlyErrorMessage(emailErr, 'Email dəyişdirilmədi.') });
         return;
       }
       setMessage({ type: 'success', text: 'Məlumatlar saxlanıldı. Yeni email üçün təsdiq linki göndərildi.' });
@@ -351,7 +352,7 @@ function SecurityTab({ user }) {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setPwSaving(false);
     if (error) {
-      setPwMessage({ type: 'error', text: 'Şifrə yenilənmədi: ' + error.message });
+      setPwMessage({ type: 'error', text: friendlyErrorMessage(error, 'Şifrə yenilənmədi.') });
       return;
     }
     setCurrentPassword('');
@@ -366,7 +367,7 @@ function SecurityTab({ user }) {
     const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
     setMfaBusy(false);
     if (error) {
-      setMfaMessage({ type: 'error', text: '2FA aktivləşdirilmədi: ' + error.message });
+      setMfaMessage({ type: 'error', text: friendlyErrorMessage(error, '2FA aktivləşdirilmədi.') });
       return;
     }
     setQrData({ factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret });
@@ -380,7 +381,7 @@ function SecurityTab({ user }) {
     const { data: challenge, error: chErr } = await supabase.auth.mfa.challenge({ factorId: qrData.factorId });
     if (chErr) {
       setMfaBusy(false);
-      setMfaMessage({ type: 'error', text: chErr.message });
+      setMfaMessage({ type: 'error', text: friendlyErrorMessage(chErr, '2FA kodu göndərilmədi.') });
       return;
     }
     const { error: verErr } = await supabase.auth.mfa.verify({ factorId: qrData.factorId, challengeId: challenge.id, code: verifyCode });
@@ -403,13 +404,17 @@ function SecurityTab({ user }) {
     if (!error) {
       setMfaMessage({ type: 'success', text: '2FA deaktiv edildi.' });
       refreshFactors();
+    } else {
+      // Previously silent on failure — the button just went back to its
+      // normal state with no explanation of why 2FA stayed active.
+      setMfaMessage({ type: 'error', text: friendlyErrorMessage(error, '2FA deaktiv edilmədi.') });
     }
   }
 
   async function handleSignOutOthers() {
     setSessionsMessage(null);
     const { error } = await supabase.auth.signOut({ scope: 'others' });
-    setSessionsMessage(error ? { type: 'error', text: error.message } : { type: 'success', text: 'Digər bütün seanslar bağlandı.' });
+    setSessionsMessage(error ? { type: 'error', text: friendlyErrorMessage(error, 'Seanslar bağlanmadı.') } : { type: 'success', text: 'Digər bütün seanslar bağlandı.' });
   }
 
   const verifiedFactor = factors.find((f) => f.status === 'verified');
@@ -623,7 +628,7 @@ function ConnectionsTab({ user }) {
     setMessage(null);
     const { error } = await supabase.auth.linkIdentity({ provider: 'google', options: { redirectTo: `${getSiteOrigin()}/profil` } });
     setBusy(false);
-    if (error) setMessage({ type: 'error', text: error.message });
+    if (error) setMessage({ type: 'error', text: friendlyErrorMessage(error, 'Google bağlantısı qurulmadı.') });
   }
 
   async function handleDisconnectGoogle() {
@@ -632,7 +637,7 @@ function ConnectionsTab({ user }) {
     const { error } = await supabase.auth.unlinkIdentity(googleIdentity);
     setBusy(false);
     if (error) {
-      setMessage({ type: 'error', text: error.message });
+      setMessage({ type: 'error', text: friendlyErrorMessage(error, 'Google bağlantısı kəsilmədi.') });
       return;
     }
     setMessage({ type: 'success', text: 'Google bağlantısı kəsildi.' });
@@ -675,7 +680,7 @@ function DangerZone({ user }) {
     const { error } = await supabase.from('profiles').upsert({ id: user.id, deleted_at: new Date().toISOString() });
     if (error) {
       setDeleting(false);
-      setDeleteMessage({ type: 'error', text: error.message });
+      setDeleteMessage({ type: 'error', text: friendlyErrorMessage(error, 'Hesab silinmədi.') });
       return;
     }
     await supabase.auth.signOut();

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Panel, PageHeader } from '@/components/ProfileUI';
 import { subscribeToPro, cancelPro, isProActive, PRO_MONTHLY_PRICE } from '@/lib/proSubscription';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 
 const FEATURES = [
   { icon: '🤖', title: 'Limitsiz Meagle', desc: 'AI köməkçidən gündəlik limit olmadan istifadə et' },
@@ -30,7 +31,7 @@ export default function ProPanel({ profile, onProUpdated }) {
       const result = await subscribeToPro();
       onProUpdated((p) => (p ? { ...p, is_pro: result.is_pro, pro_expires_at: result.pro_expires_at } : p));
     } catch (err) {
-      setError(err.message || 'Abunəlik alınmadı.');
+      setError(friendlyErrorMessage(err, 'Abunəlik alınmadı.'));
     } finally {
       setSubmitting(false);
     }
@@ -45,7 +46,7 @@ export default function ProPanel({ profile, onProUpdated }) {
       onProUpdated((p) => (p ? { ...p, is_pro: false } : p));
       setConfirmCancel(false);
     } catch (err) {
-      setError(err.message || 'Ləğv edilmədi.');
+      setError(friendlyErrorMessage(err, 'Ləğv edilmədi.'));
     } finally {
       setCancelling(false);
     }

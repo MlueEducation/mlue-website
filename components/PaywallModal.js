@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { X, Lock } from 'lucide-react';
 import { purchaseCourse } from '@/lib/purchases';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 
 /* Fires when an 'audit' user clicks "Kurs tamamlandı" — this app's only
    real "beyond video" action (there is no separate certificate-claim
@@ -38,7 +39,7 @@ export default function PaywallModal({ open, onClose, course, onUnlocked }) {
       queryClient.invalidateQueries({ queryKey: ['my-enrollments'], exact: false });
       onUnlocked();
     } catch (err) {
-      setError(err.message || 'Alış uğursuz oldu.');
+      setError(friendlyErrorMessage(err, 'Alış uğursuz oldu.'));
     } finally {
       setSubmitting(false);
     }
