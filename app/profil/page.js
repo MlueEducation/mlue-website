@@ -90,14 +90,21 @@ const MOCK = {
    one timeline sorted newest-first. */
 function useIdentityOverview(userId) {
   const [overview, setOverview] = useState({ activeCourses: 0, completionRate: 0, activity: [], loading: true });
+  const [loadError, setLoadError] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setLoadError(null);
+    setOverview((o) => ({ ...o, loading: true }));
     Promise.all([
       supabase.from('user_courses').select('course_id, enrolled_at, completed_at, progress_percentage').eq('user_id', userId).order('enrolled_at', { ascending: false }),
       supabase.from('certificates').select('course_name, issue_date').eq('user_id', userId).order('issue_date', { ascending: false }).limit(5),
       supabase.from('token_transactions').select('description, amount, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
-    ]).then(async ([{ data: enrollmentData }, { data: certData }, { data: tokenData }]) => {
+    ]).then(async ([{ data: enrollmentData, error: enrollmentError }, { data: certData, error: certError }, { data: tokenData, error: tokenError }]) => {
+      if (enrollmentError) throw enrollmentError;
+      if (certError) throw certError;
+      if (tokenError) throw tokenError;
       const enrollments = enrollmentData || [];
       const certificates = certData || [];
       const tokenTx = tokenData || [];
@@ -126,11 +133,16 @@ function useIdentityOverview(userId) {
       events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
 
       setOverview({ activeCourses, completionRate, activity: events.slice(0, 5), loading: false });
+    }).catch((err) => {
+      if (cancelled) return;
+      console.error('Ümumi baxış yüklənmədi:', err.message);
+      setLoadError('Ümumi baxış məlumatları yüklənmədi.');
+      setOverview((o) => ({ ...o, loading: false }));
     });
     return () => { cancelled = true; };
-  }, [userId]);
+  }, [userId, retryKey]);
 
-  return overview;
+  return { ...overview, loadError, retry: () => setRetryKey((k) => k + 1) };
 }
 
 function formatMemberSince(createdAt) {
@@ -370,8 +382,8 @@ function IdentityPanel({ user, profile, onNavigate }) {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Aktiv kurslar', value: overview.loading ? '—' : String(overview.activeCourses), icon: '📚', tone: 'accent' },
-            { label: 'Tamamlanma', value: overview.loading ? '—' : `${overview.completionRate}%`, icon: '✅', tone: 'success' },
+            { label: 'Aktiv kurslar', value: (overview.loading || overview.loadError) ? '—' : String(overview.activeCourses), icon: '📚', tone: 'accent' },
+            { label: 'Tamamlanma', value: (overview.loading || overview.loadError) ? '—' : `${overview.completionRate}%`, icon: '✅', tone: 'success' },
             { label: 'Seriya (streak)', value: `${profile?.current_streak ?? 0} gün`, icon: '🔥', tone: 'streak' },
             { label: 'Ümumi bal (XP)', value: (profile?.xp_points ?? 0).toLocaleString('az-AZ'), icon: '⚡', tone: 'warm' },
           ].map((s) => <StatTile key={s.label} {...s} />)}
@@ -441,7 +453,12 @@ function IdentityPanel({ user, profile, onNavigate }) {
 
         <Panel>
           <PanelSection first title="Son fəaliyyət" desc="Hesabında son baş verən dəyişikliklər">
-            {overview.loading ? (
+            {overview.loadError ? (
+              <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3">
+                <p className="text-sm text-[var(--danger)]">{overview.loadError}</p>
+                <button type="button" onClick={overview.retry} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+              </div>
+            ) : overview.loading ? (
               <p className="text-sm text-[var(--text-secondary)]">Yüklənir...</p>
             ) : overview.activity.length === 0 ? (
               <p className="text-sm text-[var(--text-secondary)]">Hələ heç bir fəaliyyət yoxdur — bir kursa qeydiyyatdan keçərək başla.</p>
@@ -1174,6 +1191,13 @@ export default function ProfilPage() {
 
   useEffect(() => {
     if (!user) { setProfileLoading(false); return; }
+    // Without this, a null->real user transition (the normal case: this
+    // effect first runs while useAuth() is still resolving the session,
+    // sets profileLoading false via the branch above) would leave
+    // profileLoading already false once the real user arrives, letting the
+    // dashboard render with profile still null for a frame — a flash of
+    // wrong Pro/onboarding state before the real fetch resolves.
+    setProfileLoading(true);
     supabase
       .from('profiles')
       .select('*')

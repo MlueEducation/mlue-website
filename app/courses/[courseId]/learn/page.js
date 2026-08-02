@@ -29,6 +29,8 @@ export default function CoursePlayerPage() {
   const [accessLevel, setAccessLevel] = useState('full');
   const [enrollmentError, setEnrollmentError] = useState(null);
   const [progressMap, setProgressMap] = useState({});
+  const [progressError, setProgressError] = useState(null);
+  const [progressRetryKey, setProgressRetryKey] = useState(0);
   const [activeLessonId, setActiveLessonId] = useState(() => lessons[0]?.id);
   const [courseCompleted, setCourseCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -76,17 +78,27 @@ export default function CoursePlayerPage() {
         setEnrollmentChecked(true);
       });
 
+    setProgressError(null);
     supabase
       .from('lesson_progress')
       .select('lesson_id')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Lesson progress fetch failed:', error.message);
+          setProgressError('Dərs irəliləyişi yüklənmədi. Kilidli dərslər səhv görünə bilər.');
+          return;
+        }
         const map = {};
         (data || []).forEach((row) => { map[row.lesson_id] = true; });
         setProgressMap(map);
+      })
+      .catch((err) => {
+        console.error('Lesson progress fetch threw:', err);
+        setProgressError('Dərs irəliləyişi yüklənmədi. Kilidli dərslər səhv görünə bilər.');
       });
-  }, [user, course]);
+  }, [user, course, progressRetryKey]);
 
   useEffect(() => {
     if (enrollmentChecked && !enrolled && !enrollmentError) {
@@ -228,6 +240,13 @@ export default function CoursePlayerPage() {
           <div className="text-xs text-[var(--text-tertiary)] mb-1">{course.title}</div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">{activeLesson?.title}</h1>
         </div>
+
+        {progressError && (
+          <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3 mb-4">
+            <p className="text-sm text-[var(--danger)]">{progressError}</p>
+            <button type="button" onClick={() => setProgressRetryKey((k) => k + 1)} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Yenidən cəhd et</button>
+          </div>
+        )}
 
         <VideoPlayer lesson={activeLesson} onComplete={() => activeLesson && completeLesson(activeLesson.id)} />
 

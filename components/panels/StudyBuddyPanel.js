@@ -25,6 +25,7 @@ export default function StudyBuddyPanel({ user }) {
   const [togglingVisible, setTogglingVisible] = useState(false);
   const [connectingId, setConnectingId] = useState(null);
   const [loadError, setLoadError] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +55,7 @@ export default function StudyBuddyPanel({ user }) {
   async function handleToggleVisible(next) {
     if (togglingVisible) return;
     setTogglingVisible(true);
+    setActionError(null);
     try {
       await setStudyBuddyVisible(user.id, next);
       setMyProfile((p) => (p ? { ...p, study_buddy_visible: next } : p));
@@ -63,6 +65,14 @@ export default function StudyBuddyPanel({ user }) {
       } else {
         setBuddies([]);
       }
+    } catch (err) {
+      // Local state above is only ever mutated after its matching await
+      // already succeeded, so there's nothing to roll back here — the
+      // real bug this closes is that a failure previously surfaced
+      // nothing at all: the toggle just silently stayed put with no
+      // explanation.
+      console.error('Görünürlük dəyişdirilmədi:', err.message);
+      setActionError('Görünürlük dəyişdirilmədi. Yenidən cəhd et.');
     } finally {
       setTogglingVisible(false);
     }
@@ -70,9 +80,13 @@ export default function StudyBuddyPanel({ user }) {
 
   async function handleConnect(buddyId) {
     setConnectingId(buddyId);
+    setActionError(null);
     try {
       await connectWithBuddy(user.id, buddyId);
       setConnectedIds((ids) => [...ids, buddyId]);
+    } catch (err) {
+      console.error('Bağlantı qurulmadı:', err.message);
+      setActionError('Bağlantı qurulmadı. Yenidən cəhd et.');
     } finally {
       setConnectingId(null);
     }
@@ -99,6 +113,13 @@ export default function StudyBuddyPanel({ user }) {
   return (
     <div>
       <PageHeader sub="Oxşar maraqlara və ixtisas qrupuna sahib istifadəçilərlə tanış ol">Tədris Yoldaşı</PageHeader>
+
+      {actionError && (
+        <div className="flex items-center justify-between gap-3 bg-[var(--danger-10)] border border-[var(--danger)]/20 rounded-xl px-4 py-3 mb-5">
+          <p className="text-sm text-[var(--danger)]">{actionError}</p>
+          <button type="button" onClick={() => setActionError(null)} className="text-xs font-bold text-[var(--danger)] underline flex-shrink-0">Bağla</button>
+        </div>
+      )}
 
       <Panel>
         <PanelSection first title="Görünürlük" desc="Görünən olmadan başqa istifadəçiləri görə bilməzsən — bu qarşılıqlı işləyir">
