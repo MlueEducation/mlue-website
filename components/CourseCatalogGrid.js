@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_ICONS as ICONS } from './categoryIcons';
 import CourseThumb from './CourseThumb';
-import { useCourseList } from '@/hooks/useCoursesData';
+import { useAuth } from '@/components/AuthProvider';
+import { useCourseList, useMyEnrollments } from '@/hooks/useCoursesData';
 
 /* Category taxonomy stays a static JS constant — icons are React SVG
    components, not real DB content — but each category's course list is
@@ -30,9 +31,11 @@ function CatIcon({ children }) {
 }
 
 export default function CourseCatalogGrid({ initialQuery = '', toolbarExtra = null }) {
+  const { user } = useAuth();
   const [activeCat, setActiveCat] = useState('all');
   const [query, setQuery] = useState(initialQuery);
   const { data: allCourses = [], isLoading: coursesLoading, isError: coursesError } = useCourseList();
+  const { data: enrollmentMap = new Map() } = useMyEnrollments(user?.id);
 
   const sections = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -88,29 +91,44 @@ export default function CourseCatalogGrid({ initialQuery = '', toolbarExtra = nu
             {cat.label}
           </h2>
           <div className="course-grid">
-            {cat.courses.map((c, i) => (
-              <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
-                <CourseThumb categoryId={cat.id} variant={i} thumbnailUrl={c.thumbnailUrl} />
-                <span className="course-tag">{cat.label}</span>
-                <h3>{c.title}</h3>
-                <div className="course-meta">
-                  <span>{c.level}</span>
-                  <span className="course-meta-dot">·</span>
-                  <span>{c.duration}</span>
-                  {!c.isFree && c.price > 0 ? (
-                    <>
-                      <span className="course-meta-dot">·</span>
-                      <span className="font-bold text-[var(--text-primary)]">₼{Number(c.price).toFixed(2)}</span>
-                    </>
-                  ) : c.isFree ? (
-                    <>
-                      <span className="course-meta-dot">·</span>
-                      <span className="font-bold text-[var(--success)]">Pulsuz</span>
-                    </>
-                  ) : null}
-                </div>
-              </Link>
-            ))}
+            {cat.courses.map((c, i) => {
+              const enrollment = enrollmentMap.get(c.id);
+              const owned = enrollment?.access_level === 'full';
+              const completed = owned && !!enrollment.completed_at;
+              return (
+                <Link href={`/courses/${c.id}`} className="course-card" key={c.id}>
+                  <CourseThumb categoryId={cat.id} variant={i} thumbnailUrl={c.thumbnailUrl} />
+                  <span className="course-tag">{cat.label}</span>
+                  <h3>{c.title}</h3>
+                  <div className="course-meta">
+                    <span>{c.level}</span>
+                    <span className="course-meta-dot">·</span>
+                    <span>{c.duration}</span>
+                    {completed ? (
+                      <>
+                        <span className="course-meta-dot">·</span>
+                        <span className="font-bold text-[var(--success)]">✓ Bitirmisiniz</span>
+                      </>
+                    ) : owned ? (
+                      <>
+                        <span className="course-meta-dot">·</span>
+                        <span className="font-bold text-[var(--accent)]">Sahibsiniz</span>
+                      </>
+                    ) : !c.isFree && c.price > 0 ? (
+                      <>
+                        <span className="course-meta-dot">·</span>
+                        <span className="font-bold text-[var(--text-primary)]">₼{Number(c.price).toFixed(2)}</span>
+                      </>
+                    ) : c.isFree ? (
+                      <>
+                        <span className="course-meta-dot">·</span>
+                        <span className="font-bold text-[var(--success)]">Pulsuz</span>
+                      </>
+                    ) : null}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       ))}

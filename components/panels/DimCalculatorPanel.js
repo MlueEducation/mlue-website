@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { COMMON_SUBJECTS, DIM_GROUPS, GRADUATION_MAX, getAdmissionMax } from '@/lib/dimGroups';
-import { Panel, PanelSection, PageHeader } from '@/components/ProfileUI';
+import { Panel, PanelSection, PageHeader, CircularProgress } from '@/components/ProfileUI';
 import { supabase } from '@/lib/supabaseClient';
 import { claimBadge, recordQuestAction } from '@/lib/gamification';
 
@@ -84,26 +84,6 @@ function toneFor(percent) {
   if (percent >= 70) return 'stroke-[var(--success)]';
   if (percent >= 40) return 'stroke-[var(--accent-warm)]';
   return 'stroke-[var(--danger)]';
-}
-
-function CircularProgress({ percent, size = 64, strokeWidth = 6, toneClass }) {
-  const r = (size - strokeWidth) / 2;
-  const c = 2 * Math.PI * r;
-  const offset = c - (percent / 100) * c;
-  return (
-    <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={strokeWidth} fill="none" className="stroke-[var(--border)]" />
-        <circle
-          cx={size / 2} cy={size / 2} r={r} strokeWidth={strokeWidth} fill="none"
-          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
-          className={toneClass}
-          style={{ transition: 'stroke-dashoffset 700ms ease' }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-[var(--text-primary)]">{percent}%</div>
-    </div>
-  );
 }
 
 function SubjectScoreGrid({ subjects, prefix, getMax, scores, onChange }) {

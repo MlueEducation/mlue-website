@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { getAllCourses, getCourseById } from '@/lib/courses';
+import { getAllCourses, getCourseById, fetchMyEnrollmentMap } from '@/lib/courses';
 import { fetchOwnedFullCourseIds } from '@/lib/bundles';
 
 export function useCourseList() {
@@ -30,6 +30,18 @@ export function useOwnedCourseIds(userId, courseIds) {
     queryKey: ['owned-course-ids', userId, idsKey],
     queryFn: () => fetchOwnedFullCourseIds(userId, courseIds),
     enabled: !!userId && (courseIds || []).length > 0,
+  });
+}
+
+/* Catalog-wide "am I enrolled, and how far along am I" lookup — drives the
+   "Sahibsiniz"/"Bitirmisiniz" catalog badges and the course-details progress
+   ring. Same invalidation points as useOwnedCourseIds (see
+   CartCheckoutModal.js) so a purchase refreshes both together. */
+export function useMyEnrollments(userId) {
+  return useQuery({
+    queryKey: ['my-enrollments', userId],
+    queryFn: () => fetchMyEnrollmentMap(userId),
+    enabled: !!userId,
   });
 }
 

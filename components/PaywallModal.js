@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { X, Lock } from 'lucide-react';
 import { purchaseCourse } from '@/lib/purchases';
 
@@ -10,6 +11,7 @@ import { purchaseCourse } from '@/lib/purchases';
    1-click purchase of just this course, not routed through the cart —
    a paywall interrupt is a one-item decision. */
 export default function PaywallModal({ open, onClose, course, onUnlocked }) {
+  const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -31,6 +33,9 @@ export default function PaywallModal({ open, onClose, course, onUnlocked }) {
     setError(null);
     try {
       await purchaseCourse(course.id);
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['owned-course-ids'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['my-enrollments'], exact: false });
       onUnlocked();
     } catch (err) {
       setError(err.message || 'Alış uğursuz oldu.');

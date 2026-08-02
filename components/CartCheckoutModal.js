@@ -89,6 +89,7 @@ export default function CartCheckoutModal({ open, onClose, user }) {
       // this, they'd only refresh on a hard reload.
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       queryClient.invalidateQueries({ queryKey: ['owned-course-ids'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['my-enrollments'], exact: false });
       clear();
       setSuccess(true);
     } catch (err) {

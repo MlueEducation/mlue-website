@@ -1,6 +1,7 @@
 'use client';
 
 import { Link2 } from 'lucide-react';
+import { CircularProgress } from '@/components/ProfileUI';
 
 /* Pure presentational — extracted verbatim from app/courses/[courseId]/page.js
    so MLUE Studio's PreviewModal can render the exact same student-facing
@@ -55,7 +56,7 @@ function InstructorCard({ instructor }) {
    course only ever reaches 'none' or 'full' — the audit tier only applies
    to paid courses. */
 export default function CourseDetailsView({
-  course, accessLevel = 'none', checking, enrolling, enrollError,
+  course, accessLevel = 'none', progressPercent = null, completed = false, checking, enrolling, enrollError,
   onEnroll, onStart, onAddToCart, onStartAudit, onUpgrade,
 }) {
   const hasContent = course.curriculum.length > 0 && course.curriculum.some((m) => m.lessons.length > 0);
@@ -90,6 +91,20 @@ export default function CourseDetailsView({
         </div>
 
         {course.instructor && <InstructorCard instructor={course.instructor} />}
+
+        {accessLevel === 'full' && progressPercent != null && (
+          <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-6 mb-6 flex items-center gap-5">
+            <CircularProgress percent={progressPercent} toneClass={completed ? 'stroke-[var(--success)]' : 'stroke-[var(--accent)]'} />
+            <div>
+              <div className="text-sm font-bold text-[var(--text-primary)]">
+                {completed ? '✅ Bu kursu bitirmisən!' : 'İrəliləyişin'}
+              </div>
+              <div className="text-xs text-[var(--text-secondary)] mt-0.5">
+                {completed ? 'Sertifikatın profilindəki "Sertifikatlar" bölməsindədir.' : `Kursun ${progressPercent}%-ini tamamlamısan.`}
+              </div>
+            </div>
+          </div>
+        )}
 
         {course.whatYouWillLearn.length > 0 && (
           <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-6 mb-6">

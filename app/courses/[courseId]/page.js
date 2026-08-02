@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 import { useCourse } from '@/hooks/useCoursesData';
@@ -14,10 +15,13 @@ export default function CourseDetailsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const cart = useCart();
+  const queryClient = useQueryClient();
 
   const { data: course, isLoading: courseLoading, isError: courseError } = useCourse(courseId);
 
   const [accessLevel, setAccessLevel] = useState('none');
+  const [progressPercent, setProgressPercent] = useState(null);
+  const [completed, setCompleted] = useState(false);
   const [checking, setChecking] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollError, setEnrollError] = useState(null);
@@ -26,7 +30,7 @@ export default function CourseDetailsPage() {
     if (!user || !course) { setChecking(false); return; }
     supabase
       .from('user_courses')
-      .select('access_level')
+      .select('access_level, completed_at, progress_percentage')
       .eq('user_id', user.id)
       .eq('course_id', course.id)
       .maybeSingle()
@@ -37,6 +41,8 @@ export default function CourseDetailsPage() {
         // that enrollment predates 'audit' mode, so it always meant full
         // access.
         setAccessLevel(data ? (data.access_level || 'full') : 'none');
+        setProgressPercent(data ? (data.progress_percentage || 0) : null);
+        setCompleted(!!data?.completed_at);
         setChecking(false);
       })
       .catch((err) => {
@@ -72,6 +78,9 @@ export default function CourseDetailsPage() {
       );
       if (error) throw error;
       setAccessLevel('full');
+      setProgressPercent(0);
+      queryClient.invalidateQueries({ queryKey: ['owned-course-ids'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['my-enrollments'], exact: false });
     } catch (err) {
       console.error('Enrollment failed:', err);
       setEnrollError('Qeydiyyat alınmadı. Zəhmət olmasa yenidən cəhd et.');
@@ -108,6 +117,8 @@ export default function CourseDetailsPage() {
     <CourseDetailsView
       course={course}
       accessLevel={accessLevel}
+      progressPercent={progressPercent}
+      completed={completed}
       checking={checking}
       enrolling={enrolling}
       enrollError={enrollError}
