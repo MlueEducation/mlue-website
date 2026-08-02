@@ -60,7 +60,7 @@ function tierFor(xp) {
    itself now happens once per page load via StreakActivitySync, mounted at
    the top-level ProfilPage — this component only ever reads/displays the
    resulting state. */
-export default function AchievementsPanel({ user, profile: profileProp }) {
+export default function AchievementsPanel({ user, profile: profileProp, streakOverride }) {
   const standalone = profileProp === undefined;
   const [selfProfile, setSelfProfile] = useState(null);
   const [selfProfileLoading, setSelfProfileLoading] = useState(standalone);
@@ -160,7 +160,12 @@ export default function AchievementsPanel({ user, profile: profileProp }) {
   const xp = profile?.xp_points || 0;
   const level = Math.floor(xp / LEVEL_XP_STEP) + 1;
   const xpIntoLevel = xp % LEVEL_XP_STEP;
-  const streak = profile?.current_streak || 0;
+  // In standalone mode, the profile was fetched once on mount — before
+  // StreakActivitySync (mounted by the page, one level up) has necessarily
+  // finished recording today's activity. streakOverride lets the page hand
+  // down the fresher value immediately, mirroring how /profil's
+  // bumpStreakLocal patches its own profile state.
+  const streak = (standalone && streakOverride != null) ? streakOverride : (profile?.current_streak || 0);
 
   const badges = BADGE_DEFS.map((def) => ({
     ...def,

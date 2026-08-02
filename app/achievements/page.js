@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import AchievementsPanel from '@/components/panels/AchievementsPanel';
@@ -7,6 +8,7 @@ import StreakActivitySync from '@/components/StreakActivitySync';
 
 export default function AchievementsPage() {
   const { user, loading } = useAuth();
+  const [streakOverride, setStreakOverride] = useState(null);
 
   if (loading) {
     return (
@@ -31,9 +33,9 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-[calc(100vh-var(--header-h))] bg-[var(--bg-page)]">
-      <StreakActivitySync onStreakUpdated={() => {}} onMysteryBoxGranted={() => {}} />
+      <StreakActivitySync onStreakUpdated={setStreakOverride} onMysteryBoxGranted={() => {}} />
       <div className="max-w-3xl mx-auto px-5 md:px-10 py-8 md:py-12">
-        <AchievementsPanel user={user} />
+        <AchievementsPanel user={user} streakOverride={streakOverride} />
       </div>
     </div>
   );
