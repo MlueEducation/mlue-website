@@ -282,6 +282,7 @@ header nav {
   transition: opacity .25s var(--ease), transform .28s var(--ease);
 }
 .nav-overlay.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.nav-overlay-utility { display: none; justify-content: flex-end; margin-bottom: 20px; }
 .nav-overlay-links { display: flex; flex-direction: column; }
 .nav-overlay-links a { font-size: 26px; font-weight: 600; padding: 16px 0; border-bottom: 1px solid var(--border); letter-spacing: -.01em; }
 .nav-overlay-auth { margin-top: 28px; }
@@ -717,6 +718,21 @@ footer { border-top: 1px solid var(--border); padding: 56px 0 32px; }
      no room for the full name text next to those two icons + the burger. */
   .profile-email { display: none; }
   .profile-pill { padding: 5px; }
+  /* Five fixed-size controls (theme toggle, cart, bell, avatar, burger)
+     plus the brand logo no longer all fit in one row on narrow phones —
+     the burger was being pushed past the visible edge entirely on ~360px
+     viewports. Moving the theme toggle into the slide-down menu (see
+     .nav-overlay-utility) and tightening spacing reclaims enough width. */
+  header nav { padding: 0 16px; gap: 14px; }
+  .nav-right { gap: 8px; }
+  .header-theme-toggle { display: none; }
+  .nav-overlay-utility { display: flex; }
+  /* Logged-out visitors already get Giriş/Qeydiyyat inside the burger
+     overlay (see .nav-overlay .nav-auth-links) — the header's own inline
+     copy was rendering at full size (a text link + a padded pill button)
+     right next to the burger with nothing hiding it, overflowing the
+     header on narrow phones even worse than the icon-crowding case above. */
+  .nav-right > .nav-auth-links { display: none; }
   .compare { grid-template-columns: 1fr; }
   .feat-grid { grid-template-columns: repeat(2, 1fr); }
   .steps { grid-template-columns: repeat(2, 1fr); }

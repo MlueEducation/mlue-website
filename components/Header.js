@@ -166,7 +166,7 @@ export default function Header() {
           </Link>
         </div>
         <div className="nav-right">
-          <ThemeToggle />
+          <ThemeToggle className="header-theme-toggle" />
           <CartButton />
           <NotificationBell />
           <AuthArea />
@@ -176,18 +176,28 @@ export default function Header() {
         </div>
       </nav>
       <div className={`nav-overlay ${open ? 'open' : ''}`}>
-        <div className="nav-overlay-links">
-          {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
-          ))}
-          <Link
-            href="/xeberler"
-            className={`relative${isNewsActive ? ' nav-link-active' : ''}`}
-            onClick={() => { markNewsRead(); setOpen(false); }}
-          >
-            Xəbərlər
-            <NewsPulseDot />
-          </Link>
+        <div>
+          {/* The header's own ThemeToggle is hidden at this breakpoint (see
+              .header-theme-toggle in globals.css) — without too many
+              fixed-size icons crowding the header row on narrow phones, the
+              burger button itself was being pushed past the viewport edge.
+              Theme switching stays reachable here instead. */}
+          <div className="nav-overlay-utility">
+            <ThemeToggle />
+          </div>
+          <div className="nav-overlay-links">
+            {NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</Link>
+            ))}
+            <Link
+              href="/xeberler"
+              className={`relative${isNewsActive ? ' nav-link-active' : ''}`}
+              onClick={() => { markNewsRead(); setOpen(false); }}
+            >
+              Xəbərlər
+              <NewsPulseDot />
+            </Link>
+          </div>
         </div>
         {/* Logged-in users already have the avatar + dropdown visible in the
             header itself (see nav-right above) — showing it again here would
