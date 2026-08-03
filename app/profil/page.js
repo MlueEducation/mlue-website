@@ -12,6 +12,7 @@ import { recordQuestAction } from '@/lib/gamification';
 import { setDefaultPaymentMethod } from '@/lib/wallet';
 import { getCoursesByIds } from '@/lib/courses';
 import { formatDateDMY, formatMonthYear } from '@/lib/formatDate';
+import { friendlyErrorMessage } from '@/lib/friendlyError';
 import { Panel, PanelSection, SettingRow, Toggle, Tooltip, PageHeader, StatTile, ProgressBar } from '@/components/ProfileUI';
 import AccountSettings from '@/components/AccountSettings';
 import CheckoutModal from '@/components/CheckoutModal';
@@ -1014,6 +1015,8 @@ function WalletPanel({ user }) {
   const [loadError, setLoadError] = useState(null);
   const [methodError, setMethodError] = useState(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   function refetch() {
     setLoadError(null);
@@ -1044,13 +1047,27 @@ function WalletPanel({ user }) {
       await setDefaultPaymentMethod(id);
       refetch();
     } catch (err) {
-      setMethodError(err.message);
+      setMethodError(friendlyErrorMessage(err, 'Dəyişiklik yadda saxlanmadı.'));
     }
   }
 
   async function handleDeleteMethod(id) {
-    await supabase.from('user_payment_methods').delete().eq('id', id);
-    refetch();
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return;
+    }
+    setDeletingId(id);
+    setMethodError(null);
+    try {
+      const { error } = await supabase.from('user_payment_methods').delete().eq('id', id);
+      if (error) throw error;
+      setConfirmDeleteId(null);
+      refetch();
+    } catch (err) {
+      setMethodError(friendlyErrorMessage(err, 'Kart silinmədi.'));
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   const balance = transactions.reduce((sum, t) => sum + t.amount, 0);
@@ -1121,8 +1138,15 @@ function WalletPanel({ user }) {
                           Defolt et
                         </button>
                       )}
-                      <button type="button" onClick={() => handleDeleteMethod(m.id)} className="text-xs font-bold text-[var(--danger)] hover:opacity-80">
-                        Sil
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMethod(m.id)}
+                        disabled={deletingId === m.id}
+                        className={`text-xs font-bold hover:opacity-80 disabled:opacity-50 transition-colors ${
+                          confirmDeleteId === m.id ? 'bg-[var(--danger)] text-white px-2.5 py-1 rounded-lg' : 'text-[var(--danger)]'
+                        }`}
+                      >
+                        {deletingId === m.id ? 'Silinir...' : confirmDeleteId === m.id ? 'Təsdiqlə' : 'Sil'}
                       </button>
                     </div>
                   </div>

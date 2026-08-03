@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { getSiteOrigin } from '@/lib/siteUrl';
@@ -105,6 +105,14 @@ function GeneralTab({ user, profile, onSaved }) {
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatar_url || null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const avatarBlobUrlRef = useRef(null);
+
+  // Revokes whichever blob URL this component itself created via
+  // createObjectURL below — profile.avatar_url (a real remote URL, not a
+  // blob) is never passed to revokeObjectURL, so it's untouched.
+  useEffect(() => () => {
+    if (avatarBlobUrlRef.current) URL.revokeObjectURL(avatarBlobUrlRef.current);
+  }, []);
 
   useEffect(() => {
     setFullName(profile?.full_name || '');
@@ -142,8 +150,11 @@ function GeneralTab({ user, profile, onSaved }) {
   function handleAvatarChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (avatarBlobUrlRef.current) URL.revokeObjectURL(avatarBlobUrlRef.current);
+    const nextUrl = URL.createObjectURL(file);
+    avatarBlobUrlRef.current = nextUrl;
     setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarPreview(nextUrl);
   }
 
   async function handleSave() {

@@ -108,9 +108,13 @@ export function StatTile({ label, value, icon, tone = 'accent' }) {
 }
 
 export function ProgressBar({ value, colorClass = 'bg-[var(--accent)]' }) {
+  // Clamped at the source so every caller (rounding drift, a stale
+  // percentage computed against a since-shrunk lesson count, etc.) can
+  // never render a bar wider than the track or a negative width.
+  const clamped = Math.min(100, Math.max(0, Number(value) || 0));
   return (
     <div className="w-full h-3 rounded-full bg-[var(--border)] overflow-hidden">
-      <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${value}%` }} />
+      <div className={`h-full ${colorClass} rounded-full transition-all duration-700`} style={{ width: `${clamped}%` }} />
     </div>
   );
 }

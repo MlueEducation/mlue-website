@@ -68,6 +68,13 @@ function AuthArea({ onNavigate }) {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) { if (e.key === 'Escape') setOpen(false); }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
   async function handleSignOut() {
     setOpen(false);
     onNavigate?.();

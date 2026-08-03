@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { openMysteryBox } from '@/lib/gamification';
 import { friendlyErrorMessage } from '@/lib/friendlyError';
 
@@ -15,7 +15,13 @@ export default function MysteryBoxModal({ open, onClose, onOpened }) {
   const [reward, setReward] = useState(null);
   const [error, setError] = useState(null);
 
-  if (!open) return <div className="mlue-modal-backdrop" />;
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) { if (e.key === 'Escape') handleClose(); }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   async function handleOpen() {
     setState('opening');
@@ -42,9 +48,9 @@ export default function MysteryBoxModal({ open, onClose, onOpened }) {
 
   return (
     <>
-      <div className="mlue-modal-backdrop open" onClick={handleClose} />
-      <div className="mlue-modal-panel open text-center" role="dialog" aria-modal="true">
-        {state === 'revealed' && rewardCopy ? (
+      <div className={`mlue-modal-backdrop ${open ? 'open' : ''}`} onClick={handleClose} />
+      <div className={`mlue-modal-panel ${open ? 'open' : ''} text-center`} role="dialog" aria-modal="true" aria-hidden={!open}>
+        {open && (state === 'revealed' && rewardCopy ? (
           <>
             <div className="text-5xl mb-4" style={{ animation: 'mysteryBoxReveal .5s var(--ease)' }}>{rewardCopy.emoji}</div>
             <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-2">{rewardCopy.title}</h2>
@@ -77,7 +83,7 @@ export default function MysteryBoxModal({ open, onClose, onOpened }) {
               </button>
             </div>
           </>
-        )}
+        ))}
       </div>
       <style jsx global>{`
         @keyframes mysteryBoxReveal {

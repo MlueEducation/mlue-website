@@ -33,6 +33,13 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) { if (e.key === 'Escape') setOpen(false); }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
   if (!user) return null;
 
   function handleRowClick(n) {

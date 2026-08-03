@@ -68,6 +68,7 @@ export default function MeagleChatDrawer({ open, onClose }) {
   const [input, setInput] = useState('');
   const [status, setStatus] = useState('idle'); // idle | typing | thinking
   const [context, setContext] = useState({ profile: null, examResult: null, certificateCount: 0, xp: 0, streak: 0 });
+  const [remainingToday, setRemainingToday] = useState(null); // null = unknown or Pro (uncapped)
   const listRef = useRef(null);
   const timeoutRef = useRef(null);
 
@@ -113,7 +114,10 @@ export default function MeagleChatDrawer({ open, onClose }) {
     let limitError = null;
     if (user) {
       try {
-        await incrementMeagleUsage();
+        const usage = await incrementMeagleUsage();
+        // Pro users never hit the cap (the RPC's own is_pro check bypasses
+        // it), so their remaining count is meaningless here — never shown.
+        setRemainingToday(usage?.is_pro ? null : usage?.remaining ?? null);
       } catch (err) {
         limitError = err;
       }
@@ -157,6 +161,13 @@ export default function MeagleChatDrawer({ open, onClose }) {
             </div>
           )}
         </div>
+        {remainingToday != null && remainingToday <= 2 && (
+          <div className="text-[11px] font-semibold text-[var(--warning)] px-4 pt-2">
+            {remainingToday > 0
+              ? `${remainingToday}/5 mesaj qaldı bugün — limitsiz üçün MLUE Pro-ya keç.`
+              : 'Bugünkü mesaj limitin bitdi — limitsiz üçün MLUE Pro-ya keç.'}
+          </div>
+        )}
         <form className="ai-chat-input-row" onSubmit={handleSubmit}>
           <input
             value={input}
