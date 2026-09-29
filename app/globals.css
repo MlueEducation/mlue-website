@@ -230,18 +230,18 @@ header nav {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
 }
 .brand { display: flex; align-items: center; gap: 9px; cursor: pointer; flex-shrink: 0; }
-/* Both logo PNGs have a soft, low-alpha (not fully transparent) glow baked
-   into their canvas margins — a modest uniform crop trims the tinted halo
-   that otherwise reads as a mismatched box against the page background. */
-.brand-icon { height: 27px; width: auto; display: block; clip-path: inset(7% round 2px); }
-/* The wordmark itself is pre-cropped to its tight glyph bounding box (and
-   rendered at 2x for crisp high-DPI display) by BrandLogo.js via <canvas> —
-   see that file for why a plain CSS crop wasn't reliable. Both themes'
-   output is already scaled to the same intrinsic aspect ratio at this
-   fixed height, so no per-theme override is needed here and there's no
-   layout shift when the theme toggles. */
-.brand-word-wrap { display: block; height: 14px; }
-.brand-word-wrap .brand-word-img { display: block; height: 14px; width: auto; }
+/* The build script normalises both cropped icon canvases to one ratio derived
+   from their ink bounds. This shared 24x27px box lets contain render matching
+   icon dimensions across themes without changing the flex row. */
+.brand-icon { width: 24px; height: 27px; display: block; object-fit: contain; }
+/* The light wordmark is a single flat colour, so its cropped alpha can serve
+   as one shared mask. A fixed 104x14px box prevents theme changes from
+   reflowing the header while the mask takes var(--text-primary)'s colour. */
+.brand-word {
+  width: 104px; height: 14px; display: block; background-color: var(--text-primary);
+  -webkit-mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
+  mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
+}
 .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--text-secondary); flex: 1; justify-content: center; }
 .nav-links a { transition: color .2s var(--ease); }
 .nav-links a:hover { color: var(--text-primary); }
