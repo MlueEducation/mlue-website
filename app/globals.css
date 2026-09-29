@@ -25,6 +25,17 @@
   --accent-soft: rgba(0, 86, 210, .08);
   --accent-warm: #00822b;
 
+  /* Header wordmark. Sampled off the master logo artwork (median of the
+     letter pixels, plus the quartiles for the metallic top/bottom ramp), not
+     picked by eye — the light master draws MLUE in flat navy, the dark master
+     in pale ice-blue with a glow. These are deliberately NOT --accent: the
+     wordmark is part of the logo, so it follows the logo's own palette. */
+  --brand-word-top: #2b3450;
+  --brand-word-mid: #1c284e;
+  --brand-word-bot: #161f3c;
+  --brand-word-rule: rgba(51, 60, 89, .85);
+  --brand-word-glow: none;
+
   --success: #00822b;
   --danger: #c93a3a;
   --warning: #b45309;
@@ -92,6 +103,12 @@
   --accent-soft: rgba(76, 141, 255, .16);
   --accent-warm: #2fbf71;
 
+  --brand-word-top: #dbe6f7;
+  --brand-word-mid: #b9d2fa;
+  --brand-word-bot: #9dbef4;
+  --brand-word-rule: rgba(111, 192, 251, .9);
+  --brand-word-glow: drop-shadow(0 0 3px rgba(92, 163, 255, .55));
+
   --success: #2fbf71;
   --danger: #ff6b6b;
   --warning: #f59e0b;
@@ -122,6 +139,12 @@
     --accent-hover: #6fa3ff;
     --accent-soft: rgba(76, 141, 255, .16);
     --accent-warm: #2fbf71;
+
+    --brand-word-top: #dbe6f7;
+    --brand-word-mid: #b9d2fa;
+    --brand-word-bot: #9dbef4;
+    --brand-word-rule: rgba(111, 192, 251, .9);
+    --brand-word-glow: drop-shadow(0 0 3px rgba(92, 163, 255, .55));
 
     --success: #2fbf71;
     --danger: #ff6b6b;
@@ -234,17 +257,28 @@ header nav {
    from their ink bounds. This shared 24x27px box lets contain render matching
    icon dimensions across themes without changing the flex row. */
 .brand-icon { width: 24px; height: 27px; display: block; object-fit: contain; }
-/* The light wordmark is a single flat colour, so its cropped alpha can serve
-   as one shared mask. A fixed 104x14px box prevents theme changes from
-   reflowing the header. The mask is tinted with var(--accent) rather than
-   var(--text-primary) so the wordmark stays the brand blue and reads as one
-   piece with the icon beside it — on the dark theme plain white looked
-   detached from the blue mark. --accent is already theme-aware (#0056d2 /
-   #4c8dff), so it tracks the icon's own light/dark shade. */
-.brand-word {
-  width: 104px; height: 14px; display: block; background-color: var(--accent);
+/* One shared alpha mask, painted per theme from the --brand-word-* tokens, so
+   the letterforms stay physically identical between themes and only the paint
+   changes. The vertical gradient reproduces the master artwork's metallic
+   ramp; ::after is the underline the logo carries beneath MLUE. Its
+   proportions follow the original header asset (~82% of the wordmark width,
+   ~2px below it), not the master lockup, where the underline sits far lower
+   because it runs under the whole stacked logo. Being absolutely positioned
+   it adds no layout height — the 24x27px icon still governs the row, so a
+   theme toggle still cannot reflow the header. */
+.brand-word { position: relative; width: 104px; height: 14px; display: block; }
+.brand-word::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, var(--brand-word-top), var(--brand-word-mid) 55%, var(--brand-word-bot));
+  filter: var(--brand-word-glow);
   -webkit-mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
   mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
+}
+.brand-word::after {
+  content: ''; position: absolute; top: calc(100% + 2px); left: 50%;
+  width: 85px; height: 1px; transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, var(--brand-word-rule) 14%, var(--brand-word-rule) 86%, transparent);
+  filter: var(--brand-word-glow);
 }
 .nav-links { display: flex; gap: 30px; font-size: 14px; color: var(--text-secondary); flex: 1; justify-content: center; }
 .nav-links a { transition: color .2s var(--ease); }
