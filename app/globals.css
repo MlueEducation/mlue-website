@@ -236,9 +236,13 @@ header nav {
 .brand-icon { width: 24px; height: 27px; display: block; object-fit: contain; }
 /* The light wordmark is a single flat colour, so its cropped alpha can serve
    as one shared mask. A fixed 104x14px box prevents theme changes from
-   reflowing the header while the mask takes var(--text-primary)'s colour. */
+   reflowing the header. The mask is tinted with var(--accent) rather than
+   var(--text-primary) so the wordmark stays the brand blue and reads as one
+   piece with the icon beside it — on the dark theme plain white looked
+   detached from the blue mark. --accent is already theme-aware (#0056d2 /
+   #4c8dff), so it tracks the icon's own light/dark shade. */
 .brand-word {
-  width: 104px; height: 14px; display: block; background-color: var(--text-primary);
+  width: 104px; height: 14px; display: block; background-color: var(--accent);
   -webkit-mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
   mask: url('/mlue-wordmark-mask.png') no-repeat center / contain;
 }
