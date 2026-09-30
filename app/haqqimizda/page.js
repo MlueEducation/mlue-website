@@ -11,7 +11,7 @@ export default async function HaqqimizdaPage() {
     <>
       <section className="page-hero">
         <div className="container">
-          <Reveal><h1>{content['haqqimizda.hero.title'] || 'Rəqəmsal təhsili hər kəs üçün əlçatan etmək istəyirik'}</h1></Reveal>
+          <Reveal><h1>{content['haqqimizda.hero.title'] || 'Rəqəms təhsili hər kəs üçün əlçatan etmək istəyirik'}</h1></Reveal>
           <Reveal><p>{content['haqqimizda.hero.subtitle'] || 'Mlue, Azərbaycan bazarı üçün tam lokallaşdırılmış onlayn təhsil, peşə hazırlığı və karyera inkişafı platformasıdır.'}</p></Reveal>
         </div>
       </section>
